@@ -42,7 +42,7 @@ Image Preview lets you preview and pin images over your chat, quickly look up te
 
 ## Installation
 
-1. Download the latest `.tpg` package from the **Releases** section.
+1. Download the latest `.tpg` package from the **[Releases](../../releases)** section.
 2. Open Tavo.
 3. Install/import the `.tpg` plugin package.
 4. Enable **Image Preview** from Tavo's plugin settings.
@@ -58,7 +58,7 @@ This release is a small maintenance update focused on cleaning up the settings i
 
 Image Preview was originally created as a personal Tavo plugin.
 
-The project is also intended to remain **community-minded**. If I stop maintaining it for a long period, I plan to make the source available so other people can fix, modify, improve, and extend the plugin while preserving the original credit.
+The project is also intended to remain **community-minded**. If I stop maintaining it for a long period, I plan to make the source available so other people can fix, modify, improve, and extend the plugin while keeping the original copyright and license notice.
 
 ## Credits
 
