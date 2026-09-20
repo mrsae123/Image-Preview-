@@ -1,0 +1,124 @@
+{
+  "specVersion": 2,
+  "id": "com.emon.image-viewer",
+  "name": {
+    "$t": "plugin.name"
+  },
+  "version": "2.12.0",
+  "author": "Emon",
+  "description": {
+    "$t": "plugin.description"
+  },
+  "releaseNotes": {
+    "$t": "releaseNotes.2_12_0"
+  },
+  "localization": {
+    "defaultLocale": "en",
+    "resources": {
+      "en": "locales/en.json",
+      "bn": "locales/bn.json"
+    }
+  },
+  "permissions": [
+    "file",
+    "network",
+    "variable"
+  ],
+  "contributes": {
+    "htmlFragments": [
+      {
+        "id": "emon-image-viewer",
+        "src": "ui/panel.html",
+        "mount": "/chat/body/end"
+      }
+    ],
+    "settings": {
+      "schema": [
+        {
+          "type": "info",
+          "text": {
+            "$t": "settings.info"
+          },
+          "icon": "info"
+        },
+        {
+          "key": "enabled",
+          "type": "switch",
+          "label": {
+            "$t": "settings.enabled"
+          },
+          "default": true
+        },
+        {
+          "key": "buttonSize",
+          "type": "slider",
+          "label": {
+            "$t": "settings.buttonSize"
+          },
+          "min": 28,
+          "max": 64,
+          "step": 2,
+          "default": 54
+        },
+        {
+          "key": "buttonOpacity",
+          "type": "slider",
+          "label": {
+            "$t": "settings.buttonOpacity"
+          },
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "default": 1
+        },
+        {
+          "key": "stealthMode",
+          "type": "switch",
+          "label": {
+            "$t": "settings.stealthMode"
+          },
+          "default": false
+        },
+        {
+          "key": "resetFabPosition",
+          "type": "switch",
+          "label": {
+            "$t": "settings.resetFabPosition"
+          },
+          "default": false
+        },
+        {
+          "key": "defaultImageSize",
+          "type": "slider",
+          "label": {
+            "$t": "settings.defaultImageSize"
+          },
+          "min": 120,
+          "max": 420,
+          "step": 10,
+          "default": 220
+        },
+        {
+          "key": "defaultOpacity",
+          "type": "slider",
+          "label": {
+            "$t": "settings.defaultOpacity"
+          },
+          "min": 0.35,
+          "max": 1,
+          "step": 0.05,
+          "default": 0.95
+        },
+        {
+          "key": "rememberPins",
+          "type": "switch",
+          "label": {
+            "$t": "settings.rememberPins"
+          },
+          "default": true
+        }
+      ]
+    }
+  },
+  "cover": "icon.png"
+}
