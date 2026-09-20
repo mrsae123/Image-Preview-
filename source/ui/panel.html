@@ -1,1 +1,2895 @@
+<style>
+#emon-iv-root{all:initial;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff}
+#emon-iv-root *{box-sizing:border-box}
+#emon-iv-fab{position:fixed;right:18px;bottom:110px;width:54px;height:54px;min-width:28px;min-height:28px;border:0;border-radius:50%;z-index:2147483000;background:linear-gradient(145deg,#9b6cff,#6337d9);box-shadow:0 8px 24px #0008;display:grid;place-items:center;color:white;font-size:25px;opacity:var(--emon-fab-opacity,1);transition:opacity .16s,transform .12s,box-shadow .16s;touch-action:none;user-select:none}
+#emon-iv-fab.dragging{opacity:.78!important;transform:scale(.94)}
+#emon-iv-fab.stealth{opacity:0!important;box-shadow:none}
+#emon-iv-fab.stealth.peek{opacity:.58!important;box-shadow:0 6px 20px #0006}
+#emon-iv-fab span{font-size:inherit;line-height:1}
 
+#emon-iv-fab span{filter:drop-shadow(0 1px 2px #000)}
+#emon-iv-panel{position:fixed;z-index:2147482999;right:28px;bottom:96px;width:min(620px,calc(100vw - 36px));max-height:min(78vh,720px);overflow:auto;background:#0e131dfa;border:1px solid #ffffff20;border-radius:22px;box-shadow:0 14px 40px #0009;padding:18px;display:none}
+#emon-iv-panel.open{display:block}
+.emon-iv-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.emon-iv-title{font-size:21px;font-weight:750}
+.emon-iv-close{border:1px solid #ffffff18;background:#ffffff10;color:#fff;border-radius:12px;width:42px;height:42px;font-size:20px}
+.emon-iv-section{margin-top:15px}
+.emon-iv-label{font-size:12px;font-weight:800;letter-spacing:.08em;opacity:.68;margin:0 0 9px}
+.emon-iv-profiles,.emon-iv-saved{display:flex;gap:10px;overflow-x:auto;padding:2px 1px 6px}
+.emon-iv-card{min-width:130px;max-width:150px;background:#ffffff0d;border:1px solid #ffffff12;border-radius:15px;padding:7px;color:#fff;text-align:left;box-sizing:border-box;overflow:hidden}
+.emon-iv-card img{width:100%;aspect-ratio:1;border-radius:11px;object-fit:cover;display:block;background:#080b10}
+.emon-iv-card .name{font-size:12px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.9}
+.emon-iv-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}
+.emon-iv-card-actions button{border:1px solid #ffffff12;background:#ffffff0b;color:#fff;border-radius:8px;padding:5px 2px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box;min-width:0}
+.emon-iv-card-actions button[data-act="delete"]{background:#7f1d1d55;border-color:#ff6b6b33;color:#ffb4b4}
+.emon-iv-row{display:flex;gap:8px}
+.emon-iv-input{flex:1;min-width:0;border:1px solid #ffffff18;background:#0b1019;color:#fff;border-radius:13px;padding:12px 13px;font-size:14px;outline:none}
+.emon-iv-btn{border:0;background:#8b5cf6;color:#fff;border-radius:13px;padding:0 16px;font-weight:750}
+.emon-iv-btn.secondary{background:#ffffff10;border:1px solid #ffffff16}
+.emon-iv-status{font-size:12px;opacity:.7;margin-top:8px;min-height:16px}
+.emon-iv-preview{margin-top:12px;border-radius:16px;background:#070a0f;border:1px solid #ffffff12;overflow:hidden;display:none}
+.emon-iv-preview.show{display:block}
+.emon-iv-preview img{display:block;width:100%;max-height:360px;object-fit:contain;cursor:zoom-in}
+.emon-iv-preview .meta{padding:9px 11px;font-size:11px;opacity:.62}
+.emon-iv-actions{display:flex;gap:7px;flex-wrap:wrap;padding:10px}
+.emon-iv-actions button{border:1px solid #ffffff15;background:#ffffff0b;color:#fff;border-radius:10px;padding:8px 11px;font-size:12px}
+.emon-iv-pinrow{display:flex;align-items:center;gap:7px;margin-top:8px}
+.emon-iv-pinrow button{border:1px solid #ffffff15;background:#ffffff0b;color:#fff;border-radius:10px;padding:7px 9px}
+.emon-iv-empty{font-size:12px;opacity:.48;padding:8px 0}
+.emon-iv-pinned{position:fixed;z-index:2147482998;left:0;top:0;width:220px;min-width:90px;max-width:65vw;max-height:70vh;background:#070a0fcc;border:1px solid #ffffff20;border-radius:16px;box-shadow:0 18px 50px #000a;overflow:hidden;touch-action:none;user-select:none}
+.emon-iv-pinned img{display:block;width:100%;height:auto;max-height:60vh;object-fit:contain;background:#000;pointer-events:none}
+.emon-iv-pinned .bar{display:flex;gap:5px;align-items:center;padding:5px;background:#111722e8}
+.emon-iv-pinned .bar.collapsed{width:fit-content;padding:3px;border-radius:0 0 10px 0;gap:0}
+.emon-iv-pinned .bar.collapsed>*:not(.bartoggle){display:none}
+.emon-iv-pinned .bar .bartoggle{width:22px;height:22px;font-size:12px;opacity:.75;flex:none}
+.emon-iv-pinned .bar button{width:29px;height:29px;border:0;border-radius:8px;background:#ffffff10;color:#fff;font-size:14px}
+.emon-iv-pinned .bar .dragtitle{flex:1;min-width:0;font-size:10px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.emon-iv-pinned .grip{position:absolute;right:0;bottom:0;width:32px;height:32px;cursor:nwse-resize;background:linear-gradient(135deg,transparent 45%,#fff5 46%,#fff5 52%,transparent 53%),linear-gradient(135deg,transparent 60%,#fff5 61%,#fff5 67%,transparent 68%)}
+.emon-iv-pinned .sizebadge{position:absolute;top:38px;left:6px;background:#000a;color:#fff;font-size:10px;padding:2px 7px;border-radius:6px;opacity:0;transition:opacity .12s;pointer-events:none;font-variant-numeric:tabular-nums}
+.emon-iv-pinned .sizebadge.show{opacity:1}
+.emon-iv-pinned .zoom{font-size:11px}
+.emon-iv-help{font-size:11px;opacity:.5;margin-top:8px}
+@media(max-width:600px){
+  #emon-iv-panel{right:12px;bottom:82px;width:calc(100vw - 24px);max-height:72vh;padding:14px}
+  #emon-iv-fab{right:14px;bottom:92px}
+}
+
+.emon-iv-lookup{margin-top:15px;padding:13px;border:1px solid #ffffff12;background:#ffffff07;border-radius:17px}
+.emon-iv-tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}
+.emon-iv-tab{border:1px solid #ffffff14;background:#ffffff08;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:750;white-space:nowrap}
+.emon-iv-tab.active{background:#8b5cf6;border-color:#a78bfa}
+.emon-iv-lookup textarea{width:100%;min-height:76px;resize:vertical;border:1px solid #ffffff18;background:#0b1019;color:#fff;border-radius:12px;padding:11px 12px;font-size:14px;outline:none;font-family:inherit}
+.emon-iv-lookup-controls{display:flex;gap:7px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.emon-iv-select{border:1px solid #ffffff18;background:#0b1019;color:#fff;border-radius:10px;padding:8px 9px;font-size:11px;outline:none}
+.emon-iv-lookup-result{margin-top:10px;display:none}
+.emon-iv-lookup-result.show{display:block}
+.emon-iv-result-card{padding:10px 11px;border:1px solid #ffffff12;background:#0b1019;border-radius:12px;margin-top:7px}
+.emon-iv-result-title{font-size:13px;font-weight:800}
+.emon-iv-result-text{font-size:12px;line-height:1.5;opacity:.88;margin-top:5px;white-space:pre-wrap;word-break:break-word}
+.emon-iv-result-meta{font-size:10px;opacity:.52;margin-top:6px;word-break:break-all}
+.emon-iv-result-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.emon-iv-result-actions button{border:1px solid #ffffff14;background:#ffffff0b;color:#fff;border-radius:8px;padding:6px 8px;font-size:10px}
+.emon-iv-lookup-note{font-size:10px;opacity:.5;margin-top:7px;line-height:1.35}
+
+#emon-iv-game{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483010;width:min(360px,calc(100vw - 28px));background:#0e131dfa;border:1px solid #ffffff22;border-radius:20px;box-shadow:0 12px 34px #0009;padding:14px;display:none;touch-action:none}
+#emon-iv-game.open{display:block}
+#emon-iv-game .ghead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;cursor:grab;padding:2px 0 8px}
+#emon-iv-game .ghead:active{cursor:grabbing}
+#emon-iv-game .gdots{opacity:.4;font-size:12px;letter-spacing:2px}
+#emon-iv-game .gscore{font-size:12px;opacity:.8;margin-bottom:8px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+#emon-iv-game .gscore b{opacity:1;font-weight:800}
+#emon-iv-game-settings.collapsed{display:none}
+#emon-iv-game .glink{background:none;border:0;color:inherit;font:inherit;padding:0;text-decoration:underline;text-decoration-color:#ffffff40;text-underline-offset:2px}
+#emon-iv-game-canvas{width:100%;display:block;border-radius:13px;background:linear-gradient(#0d1420,#070a10);touch-action:none}
+#emon-iv-game .gpicker{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center}
+#emon-iv-game .gpicker span{font-size:11px;opacity:.6}
+#emon-iv-game .gpicker button{border:1px solid #ffffff16;background:#ffffff0b;color:#fff;border-radius:9px;width:34px;height:34px;font-size:17px}
+#emon-iv-game .gpicker button.active{background:#8b5cf6;border-color:#a78bfa}
+#emon-iv-game .gpicker input{width:58px;border:1px solid #ffffff18;background:#0b1019;color:#fff;border-radius:9px;padding:6px 4px;font-size:15px;text-align:center;outline:none}
+#emon-iv-game .ghint{font-size:10px;opacity:.5;margin-top:9px;text-align:center;line-height:1.4}
+#emon-iv-game .grow2{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+#emon-iv-game .grow2 button{flex:1;min-width:0;border:1px solid #ffffff16;background:#ffffff0b;color:#fff;border-radius:9px;padding:7px 4px;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.emon-iv-toggle-row{display:flex;align-items:center;gap:7px;font-size:11.5px;opacity:.85;margin-top:9px;cursor:pointer}
+.emon-iv-toggle-row input{width:15px;height:15px;flex:none}
+#emon-iv-history-panel{margin-top:8px;border:1px solid #ffffff14;border-radius:12px;padding:8px}
+#emon-iv-history-list{max-height:170px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+#emon-iv-history-list button{width:100%;text-align:left;border:1px solid #ffffff14;background:#ffffff09;color:#fff;border-radius:8px;padding:6px 8px;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#emon-iv-history-list .emon-iv-empty{font-size:11px;opacity:.55;padding:4px}
+#emon-iv-game-namegate{position:absolute;inset:14px;background:#0e131df5;border-radius:16px;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center;z-index:2}
+#emon-iv-game-namegate.show{display:flex}
+#emon-iv-game-namegate .gname-label{font-size:13px;opacity:.85;max-width:260px;line-height:1.4}
+#emon-iv-game-namegate .gname-row{display:flex;gap:8px;width:100%;max-width:260px}
+#emon-iv-game-namegate input{flex:1;min-width:0;border:1px solid #ffffff22;background:#0b1019;color:#fff;border-radius:10px;padding:9px 10px;font-size:14px;outline:none}
+#emon-iv-game-tiers{display:none}
+#emon-iv-game-tiers.show{display:block}
+#emon-iv-game-tiers .gtiers-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+#emon-iv-game-tiers-list{max-height:220px;overflow-y:auto;border:1px solid #ffffff14;border-radius:12px;padding:6px}
+#emon-iv-game-tiers-list .grow{display:flex;justify-content:space-between;gap:8px;padding:6px 8px;font-size:12px;border-radius:8px}
+#emon-iv-game-tiers-list .grow.you{background:#8b5cf62e}
+#emon-iv-game-tiers-list .grow span:last-child{opacity:.6;flex:none}
+#emon-iv-game .gswitch{border:1px solid #ffffff16;background:#ffffff0b;color:#fff;border-radius:10px;padding:5px 10px;font-size:13px;font-weight:750;max-width:56%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#emon-iv-game-customwrap{display:none}
+#emon-iv-game[data-mode="custom"] #emon-iv-game-customwrap{display:block}
+#emon-iv-game[data-mode="custom"] #emon-iv-game-jumpwrap,
+#emon-iv-game[data-mode="custom"] #emon-iv-game-settings,
+#emon-iv-game[data-mode="custom"] #emon-iv-game-tiers,
+#emon-iv-game[data-mode="custom"] #emon-iv-game-pause,
+#emon-iv-game[data-mode="custom"] #emon-iv-game-settings-toggle{display:none !important}
+#emon-iv-game-frame{width:100%;height:300px;border:0;border-radius:13px;background:#070a10;display:block}
+#emon-iv-game-customhint{display:none}
+#emon-iv-game[data-mode="custom"] #emon-iv-game-customhint{display:block}
+#emon-iv-game-lib{display:none}
+#emon-iv-game-lib.show{display:block}
+#emon-iv-game.libopen .gscore,
+#emon-iv-game.libopen #emon-iv-game-jumpwrap,
+#emon-iv-game.libopen #emon-iv-game-customwrap,
+#emon-iv-game.libopen #emon-iv-game-customhint,
+#emon-iv-game.libopen #emon-iv-game-namegate,
+#emon-iv-game.libopen #emon-iv-game-settings,
+#emon-iv-game.libopen #emon-iv-game-tiers{display:none !important}
+#emon-iv-game-lib-body{max-height:min(58vh,430px);overflow-y:auto;border:1px solid #ffffff14;border-radius:12px;padding:6px}
+#emon-iv-game-lib .glrow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px}
+#emon-iv-game-lib .glrow.active{background:#8b5cf62e}
+#emon-iv-game-lib .glrow .lemo{font-size:22px;flex:none;width:28px;text-align:center}
+#emon-iv-game-lib .glrow .lmeta{flex:1;min-width:0}
+#emon-iv-game-lib .glrow .lmeta b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#emon-iv-game-lib .glrow .lmeta small{font-size:10px;opacity:.55}
+#emon-iv-game-lib .glrow button{border:1px solid #ffffff16;background:#ffffff0b;color:#fff;border-radius:9px;min-width:34px;height:32px;font-size:13px;padding:0 8px;flex:none}
+#emon-iv-game-lib .glrow button[data-act="play"]{background:#8b5cf6;border-color:#a78bfa}
+#emon-iv-game-lib .glibadd{width:100%;margin-top:8px;height:38px;font-size:13px}
+#emon-iv-game-add{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #ffffff14}
+#emon-iv-game-add.show{display:block}
+#emon-iv-game-add .gaddrow{display:flex;gap:6px;margin-bottom:6px}
+#emon-iv-game-add .gaddrow .emon-iv-input{padding:9px 10px;font-size:13px}
+#emon-iv-game-add-code{width:100%;min-height:110px;resize:vertical;border:1px solid #ffffff18;background:#0b1019;color:#fff;border-radius:12px;padding:9px 10px;font-size:11.5px;font-family:ui-monospace,Menlo,Consolas,monospace;outline:none}
+#emon-iv-game .gresize{position:absolute;right:2px;bottom:2px;width:30px;height:30px;cursor:nwse-resize;display:flex;align-items:center;justify-content:center;font-size:13px;opacity:.45}
+
+</style>
+
+<div id="emon-iv-root">
+  <button id="emon-iv-fab" aria-label="Image Preview"><span>🖼️</span></button>
+  <div id="emon-iv-panel">
+    <div class="emon-iv-head">
+      <div class="emon-iv-title" data-i18n="runtime.title">Image Preview</div>
+      <div style="display:flex;gap:8px">
+        <button class="emon-iv-close" id="emon-iv-game-btn" data-i18n-title="runtime.gameOpen">🎮</button>
+        <button class="emon-iv-close" id="emon-iv-close" data-i18n-title="runtime.close">×</button>
+      </div>
+    </div>
+
+    <div class="emon-iv-lookup">
+      <div class="emon-iv-head" style="margin-bottom:2px">
+        <div class="emon-iv-label" style="margin:0" data-i18n="runtime.lookupTitle">QUICK LOOKUP</div>
+        <button id="emon-iv-privacy-toggle" class="emon-iv-close" style="width:auto;height:28px;padding:0 9px;font-size:11px"></button>
+      </div>
+      <div class="emon-iv-tabs">
+        <button class="emon-iv-tab active" id="emon-iv-tab-translate" data-mode="translate" data-i18n="runtime.translateTab">Translate</button>
+        <button class="emon-iv-tab" id="emon-iv-tab-meaning" data-mode="meaning" data-i18n="runtime.meaningTab">Meaning</button>
+        <button class="emon-iv-tab" id="emon-iv-tab-search" data-mode="search" data-i18n="runtime.searchTab">Web Search</button>
+      </div>
+      <textarea id="emon-iv-lookup-input" data-i18n-placeholder="runtime.lookupPlaceholder"></textarea>
+      <div class="emon-iv-lookup-controls">
+        <select id="emon-iv-target" class="emon-iv-select" aria-label="Target language">
+          <option value="en" data-i18n="runtime.toEnglish">→ English</option>
+          <option value="bn" data-i18n="runtime.toBengali">→ Bengali</option>
+        </select>
+        <button id="emon-iv-lookup-go" class="emon-iv-btn" data-i18n="runtime.lookupGo">Look up</button>
+        <button id="emon-iv-lookup-clear" class="emon-iv-btn secondary" data-i18n="runtime.lookupClear">Clear</button>
+      </div>
+      <div class="emon-iv-lookup-controls" style="justify-content:space-between">
+        <label class="emon-iv-toggle-row" style="margin:0"><input type="checkbox" id="emon-iv-history-toggle" /><span data-i18n="runtime.historyToggle">Save search history (off by default)</span></label>
+        <button id="emon-iv-history-open" class="emon-iv-btn secondary" style="display:none" data-i18n="runtime.historyOpen">History</button>
+      </div>
+      <div id="emon-iv-history-panel" style="display:none">
+        <div id="emon-iv-history-list"></div>
+        <div class="emon-iv-lookup-controls" style="margin-top:6px">
+          <button id="emon-iv-history-clear" class="emon-iv-btn secondary" data-i18n="runtime.historyClear">Clear history</button>
+          <button id="emon-iv-history-close" class="emon-iv-btn secondary" data-i18n="runtime.historyCloseBtn">Close</button>
+        </div>
+      </div>
+      <div class="emon-iv-lookup-controls" id="emon-iv-search-key-row" style="display:none">
+        <input id="emon-iv-search-key" class="emon-iv-input" type="password" autocomplete="off" data-i18n-placeholder="runtime.searchApiPlaceholder" style="flex:1 1 160px" />
+        <button id="emon-iv-search-key-save" class="emon-iv-btn secondary" data-i18n="runtime.searchApiSave">Save key</button>
+        <button id="emon-iv-search-key-clear" class="emon-iv-btn secondary" data-i18n="runtime.searchApiClear">Remove</button>
+      </div>
+      <div id="emon-iv-lookup-status" class="emon-iv-status"></div>
+      <div id="emon-iv-lookup-result" class="emon-iv-lookup-result"></div>
+      <div class="emon-iv-lookup-note" data-i18n="runtime.lookupNote">Only the text you type above is sent to public lookup services, and only when you tap Look up — never your images, pins, or saved files. Turn on Privacy Mode to block this completely.</div>
+      <div class="emon-iv-lookup-note" id="emon-iv-search-key-hint" style="display:none"></div>
+    </div>
+
+    <div class="emon-iv-section">
+      <div class="emon-iv-label" data-i18n="runtime.chatProfiles">CHAT PROFILES</div>
+      <div class="emon-iv-profiles" id="emon-iv-profiles"></div>
+    </div>
+
+    <div class="emon-iv-section">
+      <div class="emon-iv-label" data-i18n="runtime.urlLabel">IMAGE OR WEBSITE URL</div>
+      <div class="emon-iv-row">
+        <input id="emon-iv-url" class="emon-iv-input" type="url" data-i18n-placeholder="runtime.urlPlaceholder" />
+        <button id="emon-iv-preview-btn" class="emon-iv-btn" data-i18n="runtime.preview">Preview</button>
+      </div>
+      <button id="emon-iv-import" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.importImage">Import from device</button>
+      <div id="emon-iv-status" class="emon-iv-status"></div>
+      <div id="emon-iv-preview" class="emon-iv-preview">
+        <img id="emon-iv-preview-img" alt="" />
+        <div class="meta" id="emon-iv-preview-meta"></div>
+        <div class="emon-iv-actions">
+          <button id="emon-iv-pin" data-i18n="runtime.pin">Pin on chat</button>
+          <button id="emon-iv-save" data-i18n="runtime.savePreview">Save preview</button>
+          <button id="emon-iv-full" data-i18n="runtime.fullscreen">Fullscreen</button>
+          <button id="emon-iv-open" data-i18n="runtime.openUrl">Open URL</button>
+        </div>
+      </div>
+      <div class="emon-iv-help" data-i18n="runtime.dragHint">Drag the image to move it. Pinch or use +/− to zoom.</div>
+    </div>
+
+    <div class="emon-iv-section">
+      <div class="emon-iv-label" data-i18n="runtime.pinned">PINNED ON CHAT</div>
+      <div id="emon-iv-pinned-list"></div>
+    </div>
+
+    <div class="emon-iv-section">
+      <div class="emon-iv-head" style="margin-bottom:8px">
+        <div class="emon-iv-label" style="margin:0" data-i18n="runtime.saved">SAVED PREVIEWS</div>
+        <div style="display:flex;gap:6px">
+          <button class="emon-iv-close" style="width:auto;height:32px;padding:0 9px;font-size:12px" id="emon-iv-refresh-saved" data-i18n="runtime.refresh">Refresh</button>
+          <button class="emon-iv-close" style="width:auto;height:32px;padding:0 9px;font-size:12px" id="emon-iv-clear-saved" data-i18n="runtime.clearAll">Clear all</button>
+        </div>
+      </div>
+      <div class="emon-iv-saved" id="emon-iv-saved"></div>
+      <div class="emon-iv-help" data-i18n="runtime.savedHint">Saved images belong only to this chat. Deleting one removes it from Tavo storage.</div>
+    </div>
+  </div>
+
+  <div id="emon-iv-game" data-mode="jump">
+    <div class="ghead" id="emon-iv-game-drag">
+      <div class="gdots">⋮⋮</div>
+      <button id="emon-iv-game-switch" class="gswitch" data-i18n-title="runtime.gameLibOpen"><span id="emon-iv-game-name">Jump Game</span> ▾</button>
+      <div style="display:flex;gap:6px">
+        <button class="emon-iv-close" id="emon-iv-game-pause" style="width:30px;height:30px;font-size:14px" data-i18n-title="runtime.gamePause">⏸️</button>
+        <button class="emon-iv-close" id="emon-iv-game-close" style="width:30px;height:30px;font-size:15px">×</button>
+      </div>
+    </div>
+    <div class="gscore">
+      <span data-i18n="runtime.gameScore">Score</span>: <b id="emon-iv-game-score">0</b>
+      &nbsp;·&nbsp;
+      <button id="emon-iv-game-best-btn" class="glink"><span data-i18n="runtime.gameBest">Best</span>: <b id="emon-iv-game-best">0</b></button>
+      <button id="emon-iv-game-settings-toggle" style="margin-left:auto;width:26px;height:26px;font-size:13px;border:1px solid #ffffff16;background:#ffffff0b;color:#fff;border-radius:8px" data-i18n-title="runtime.gameSettingsToggle">⚙️</button>
+    </div>
+    <div style="position:relative" id="emon-iv-game-body">
+      <div id="emon-iv-game-jumpwrap">
+        <canvas id="emon-iv-game-canvas"></canvas>
+      </div>
+      <div id="emon-iv-game-customwrap">
+        <iframe id="emon-iv-game-frame" sandbox="allow-scripts" title="Game"></iframe>
+      </div>
+      <div id="emon-iv-game-namegate">
+        <div class="gname-label" data-i18n="runtime.gameNamePrompt">Pick a name before you start playing:</div>
+        <div class="gname-row">
+          <input id="emon-iv-game-name-input" maxlength="16" data-i18n-placeholder="runtime.gameNamePlaceholder" />
+          <button id="emon-iv-game-name-save" class="emon-iv-btn" data-i18n="runtime.gameNameSave">Start</button>
+        </div>
+      </div>
+    </div>
+    <div class="ghint" id="emon-iv-game-customhint" data-i18n="runtime.gameCustomHint">Added games run in an isolated box.</div>
+    <div id="emon-iv-game-lib">
+      <div class="gtiers-head">
+        <div class="emon-iv-title" style="font-size:14px" data-i18n="runtime.gameLibTitle">Games</div>
+        <button id="emon-iv-game-lib-close" class="emon-iv-close" style="width:28px;height:28px;font-size:13px">×</button>
+      </div>
+      <div id="emon-iv-game-lib-body">
+        <div id="emon-iv-game-lib-list"></div>
+        <button id="emon-iv-game-add-open" class="emon-iv-btn secondary glibadd" data-i18n="runtime.gameAdd">+ Add a game</button>
+        <button id="emon-iv-game-lib-name" class="emon-iv-btn secondary glibadd" data-i18n="runtime.gameChangeName">Change name</button>
+        <div id="emon-iv-game-add">
+          <div class="emon-iv-label" data-i18n="runtime.gameAddTitle">ADD A NEW GAME</div>
+          <div class="gaddrow">
+            <input id="emon-iv-game-add-name" class="emon-iv-input" maxlength="24" data-i18n-placeholder="runtime.gameAddName" />
+            <input id="emon-iv-game-add-emoji" class="emon-iv-input" maxlength="8" style="flex:0 0 64px;text-align:center" data-i18n-placeholder="runtime.gameAddEmoji" />
+          </div>
+          <textarea id="emon-iv-game-add-code" spellcheck="false" data-i18n-placeholder="runtime.gameAddCode"></textarea>
+          <div class="grow2">
+            <button id="emon-iv-game-add-import" data-i18n="runtime.gameAddImport">Import .html file</button>
+            <button id="emon-iv-game-add-save" style="background:#8b5cf6;border-color:#a78bfa" data-i18n="runtime.gameAddSave">Save game</button>
+            <button id="emon-iv-game-add-cancel" data-i18n="runtime.gameAddCancel">Cancel</button>
+          </div>
+          <div class="grow2">
+            <button id="emon-iv-game-add-ai" data-i18n="runtime.gameAddAiPrompt">Copy AI prompt</button>
+          </div>
+          <div class="ghint" data-i18n="runtime.gameAddHelp">Games are single HTML files.</div>
+        </div>
+      </div>
+    </div>
+    <div id="emon-iv-game-tiers">
+      <div class="gtiers-head">
+        <div class="emon-iv-title" style="font-size:14px" data-i18n="runtime.gameTiersTitle">Titles by Score</div>
+        <button id="emon-iv-game-tiers-close" class="emon-iv-close" style="width:28px;height:28px;font-size:13px">×</button>
+      </div>
+      <div id="emon-iv-game-tiers-list"></div>
+    </div>
+    <div id="emon-iv-game-settings">
+      <div class="gpicker" id="emon-iv-game-picker">
+        <span data-i18n="runtime.gamePickChar">Character:</span>
+        <button data-emoji="🏃">🏃</button>
+        <button data-emoji="👾">👾</button>
+        <button data-emoji="⚡">⚡</button>
+        <button data-emoji="🐉">🐉</button>
+        <button data-emoji="💀">💀</button>
+        <input id="emon-iv-game-custom" maxlength="16" data-i18n-placeholder="runtime.gameCustomPlaceholder" />
+        <button id="emon-iv-game-custom-clear" data-i18n-title="runtime.gameCustomClear" style="width:34px;height:34px;font-size:13px;border:1px solid #ffffff16;background:#ffffff0b;color:#fff;border-radius:9px">✕</button>
+      </div>
+      <label class="emon-iv-toggle-row"><input type="checkbox" id="emon-iv-game-relaxed" /><span data-i18n="runtime.gameRelaxed">Relaxed Mode — slower pace, more forgiving (for anyone who wants an easier, calmer game)</span></label>
+      <div class="grow2">
+        <button id="emon-iv-game-reset-run" data-i18n="runtime.gameResetRun">Reset run</button>
+        <button id="emon-iv-game-reset-best" data-i18n="runtime.gameResetBest">Reset best</button>
+        <button id="emon-iv-game-change-name" data-i18n="runtime.gameChangeName">Change name</button>
+      </div>
+      <div class="ghint" data-i18n="runtime.gameHint">Tap or hold to jump (hold a little longer = jump higher). This game runs entirely on your device — nothing about it is ever sent anywhere.</div>
+    </div>
+    <div class="gresize" id="emon-iv-game-resize">⤡</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const root = document.getElementById('emon-iv-root');
+  if (!root || root.dataset.ready === '1') return;
+  root.dataset.ready = '1';
+
+  const fab = document.getElementById('emon-iv-fab');
+  const panel = document.getElementById('emon-iv-panel');
+  const closeBtn = document.getElementById('emon-iv-close');
+  const profilesEl = document.getElementById('emon-iv-profiles');
+  const urlEl = document.getElementById('emon-iv-url');
+  const previewBtn = document.getElementById('emon-iv-preview-btn');
+  const statusEl = document.getElementById('emon-iv-status');
+  const previewEl = document.getElementById('emon-iv-preview');
+  const previewImg = document.getElementById('emon-iv-preview-img');
+  const previewMeta = document.getElementById('emon-iv-preview-meta');
+  const pinBtn = document.getElementById('emon-iv-pin');
+  const saveBtn = document.getElementById('emon-iv-save');
+  const importBtn = document.getElementById('emon-iv-import');
+  const fullBtn = document.getElementById('emon-iv-full');
+  const openBtn = document.getElementById('emon-iv-open');
+  const pinnedList = document.getElementById('emon-iv-pinned-list');
+  const savedEl = document.getElementById('emon-iv-saved');
+  const refreshSavedBtn = document.getElementById('emon-iv-refresh-saved');
+  const clearSavedBtn = document.getElementById('emon-iv-clear-saved');
+  const lookupInput = document.getElementById('emon-iv-lookup-input');
+  const lookupGo = document.getElementById('emon-iv-lookup-go');
+  const lookupClear = document.getElementById('emon-iv-lookup-clear');
+  const lookupStatus = document.getElementById('emon-iv-lookup-status');
+  const lookupResult = document.getElementById('emon-iv-lookup-result');
+  const lookupTarget = document.getElementById('emon-iv-target');
+  const lookupTabs = [...document.querySelectorAll('.emon-iv-tab')];
+  const searchKeyRow = document.getElementById('emon-iv-search-key-row');
+  const searchKeyInput = document.getElementById('emon-iv-search-key');
+  const searchKeySave = document.getElementById('emon-iv-search-key-save');
+  const searchKeyClear = document.getElementById('emon-iv-search-key-clear');
+  const searchKeyHint = document.getElementById('emon-iv-search-key-hint');
+  const privacyToggle = document.getElementById('emon-iv-privacy-toggle');
+  const historyToggle = document.getElementById('emon-iv-history-toggle');
+  const historyOpenBtn = document.getElementById('emon-iv-history-open');
+  const historyPanel = document.getElementById('emon-iv-history-panel');
+  const historyList = document.getElementById('emon-iv-history-list');
+  const historyClearBtn = document.getElementById('emon-iv-history-clear');
+  const historyCloseBtn = document.getElementById('emon-iv-history-close');
+  let lookupMode = 'translate';
+
+  const gameBtn = document.getElementById('emon-iv-game-btn');
+  const gameEl = document.getElementById('emon-iv-game');
+  const gameDragHandle = document.getElementById('emon-iv-game-drag');
+  const gamePauseBtn = document.getElementById('emon-iv-game-pause');
+  const gameCloseBtn = document.getElementById('emon-iv-game-close');
+  const gameCanvas = document.getElementById('emon-iv-game-canvas');
+  const gameScoreEl = document.getElementById('emon-iv-game-score');
+  const gameBestEl = document.getElementById('emon-iv-game-best');
+  const gameBestBtn = document.getElementById('emon-iv-game-best-btn');
+  const gameSettingsToggle = document.getElementById('emon-iv-game-settings-toggle');
+  const gameSettingsEl = document.getElementById('emon-iv-game-settings');
+  const gamePicker = document.getElementById('emon-iv-game-picker');
+  const gameCustomInput = document.getElementById('emon-iv-game-custom');
+  const gameCustomClearBtn = document.getElementById('emon-iv-game-custom-clear');
+  const gameNameGate = document.getElementById('emon-iv-game-namegate');
+  const gameNameInput = document.getElementById('emon-iv-game-name-input');
+  const gameNameSave = document.getElementById('emon-iv-game-name-save');
+  const gameChangeNameBtn = document.getElementById('emon-iv-game-change-name');
+  const gameTiersEl = document.getElementById('emon-iv-game-tiers');
+  const gameTiersList = document.getElementById('emon-iv-game-tiers-list');
+  const gameTiersClose = document.getElementById('emon-iv-game-tiers-close');
+  const gameRelaxedToggle = document.getElementById('emon-iv-game-relaxed');
+  const gameResetRunBtn = document.getElementById('emon-iv-game-reset-run');
+  const gameResetBestBtn = document.getElementById('emon-iv-game-reset-best');
+  const gameResizeHandle = document.getElementById('emon-iv-game-resize');
+  const gctx = gameCanvas ? gameCanvas.getContext('2d') : null;
+
+  const cfg = () => tavo.plugin.config.all();
+  let currentPreview = null;
+  let pins = [];
+  let pinSeq = 0;
+
+  function t(key, params) {
+    return tavo.plugin.i18n.t(key, params);
+  }
+
+  // Keep floating controls clear of Tavo's own top bar / composer using the documented
+  // tavo.ui insets API, with a conservative fallback on older Tavo versions that lack it.
+  function safeInsets(){
+    try{
+      if (tavo.ui && typeof tavo.ui.getInsets === 'function') {
+        const i = tavo.ui.getInsets() || {};
+        const top = Number(i.topBar);
+        const bottom = Number(i.bottomInput);
+        return { top: Number.isFinite(top) ? top+4 : 8, bottom: Number.isFinite(bottom) ? bottom+4 : 8 };
+      }
+    }catch{}
+    return { top: 8, bottom: 8 };
+  }
+
+  function renderText() {
+    root.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+    root.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
+    root.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+    if(lookupMode==='search') refreshSearchKeyUI();
+    refreshPrivacyUI();
+    renderPinsList();
+  }
+
+  function setStatus(msg) { statusEl.textContent = msg || ''; }
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function normalizeUrl(raw) {
+    const s = String(raw || '').trim();
+    if (!s) return null;
+    if (/^data:image\//i.test(s)) return s;
+    try {
+      const u = new URL(s);
+      if (!/^https?:$/i.test(u.protocol)) return null;
+      return u.href;
+    } catch {
+      return null;
+    }
+  }
+
+  function looksLikeImage(url) {
+    return /^data:image\//i.test(url) || /\.(avif|bmp|gif|jpe?g|png|svg|webp)(?:[?#].*)?$/i.test(url);
+  }
+
+  function absUrl(base, value) {
+    if (!value) return null;
+    try { return new URL(value, base).href; } catch { return null; }
+  }
+
+  function decodeHtml(s) {
+    const ta = document.createElement('textarea');
+    ta.innerHTML = s;
+    return ta.value;
+  }
+
+  function extractPageImage(html, baseUrl) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    const metaSelectors = [
+      'meta[property="og:image"]','meta[property="og:image:url"]',
+      'meta[name="twitter:image"]','meta[name="twitter:image:src"]',
+      'meta[itemprop="image"]'
+    ];
+    for (const sel of metaSelectors) {
+      const node = doc.querySelector(sel);
+      const value = node?.content?.trim();
+      const out = absUrl(baseUrl, decodeHtml(value));
+      if (out) return {url: out, source: 'metadata'};
+    }
+
+    const linkSelectors = [
+      'link[rel="image_src"]','link[rel="image"]','link[rel="apple-touch-icon"]',
+      'link[rel="icon"]'
+    ];
+    for (const sel of linkSelectors) {
+      const node = doc.querySelector(sel);
+      const out = absUrl(baseUrl, node?.href);
+      if (out) return {url: out, source: 'metadata'};
+    }
+
+    for (const script of doc.querySelectorAll('script[type="application/ld+json"]')) {
+      try {
+        const data = JSON.parse(script.textContent || '');
+        const stack = Array.isArray(data) ? [...data] : [data];
+        while (stack.length) {
+          const x = stack.shift();
+          if (!x) continue;
+          if (typeof x === 'string' && looksLikeImage(x)) return {url: absUrl(baseUrl, x), source:'metadata'};
+          if (typeof x === 'object') {
+            if (typeof x.image === 'string') {
+              const out = absUrl(baseUrl, x.image); if (out) return {url: out, source:'metadata'};
+            }
+            if (Array.isArray(x.image)) {
+              for (const v of x.image) {
+                const out = absUrl(baseUrl, typeof v === 'string' ? v : v?.url);
+                if (out) return {url: out, source:'metadata'};
+              }
+            }
+            for (const v of Object.values(x)) if (v && typeof v === 'object') stack.push(v);
+          }
+        }
+      } catch {}
+    }
+
+    const imgs = [...doc.querySelectorAll('img[src], img[data-src], img[data-original], source[srcset]')];
+    const candidates = [];
+    for (const node of imgs) {
+      const raw = node.getAttribute('src') || node.getAttribute('data-src') || node.getAttribute('data-original');
+      const srcset = node.getAttribute('srcset');
+      const candidate = raw || (srcset ? srcset.split(',')[0].trim().split(/\s+/)[0] : null);
+      const out = absUrl(baseUrl, decodeHtml(candidate));
+      if (out && looksLikeImage(out)) candidates.push(out);
+    }
+    candidates.sort((a,b) => (b.length - a.length));
+    if (candidates[0]) return {url:candidates[0], source:'content'};
+    return null;
+  }
+
+  async function persistRemote(url, prefix='emon-preview') {
+    if (/^data:image\//i.test(url)) return url;
+    const extMatch = (() => {
+      try {
+        const p = new URL(url).pathname.toLowerCase();
+        const m = p.match(/\.(avif|bmp|gif|jpe?g|png|svg|webp)$/);
+        return m ? (m[1] === 'jpg' ? 'jpg' : m[1]) : 'jpg';
+      } catch { return 'jpg'; }
+    })();
+    const safe = prefix.replace(/[^a-z0-9_-]/gi,'-').slice(0,32);
+    const name = `${safe}-${Date.now()}-${Math.random().toString(36).slice(2,7)}.${extMatch}`;
+    return await tavo.file.save(name, url, {scope:'chat'});
+  }
+
+  async function loadPreview(raw) {
+    const url = normalizeUrl(raw);
+    if (!url) { setStatus(t('runtime.invalidUrl')); return; }
+    setStatus(t('runtime.loading'));
+    previewEl.classList.remove('show');
+    try {
+      if (looksLikeImage(url) || /^data:image\//i.test(url)) {
+        const stored = /^https?:/i.test(url) ? url : url;
+        currentPreview = {src: stored, original:url, source:'direct'};
+        previewImg.src = stored;
+        previewMeta.textContent = t('runtime.sourceDirect');
+        previewEl.classList.add('show');
+        setStatus(t('runtime.directLoaded'));
+        return;
+      }
+
+      const pageFile = await tavo.file.save(`emon-page-${Date.now()}.html`, url, {scope:'chat'});
+      try {
+        const html = await tavo.file.load(pageFile, {encoding:'utf8'});
+        if (!html) throw new Error('empty page');
+        const found = extractPageImage(html, url);
+        if (!found?.url) throw new Error('no image');
+        currentPreview = {src: found.url, original:url, source:found.source};
+        previewImg.src = found.url;
+        previewMeta.textContent = found.source === 'metadata' ? t('runtime.metaLoaded') : t('runtime.fallbackLoaded');
+        previewEl.classList.add('show');
+        setStatus(found.source === 'metadata' ? t('runtime.metaLoaded') : t('runtime.fallbackLoaded'));
+      } finally {
+        await tavo.file.delete(pageFile, {scope:'chat'}).catch(()=>{});
+      }
+    } catch (e) {
+      console.error('[Image Preview]', e);
+      setStatus(t('runtime.failed'));
+      tavo.utils.toast(t('runtime.error'));
+    }
+  }
+
+  async function savePreview(preview) {
+    if (!preview?.src) return;
+    try {
+      let src = preview.src;
+      if (/^https?:/i.test(src) || /^data:image\//i.test(src)) src = await persistRemote(src, 'emon-preview');
+      else if (!/^files\//i.test(src)) throw new Error('unsupported source');
+      setStatus(t('runtime.savedHere'));
+      await loadSavedPreviews();
+    } catch (e) { console.error('[Image Preview] save preview', e); tavo.utils.toast(t('runtime.error')); }
+  }
+
+  async function deleteSavedFile(path, removeLinkedPins=true) {
+    if (!path) return;
+    try {
+      if (removeLinkedPins) pins.filter(p => p.src === path || p.src === path.replace(/^files\/chat\//,'')).forEach(p => removePin(p.id, false));
+      await tavo.file.delete(path, {scope:'chat'});
+      savePins(); renderPinsList(); await loadSavedPreviews();
+      tavo.utils.toast(t('runtime.deleted'));
+    } catch (e) { console.error('[Image Preview] delete saved', e); tavo.utils.toast(t('runtime.error')); }
+  }
+
+  async function clearSavedFiles() {
+    try {
+      const ok = typeof confirm === 'function' ? confirm(t('runtime.confirmClear')) : true;
+      if (!ok) return;
+      const page = await tavo.file.list({scope:'chat', limit:200});
+      const files = (page?.files || []).filter(f => /^emon-(?:pin|preview)-/i.test(f.name) && /^image\//i.test(f.mimeType || ''));
+      const paths = new Set(files.map(f => f.path));
+      pins.filter(p => paths.has(p.src) || paths.has(String(p.src).replace(/^files\/chat\//,''))).forEach(p => removePin(p.id, false));
+      for (const f of files) await tavo.file.delete(f.path, {scope:'chat'});
+      savePins(); renderPinsList(); await loadSavedPreviews();
+      tavo.utils.toast(t('runtime.cleared'));
+    } catch (e) { console.error('[Image Preview] clear saved', e); tavo.utils.toast(t('runtime.error')); }
+  }
+
+  async function importLocalImage() {
+    try {
+      const imported = await tavo.file.import({multiple:true, scope:'chat', extensions:['png','jpg','jpeg','webp','gif','bmp','avif','svg'], conflict:'rename'});
+      for (const f of (imported || [])) {
+        if (!/^image\//i.test(f.mimeType || '')) continue;
+        const dataUrl = await tavo.file.load(f.path, {encoding:'dataUrl'});
+        if (!dataUrl) continue;
+        const ext = (f.name.match(/\.([a-z0-9]+)$/i)?.[1] || 'png').toLowerCase();
+        const saved = await tavo.file.save(`emon-preview-${Date.now()}-${Math.random().toString(36).slice(2,7)}.${ext}`, dataUrl, {scope:'chat'});
+        await tavo.file.delete(f.path, {scope:'chat'});
+        currentPreview = {src:saved, original:saved, source:'direct', title:f.originalName || f.name};
+        previewImg.src = saved; previewMeta.textContent = t('runtime.imported'); previewEl.classList.add('show');
+      }
+      if (imported?.length) { setStatus(t('runtime.imported')); await loadSavedPreviews(); }
+    } catch (e) { console.error('[Image Preview] import', e); tavo.utils.toast(t('runtime.error')); }
+  }
+
+  function setLookupStatus(msg){
+    if(lookupStatus) lookupStatus.textContent=msg||'';
+  }
+
+  function getBraveKey(){
+    try{ return String(tavo.get('emonImageViewerBraveKey','global')||'').trim(); }catch{ return ''; }
+  }
+
+  function isPrivacyMode(){
+    try{ return !!tavo.get('emonImageViewerPrivacyMode','global'); }catch{ return false; }
+  }
+
+  function refreshPrivacyUI(){
+    if(!privacyToggle) return;
+    const on=isPrivacyMode();
+    privacyToggle.textContent = on ? t('runtime.privacyOn') : t('runtime.privacyOff');
+    privacyToggle.style.background = on ? '#16a34a2e' : '';
+    privacyToggle.style.borderColor = on ? '#4ade8055' : '';
+    privacyToggle.style.color = on ? '#86efac' : '';
+  }
+
+  function refreshSearchKeyUI(){
+    if(!searchKeyHint) return;
+    const active=!!getBraveKey();
+    searchKeyHint.style.display='';
+    searchKeyHint.textContent = active ? t('runtime.searchApiActive') : t('runtime.searchApiHint');
+  }
+
+  function setLookupMode(mode){
+    lookupMode=mode;
+    lookupTabs.forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+    if(lookupTarget) lookupTarget.style.display=mode==='search'?'none':'';
+    if(searchKeyRow) searchKeyRow.style.display=mode==='search'?'':'none';
+    if(searchKeyHint) searchKeyHint.style.display=mode==='search'?'':'none';
+    if(mode==='search') refreshSearchKeyUI();
+    if(lookupGo) lookupGo.textContent=t(mode==='translate'?'runtime.lookupTranslate':mode==='meaning'?'runtime.lookupMeaning':'runtime.lookupSearch');
+  }
+
+  function showLookupResults(items){
+    if(!lookupResult)return;
+    lookupResult.innerHTML='';
+    if(!items?.length){
+      lookupResult.innerHTML=`<div class="emon-iv-empty">${esc(t('runtime.lookupNoResults'))}</div>`;
+      lookupResult.classList.add('show');
+      return;
+    }
+    for(const item of items){
+      const card=document.createElement('div');
+      card.className='emon-iv-result-card';
+      const title=esc(item.title||t('runtime.lookupResult'));
+      const body=esc(item.text||'');
+      const url=String(item.url||'');
+      card.innerHTML=`<div class="emon-iv-result-title">${title}</div><div class="emon-iv-result-text">${body}</div>${url?`<div class="emon-iv-result-meta">${esc(url)}</div>`:''}<div class="emon-iv-result-actions">${url?`<button data-act="open">${esc(t('runtime.lookupOpen'))}</button>`:''}<button data-act="copy">${esc(t('runtime.lookupCopy'))}</button></div>`;
+      if(url) card.querySelector('[data-act="open"]').onclick=()=>tavo.utils.openUrl(url);
+      card.querySelector('[data-act="copy"]').onclick=async()=>{
+        try{
+          await navigator.clipboard.writeText((item.title?item.title+'\n':'')+(item.text||'')+(url?'\n'+url:''));
+          tavo.utils.toast(t('runtime.lookupCopied'));
+        }catch{tavo.utils.toast(t('runtime.error'));}
+      };
+      lookupResult.appendChild(card);
+    }
+    lookupResult.classList.add('show');
+  }
+
+  function fetchTimeout(url,opts={},ms=9000){
+    const ctrl=new AbortController();
+    const id=setTimeout(()=>ctrl.abort(),ms);
+    return fetch(url,{...opts,signal:ctrl.signal}).finally(()=>clearTimeout(id));
+  }
+
+  function guessLang(text){
+    return /[\u0980-\u09FF]/.test(text) ? 'bn' : 'en';
+  }
+
+  // ---- Translate: three independent free engines, tried in order ----
+  async function translateViaGoogle(text,target){
+    const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(target)}&dt=t&q=${encodeURIComponent(text)}`;
+    const r=await fetchTimeout(url,{headers:{'Accept':'application/json'}},8000);
+    if(!r.ok) throw new Error('google http '+r.status);
+    const data=await r.json();
+    const translated=Array.isArray(data?.[0])?data[0].map(x=>x?.[0]||'').join(''):'';
+    if(!translated) throw new Error('google empty');
+    return {translated,detected:data?.[2]||'auto',engine:'Google Translate'};
+  }
+
+  async function translateViaLingva(text,target){
+    const bases=['https://lingva.ml/api/v1','https://lingva.garudalinux.org/api/v1','https://lingva.thedaviddelta.com/api/v1'];
+    let lastErr;
+    for(const base of bases){
+      try{
+        const url=`${base}/auto/${encodeURIComponent(target)}/${encodeURIComponent(text)}`;
+        const r=await fetchTimeout(url,{headers:{'Accept':'application/json'}},8000);
+        if(!r.ok) throw new Error('lingva http '+r.status);
+        const data=await r.json();
+        if(!data?.translation) throw new Error('lingva empty');
+        return {translated:data.translation,detected:data?.info?.detectedSource||'auto',engine:'Lingva'};
+      }catch(e){ lastErr=e; }
+    }
+    throw lastErr||new Error('lingva unavailable');
+  }
+
+  async function translateViaMyMemory(text,target){
+    let source=guessLang(text);
+    if(source===target) source = target==='bn' ? 'en' : 'bn';
+    const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(source+'|'+target)}`;
+    const r=await fetchTimeout(url,{},8000);
+    if(!r.ok) throw new Error('mymemory http '+r.status);
+    const data=await r.json();
+    const translated=data?.responseData?.translatedText;
+    if(!translated || /invalid source language/i.test(translated)) throw new Error('mymemory empty');
+    return {translated,detected:source+' ('+t('runtime.approxDetect')+')',engine:'MyMemory'};
+  }
+
+  async function translateLookup(text,target){
+    let lastErr;
+    for(const fn of [translateViaGoogle,translateViaLingva,translateViaMyMemory]){
+      try{ return await fn(text,target); }
+      catch(e){ lastErr=e; console.warn('[Image Preview] translate engine failed',fn.name,e); }
+    }
+    throw lastErr||new Error('all translate engines failed');
+  }
+
+  // ---- Meaning: real dictionary definitions first, encyclopedia as fallback ----
+  async function meaningViaDictionaryApi(word){
+    const r=await fetchTimeout(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,{},8000);
+    if(!r.ok) throw new Error('dictionaryapi http '+r.status);
+    const data=await r.json();
+    if(!Array.isArray(data)||!data.length) throw new Error('dictionaryapi empty');
+    const items=[];
+    for(const entry of data.slice(0,3)){
+      for(const m of (entry.meanings||[]).slice(0,4)){
+        const defs=(m.definitions||[]).slice(0,3).map(d=>d.definition).filter(Boolean);
+        if(!defs.length) continue;
+        items.push({
+          title:`${entry.word}${m.partOfSpeech?' — '+m.partOfSpeech:''}`,
+          text:defs.map((d,i)=>`${i+1}. ${d}`).join('\n'),
+          url:`https://en.wiktionary.org/wiki/${encodeURIComponent(entry.word)}`
+        });
+      }
+    }
+    if(!items.length) throw new Error('dictionaryapi no definitions');
+    return items.slice(0,6);
+  }
+
+  async function meaningViaWiktionary(word,lang){
+    const host=lang==='bn'?'bn.wiktionary.org':'en.wiktionary.org';
+    const r=await fetchTimeout(`https://${host}/api/rest_v1/page/definition/${encodeURIComponent(word)}`,{},8000);
+    if(!r.ok) throw new Error('wiktionary http '+r.status);
+    const data=await r.json();
+    const items=[];
+    for(const entries of Object.values(data||{})){
+      for(const entry of (entries||[]).slice(0,3)){
+        const defs=(entry.definitions||[]).slice(0,3).map(d=>String(d.definition||'').replace(/<[^>]+>/g,'')).filter(Boolean);
+        if(!defs.length) continue;
+        items.push({
+          title:`${word}${entry.partOfSpeech?' — '+entry.partOfSpeech:''}`,
+          text:defs.map((d,i)=>`${i+1}. ${d}`).join('\n'),
+          url:`https://${host}/wiki/${encodeURIComponent(word)}`
+        });
+      }
+    }
+    if(!items.length) throw new Error('wiktionary empty');
+    return items.slice(0,6);
+  }
+
+  async function meaningViaWikipedia(text,target){
+    const lang=target==='bn'?'bn':'en';
+    const r=await fetchTimeout(`https://${lang}.wikipedia.org/w/rest.php/v1/search/page?q=${encodeURIComponent(text)}&limit=4`,{},8000);
+    if(!r.ok) throw new Error('wiki search http '+r.status);
+    const data=await r.json();
+    const pages=(data?.pages||[]).slice(0,4);
+    if(!pages.length) throw new Error('wiki search empty');
+    const items=[];
+    for(const p of pages){
+      try{
+        const sumR=await fetchTimeout(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(p.key)}`,{},8000);
+        if(!sumR.ok) continue;
+        const sum=await sumR.json();
+        if(!sum?.extract) continue;
+        items.push({title:sum.title||p.title,text:sum.extract,url:sum.content_urls?.desktop?.page||`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(p.key)}`});
+      }catch{}
+    }
+    if(!items.length) throw new Error('wiki summaries empty');
+    return items;
+  }
+
+  async function meaningLookup(text,target){
+    const lang=target==='bn'?'bn':'en';
+    const engines = lang==='bn'
+      ? [{fn:()=>meaningViaWiktionary(text,'bn'),name:'Wiktionary'},{fn:()=>meaningViaWikipedia(text,'bn'),name:'Wikipedia'}]
+      : [{fn:()=>meaningViaDictionaryApi(text),name:'Dictionary API'},{fn:()=>meaningViaWiktionary(text,'en'),name:'Wiktionary'},{fn:()=>meaningViaWikipedia(text,'en'),name:'Wikipedia'}];
+    let lastErr;
+    for(const {fn,name} of engines){
+      try{ const items=await fn(); return {items,engine:name}; }
+      catch(e){ lastErr=e; console.warn('[Image Preview] meaning engine failed',name,e); }
+    }
+    throw lastErr||new Error('all meaning engines failed');
+  }
+
+  // ---- Web search: real search via optional free Brave key, otherwise a multi-source fallback ----
+  async function webViaBrave(text,key){
+    const r=await fetchTimeout(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(text)}&count=8`,{headers:{'Accept':'application/json','X-Subscription-Token':key}},9000);
+    if(!r.ok) throw new Error('brave http '+r.status);
+    const data=await r.json();
+    const items=(data?.web?.results||[]).slice(0,8).map(x=>({title:x.title||text,text:String(x.description||'').replace(/<[^>]+>/g,''),url:x.url||''}));
+    if(!items.length) throw new Error('brave empty');
+    return {items,engine:'Brave Search'};
+  }
+
+  async function webViaFallback(text){
+    const items=[];
+    try{
+      const ddg=await fetchTimeout(`https://api.duckduckgo.com/?q=${encodeURIComponent(text)}&format=json&no_html=1&skip_disambig=0&no_redirect=1`,{},8000);
+      if(ddg.ok){
+        const d=await ddg.json();
+        if(d?.AbstractText) items.push({title:d.Heading||text,text:d.AbstractText,url:d.AbstractURL||''});
+        const related=(d?.RelatedTopics||[]).flatMap(x=>x?.Topics||[x]).filter(x=>x?.Text).slice(0,4);
+        for(const x of related) items.push({title:(x.Text||'').split(' - ')[0],text:x.Text,url:x.FirstURL||''});
+      }
+    }catch(e){console.warn('[Image Preview] DDG lookup',e)}
+    try{
+      const wiki=await meaningViaWikipedia(text,'en');
+      for(const x of wiki) if(!items.some(i=>i.url&&i.url===x.url)) items.push(x);
+    }catch(e){console.warn('[Image Preview] Wikipedia lookup',e)}
+    try{
+      const wikt=await meaningViaWiktionary(text,'en');
+      for(const x of wikt) if(!items.some(i=>i.url&&i.url===x.url)) items.push(x);
+    }catch{}
+    return {items:items.slice(0,8),engine:t('runtime.limitedFallback')};
+  }
+
+  async function webLookup(text){
+    const key=getBraveKey();
+    let out;
+    if(key){
+      try{ out=await webViaBrave(text,key); }
+      catch(e){ console.warn('[Image Preview] Brave search failed, using fallback',e); out=await webViaFallback(text); }
+    }else{
+      out=await webViaFallback(text);
+    }
+    const openUrl=`https://www.google.com/search?q=${encodeURIComponent(text)}`;
+    return {items:[...out.items,{title:t('runtime.openFullSearch'),text:t('runtime.openFullSearchHint'),url:openUrl}],engine:out.engine};
+  }
+
+  async function runLookup(){
+    let text=String(lookupInput?.value||'').trim();
+    if(!text){setLookupStatus(t('runtime.lookupEnter'));return;}
+    if(isPrivacyMode()){setLookupStatus(t('runtime.privacyBlocked'));return;}
+    if(text.length>1000){ text=text.slice(0,1000); tavo.utils.toast(t('runtime.lookupTruncated')); }
+    setLookupStatus(t('runtime.lookupLoading'));
+    lookupResult.classList.remove('show');
+    try{
+      let out;
+      if(lookupMode==='translate'){
+        const r=await translateLookup(text,lookupTarget.value);
+        out={items:[{title:t('runtime.translationResult'),text:r.translated+'\n\n'+t('runtime.detectedLanguage')+': '+r.detected,url:''}],engine:r.engine};
+      }else if(lookupMode==='meaning'){
+        out=await meaningLookup(text,lookupTarget.value);
+      }else{
+        out=await webLookup(text);
+      }
+      showLookupResults(out.items);
+      setLookupStatus(`${t('runtime.lookupDone')}${out.engine?' · '+out.engine:''}`);
+      recordLookupHistory(lookupMode, lookupTarget.value, text);
+    }catch(e){
+      console.error('[Image Preview] lookup',e);
+      showLookupResults([]);
+      setLookupStatus(t('runtime.lookupFailed'));
+    }
+  }
+
+  // ---- Quick Lookup history: off by default, entirely local, capped, editable/clearable ----
+  function isHistoryEnabled(){ try{ return !!tavo.get('emonImageViewerHistoryOn','global'); }catch{ return false; } }
+  function setHistoryEnabled(v){ try{ tavo.set('emonImageViewerHistoryOn', v,'global'); }catch{} }
+  function getLookupHistory(){ try{ const v=tavo.get('emonImageViewerLookupHistory','global'); return Array.isArray(v)?v:[]; }catch{ return []; } }
+  function setLookupHistory(list){ try{ tavo.set('emonImageViewerLookupHistory', list,'global'); }catch{} }
+
+  function recordLookupHistory(mode, target, text){
+    if(!isHistoryEnabled()) return;
+    const list = getLookupHistory();
+    list.unshift({mode, target, text, ts: Date.now()});
+    setLookupHistory(list.slice(0, 20));
+    if(historyPanel && historyPanel.style.display!=='none') renderHistoryList();
+  }
+
+  function renderHistoryList(){
+    if(!historyList) return;
+    const list = getLookupHistory();
+    if(!list.length){ historyList.innerHTML = `<div class="emon-iv-empty">${esc(t('runtime.historyEmpty'))}</div>`; return; }
+    historyList.innerHTML = list.map((h,i)=>{
+      const modeLabel = h.mode==='translate' ? t('runtime.translateTab') : h.mode==='meaning' ? t('runtime.meaningTab') : t('runtime.searchTab');
+      return `<button data-i="${i}">${esc(modeLabel)} · ${esc(h.text.slice(0,60))}</button>`;
+    }).join('');
+    historyList.querySelectorAll('button[data-i]').forEach(b=>{
+      b.onclick=()=>{
+        const h = list[Number(b.dataset.i)];
+        if(!h) return;
+        setLookupMode(h.mode);
+        if(lookupTarget) lookupTarget.value = h.target||'en';
+        if(lookupInput) lookupInput.value = h.text;
+        historyPanel.style.display='none';
+      };
+    });
+  }
+
+  async function cleanTempPages() {
+    try {
+      const page = await tavo.file.list({scope:'chat', limit:200});
+      const files = (page?.files || []).filter(f => /^emon-page-\d+\.html$/i.test(f.name));
+      for (const f of files) await tavo.file.delete(f.path, {scope:'chat'});
+    } catch {}
+  }
+
+  async function pinPreview(preview) {
+    if (!preview?.src) return;
+    try {
+      let src = preview.src;
+      if (/^https?:/i.test(src)) {
+        src = await persistRemote(src, 'emon-pin');
+      }
+      const c = cfg();
+      const size = Number(c.defaultImageSize || 220);
+      const opacity = Number(c.defaultOpacity || .95);
+      const item = {
+        id: ++pinSeq,
+        src,
+        original: preview.original || preview.src,
+        title: preview.title || t('runtime.image'),
+        x: Math.max(8, window.innerWidth - size - 22),
+        y: Math.max(80, window.innerHeight - size - 170),
+        width: size,
+        scale: 1,
+        opacity,
+        rotation: 0
+      };
+      pins.push(item);
+      renderPin(item);
+      savePins();
+      renderPinsList();
+      setStatus(t('runtime.pinnedNow'));
+    } catch (e) {
+      console.error(e);
+      tavo.utils.toast(t('runtime.error'));
+    }
+  }
+
+  function savePins() {
+    if (!cfg().rememberPins) return;
+    try {
+      tavo.set('emonImageViewerPins', pins.map(p => ({...p})),'chat');
+    } catch {}
+  }
+
+  function removePin(id, persist=true) {
+    const el = document.querySelector(`[data-emon-pin="${id}"]`);
+    el?.remove();
+    pins = pins.filter(p => p.id !== id);
+    if (persist) { savePins(); renderPinsList(); setStatus(t('runtime.unpinned')); }
+  }
+
+  function renderPinsList() {
+    if (!pinnedList) return;
+    pinnedList.innerHTML = '';
+    if (!pins.length) {
+      pinnedList.innerHTML = `<div class="emon-iv-empty">${esc(t('runtime.noPins'))}</div>`;
+      return;
+    }
+    for (const p of pins) {
+      const row = document.createElement('div');
+      row.className = 'emon-iv-pinrow';
+      row.innerHTML = `<span style="flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.title || t('runtime.image'))}</span>
+        <button data-action="zoomOut">−</button><button data-action="zoomIn">+</button>
+        <button data-action="reset">${esc(t('runtime.reset'))}</button>
+        <button data-action="remove">${esc(t('runtime.remove'))}</button>`;
+      row.querySelector('[data-action="zoomOut"]').onclick = () => setScale(p, p.scale * .85);
+      row.querySelector('[data-action="zoomIn"]').onclick = () => setScale(p, p.scale * 1.18);
+      row.querySelector('[data-action="reset"]').onclick = () => { p.scale=1; p.width=Number(cfg().defaultImageSize||220); applyPin(p); };
+      row.querySelector('[data-action="remove"]').onclick = () => removePin(p.id);
+      pinnedList.appendChild(row);
+    }
+  }
+
+  function setScale(p, value) {
+    p.scale = Math.max(.35, Math.min(4, value));
+    applyPin(p);
+    savePins();
+  }
+
+  function applyPin(p) {
+    const el = document.querySelector(`[data-emon-pin="${p.id}"]`);
+    if (!el) return;
+    el.style.left = `${p.x}px`;
+    el.style.top = `${p.y}px`;
+    el.style.width = `${p.width}px`;
+    el.style.opacity = String(p.opacity);
+    el.dataset.scale = String(p.scale);
+    const img = el.querySelector('img');
+    img.style.transform = `scale(${p.scale})`;
+    img.style.transformOrigin = 'center center';
+  }
+
+  function renderPin(p) {
+    const el = document.createElement('div');
+    el.className = 'emon-iv-pinned';
+    el.dataset.emonPin = p.id;
+    el.innerHTML = `
+      <div class="bar">
+        <button class="bartoggle" data-act="barToggle" aria-label="Toggle toolbar">︿</button>
+        <button class="zoom" data-act="minus" aria-label="${esc(t('runtime.zoomOut'))}">−</button>
+        <button class="zoom" data-act="plus" aria-label="${esc(t('runtime.zoomIn'))}">+</button>
+        <button data-act="reset" aria-label="${esc(t('runtime.reset'))}">↺</button>
+        <span class="dragtitle">${esc(p.title || t('runtime.image'))}</span>
+        <button data-act="full" aria-label="${esc(t('runtime.fullscreen'))}">⛶</button>
+        <button data-act="remove" aria-label="${esc(t('runtime.remove'))}">×</button>
+      </div>
+      <img src="${esc(p.src)}" alt="">
+      <div class="sizebadge"></div>
+      <div class="grip"></div>
+    `;
+    document.body.appendChild(el);
+    bindPinDrag(el,p);
+    el.querySelector('[data-act="minus"]').onclick = e => {e.stopPropagation();setScale(p,p.scale*.85)};
+    el.querySelector('[data-act="plus"]').onclick = e => {e.stopPropagation();setScale(p,p.scale*1.18)};
+    el.querySelector('[data-act="reset"]').onclick = e => {e.stopPropagation();p.scale=1;p.width=Number(cfg().defaultImageSize||220);applyPin(p);savePins()};
+    el.querySelector('[data-act="full"]').onclick = e => {e.stopPropagation();tavo.utils.preview(p.src)};
+    el.querySelector('[data-act="remove"]').onclick = e => {e.stopPropagation();removePin(p.id)};
+    el.querySelector('img').ondblclick = () => tavo.utils.preview(p.src);
+    const barToggleBtn = el.querySelector('[data-act="barToggle"]');
+    const barEl = el.querySelector('.bar');
+    const applyBarCollapsed = () => {
+      barEl.classList.toggle('collapsed', !!p.barCollapsed);
+      barToggleBtn.textContent = p.barCollapsed ? '⋯' : '︿';
+      barToggleBtn.setAttribute('aria-label', t(p.barCollapsed ? 'runtime.pinBarShow' : 'runtime.pinBarHide'));
+    };
+    barToggleBtn.onclick = e => { e.stopPropagation(); p.barCollapsed = !p.barCollapsed; applyBarCollapsed(); savePins(); };
+    applyBarCollapsed();
+    applyPin(p);
+  }
+
+  function bindPinDrag(el,p) {
+    const grip = el.querySelector('.grip');
+    const badge = el.querySelector('.sizebadge');
+    const pointers = new Map(); // pointerId -> {x,y}, tracks every finger currently down on this element
+    let mode = null; // 'drag' | 'resize' | 'pinch'
+    let sx=0, sy=0, ox=0, oy=0, ow=0;
+    let pinchStartDist=0, pinchStartWidth=0;
+
+    const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+    const showBadge = () => { if(badge){ badge.textContent = Math.round(p.width)+'px'; badge.classList.add('show'); } };
+    const hideBadge = () => badge?.classList.remove('show');
+
+    const beginPinch = () => {
+      const pts = [...pointers.values()];
+      mode='pinch';
+      pinchStartDist = dist(pts[0], pts[1]) || 1;
+      pinchStartWidth = p.width;
+    };
+
+    el.addEventListener('pointerdown', e => {
+      if (e.target.closest('button')) return;
+      const isGrip = e.target === grip;
+      el.setPointerCapture?.(e.pointerId);
+      pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+      if (pointers.size >= 2) {
+        beginPinch();
+        showBadge();
+      } else {
+        mode = isGrip ? 'resize' : 'drag';
+        sx=e.clientX; sy=e.clientY; ox=p.x; oy=p.y; ow=p.width;
+        if (isGrip) showBadge();
+      }
+      e.preventDefault();
+    });
+
+    el.addEventListener('pointermove', e => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
+
+      if (mode==='pinch' && pointers.size>=2) {
+        const pts=[...pointers.values()];
+        const d=dist(pts[0],pts[1]);
+        p.width = Math.max(90, Math.min(innerWidth*.75, pinchStartWidth*(d/pinchStartDist)));
+        applyPin(p); showBadge();
+        e.preventDefault();
+        return;
+      }
+      if (mode==='drag') {
+        p.x=Math.max(0,Math.min(innerWidth-el.offsetWidth, ox+e.clientX-sx));
+        p.y=Math.max(0,Math.min(innerHeight-el.offsetHeight, oy+e.clientY-sy));
+        applyPin(p);
+      } else if (mode==='resize') {
+        p.width=Math.max(90,Math.min(innerWidth*.75, ow+e.clientX-sx));
+        applyPin(p); showBadge();
+      }
+      e.preventDefault();
+    });
+
+    const endPointer = e => {
+      pointers.delete(e.pointerId);
+      try{ el.releasePointerCapture?.(e.pointerId); }catch{}
+      if (pointers.size===0) {
+        if (mode) savePins();
+        mode=null;
+        hideBadge();
+      } else if (mode==='pinch' && pointers.size===1) {
+        // one finger lifted mid-pinch: smoothly hand off to a plain drag from here, no jump
+        savePins();
+        const [pos] = [...pointers.values()];
+        mode='drag'; sx=pos.x; sy=pos.y; ox=p.x; oy=p.y;
+        hideBadge();
+      }
+    };
+    el.addEventListener('pointerup', endPointer);
+    el.addEventListener('pointercancel', endPointer);
+  }
+
+  function renderProfiles() {
+    tavo.chat.current().then(chat=>{
+      profilesEl.innerHTML='';
+      const chars=chat?.characters || [];
+      if(!chars.length){profilesEl.innerHTML=`<div class="emon-iv-empty">${esc(t('runtime.noProfiles'))}</div>`;return;}
+      for(const ch of chars){
+        const card=document.createElement('button');card.className='emon-iv-card';
+        card.innerHTML=`<img src="${esc(ch.avatar||'')}" alt=""><div class="name">${esc(ch.name||t('runtime.profile'))}</div>`;
+        card.onclick=()=>{
+          if(!ch.avatar)return;
+          currentPreview={src:ch.avatar,original:ch.avatar,source:'direct',title:ch.name};
+          previewImg.src=ch.avatar;previewMeta.textContent=t('runtime.profile');previewEl.classList.add('show');
+          setStatus(t('runtime.ready'));
+        };
+        profilesEl.appendChild(card);
+      }
+    }).catch(e=>console.error(e));
+  }
+
+  async function loadSavedPreviews() {
+    savedEl.innerHTML='';
+    try{
+      const page=await tavo.file.list({scope:'chat',limit:200});
+      const files=(page?.files||[]).filter(f=>/^emon-(?:pin|preview)-/i.test(f.name)&&/^image\//i.test(f.mimeType||''));
+      if(!files.length){savedEl.innerHTML=`<div class="emon-iv-empty">${esc(t('runtime.noSaved'))}</div>`;return;}
+      for(const f of files.slice(-40).reverse()){
+        const card=document.createElement('div'); card.className='emon-iv-card';
+        card.innerHTML=`<img src="${esc(f.path)}" alt=""><div class="name" title="${esc(f.name)}">${esc(f.name)}</div><div class="emon-iv-card-actions"><button data-act="view">${esc(t('runtime.view'))}</button><button data-act="pin">${esc(t('runtime.pinExisting'))}</button><button data-act="export">${esc(t('runtime.export'))}</button><button data-act="delete">🗑️</button></div>`;
+        card.querySelector('[data-act="view"]').onclick=()=>tavo.utils.preview(f.path);
+        card.querySelector('[data-act="pin"]').onclick=()=>pinPreview({src:f.path,original:f.path,title:f.name});
+        card.querySelector('[data-act="export"]').onclick=async()=>{try{await tavo.file.export(f.path);tavo.utils.toast(t('runtime.exported'))}catch(e){tavo.utils.toast(t('runtime.error'))}};
+        card.querySelector('[data-act="delete"]').onclick=()=>deleteSavedFile(f.path,true);
+        savedEl.appendChild(card);
+      }
+    }catch(e){console.error('[Image Preview] saved list',e);savedEl.innerHTML=`<div class="emon-iv-empty">${esc(t('runtime.error'))}</div>`;}
+  }
+  function restorePins() {
+    if(!cfg().rememberPins)return;
+    try{
+      const raw=tavo.get('emonImageViewerPins','chat');
+      if(Array.isArray(raw)){
+        pins=raw.map(x=>({...x,id:++pinSeq})).filter(x=>x.src);
+        pins.forEach(renderPin);
+      }
+    }catch{}
+  }
+
+  // Floating button drag/open
+  let fabDragging=false, fabStartX=0,fabStartY=0,fabOrigX=0,fabOrigY=0;
+  const fabStart=e=>{
+    if(fab.classList.contains('stealth')){fab.classList.add('peek');clearTimeout(fab._peekTimer);fab._peekTimer=setTimeout(()=>fab.classList.remove('peek'),1200)}
+    const pt=e.touches?e.touches[0]:e;
+    fabDragging=false;fabStartX=pt.clientX;fabStartY=pt.clientY;
+    const r=fab.getBoundingClientRect();fabOrigX=r.left;fabOrigY=r.top;
+  };
+  const fabMove=e=>{
+    const pt=e.touches?e.touches[0]:e;
+    const dx=pt.clientX-fabStartX,dy=pt.clientY-fabStartY;
+    if(Math.abs(dx)+Math.abs(dy)>8)fabDragging=true;
+    if(!fabDragging)return;
+    const ins=safeInsets();
+    fab.style.left=Math.max(4,Math.min(innerWidth-fab.offsetWidth-4,fabOrigX+dx))+'px';
+    fab.style.top=Math.max(ins.top,Math.min(innerHeight-fab.offsetHeight-ins.bottom,fabOrigY+dy))+'px';
+    fab.style.right='auto';fab.style.bottom='auto';e.preventDefault();
+  };
+  const fabEnd=()=>{
+    if(!fabDragging){panel.classList.toggle('open');}
+    else { const r=fab.getBoundingClientRect(); try{tavo.set('emonImageViewerFabPosition',{x:r.left,y:r.top},'global');}catch{} }
+    fabDragging=false;
+  };
+  // Pointer Events handle mouse, touch, and pen. Do not bind touch events too; on mobile they can fire alongside pointer events and toggle the panel twice.
+  fab.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;fabStart(e);fab.setPointerCapture?.(e.pointerId)});
+  fab.addEventListener('pointermove',fabMove);
+  fab.addEventListener('pointerup',fabEnd);
+  fab.addEventListener('pointercancel',()=>{fabDragging=false});
+  closeBtn.onclick=()=>panel.classList.remove('open');
+  previewBtn.onclick=()=>loadPreview(urlEl.value);
+  urlEl.addEventListener('keydown',e=>{if(e.key==='Enter')loadPreview(urlEl.value)});
+  pinBtn.onclick=()=>pinPreview(currentPreview);
+  saveBtn.onclick=()=>savePreview(currentPreview);
+  importBtn.onclick=importLocalImage;
+  refreshSavedBtn.onclick=loadSavedPreviews;
+  clearSavedBtn.onclick=clearSavedFiles;
+  fullBtn.onclick=()=>currentPreview?.src && tavo.utils.preview(currentPreview.src);
+  openBtn.onclick=()=>currentPreview?.original && tavo.utils.openUrl(currentPreview.original);
+
+  lookupTabs.forEach(b=>b.onclick=()=>setLookupMode(b.dataset.mode));
+  lookupGo.onclick=runLookup;
+  lookupClear.onclick=()=>{lookupInput.value='';lookupResult.innerHTML='';lookupResult.classList.remove('show');setLookupStatus('');};
+  if(historyToggle){
+    historyToggle.checked = isHistoryEnabled();
+    if(historyOpenBtn) historyOpenBtn.style.display = historyToggle.checked ? '' : 'none';
+    historyToggle.onchange = ()=>{
+      setHistoryEnabled(historyToggle.checked);
+      if(historyOpenBtn) historyOpenBtn.style.display = historyToggle.checked ? '' : 'none';
+      if(!historyToggle.checked && historyPanel) historyPanel.style.display='none';
+    };
+  }
+  if(historyOpenBtn) historyOpenBtn.onclick = ()=>{
+    if(!historyPanel) return;
+    const showing = historyPanel.style.display!=='none';
+    historyPanel.style.display = showing ? 'none' : '';
+    if(!showing) renderHistoryList();
+  };
+  if(historyClearBtn) historyClearBtn.onclick = ()=>{ setLookupHistory([]); renderHistoryList(); tavo.utils.toast(t('runtime.historyCleared')); };
+  if(historyCloseBtn) historyCloseBtn.onclick = ()=>{ if(historyPanel) historyPanel.style.display='none'; };
+  lookupInput.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')runLookup();});
+  if(searchKeySave) searchKeySave.onclick=()=>{
+    const val=String(searchKeyInput?.value||'').trim();
+    if(!val){tavo.utils.toast(t('runtime.searchApiEnter'));return;}
+    try{ tavo.set('emonImageViewerBraveKey',val,'global'); searchKeyInput.value=''; refreshSearchKeyUI(); tavo.utils.toast(t('runtime.searchApiSaved')); }
+    catch(e){ console.error('[Image Preview] save key',e); tavo.utils.toast(t('runtime.error')); }
+  };
+  if(searchKeyClear) searchKeyClear.onclick=()=>{
+    try{ tavo.set('emonImageViewerBraveKey','','global'); if(searchKeyInput) searchKeyInput.value=''; refreshSearchKeyUI(); tavo.utils.toast(t('runtime.searchApiRemoved')); }
+    catch(e){ console.error('[Image Preview] clear key',e); tavo.utils.toast(t('runtime.error')); }
+  };
+  if(privacyToggle) privacyToggle.onclick=()=>{
+    try{
+      const next=!isPrivacyMode();
+      tavo.set('emonImageViewerPrivacyMode', next,'global');
+      refreshPrivacyUI();
+      tavo.utils.toast(next ? t('runtime.privacyOnToast') : t('runtime.privacyOffToast'));
+    }catch(e){ console.error('[Image Preview] privacy toggle',e); tavo.utils.toast(t('runtime.error')); }
+  };
+  // ---- Mini Game: a small local jump-over-obstacle runner to pass time while waiting for a reply. ----
+  // Entirely local: no network calls. Only your chosen name/emoji, best score, in-progress run, relaxed-mode
+  // preference and window position/size are saved (on this device, via tavo.set — same store used everywhere
+  // else in this plugin, so it carries across chats the same way your Best score already does).
+  const GAME_G = 1700;
+  const GAME_JUMP_V = -460;
+  const GAME_JUMP_HOLD_ACCEL = 950;
+  const GAME_JUMP_HOLD_MS = 180;
+  const GAME_JUMP_BUFFER_MS = 140;
+  const GAME_GROUND_H = 24;
+  const GAME_CHAR_SIZE = 30;
+  const GAME_CHAR_X = 34;
+  const GAME_DEFAULT_EMOJI = '🏃';
+  const GAME_DEFAULT_W = 360;
+  const GAME_DEFAULT_H = 190;
+
+  // Higher, further-apart tiers so "True King" is a real milestone, not a first-run fluke —
+  // plus funnier, more deflating titles at the bottom.
+  const GAME_TITLES = [
+    {min:5000, title:'👑 True King'},
+    {min:3000, title:'🏆 Grand Champion'},
+    {min:2000, title:'🛡️ Champion'},
+    {min:1200, title:'⚔️ Knight'},
+    {min:700,  title:'🏹 Squire'},
+    {min:400,  title:'🪖 Recruit'},
+    {min:220,  title:'🪑 Bench Warmer'},
+    {min:120,  title:'🃏 Court Jester'},
+    {min:60,   title:'🐣 Clumsy Hatchling'},
+    {min:25,   title:'🧦 Lost Sock'},
+    {min:8,    title:'🐌 Confused Snail'},
+    {min:0,    title:'🥔 Potato Peasant'},
+  ];
+  function gameTitleFor(score){
+    for(const g of GAME_TITLES) if(score>=g.min) return g.title;
+    return GAME_TITLES[GAME_TITLES.length-1].title;
+  }
+
+  // Absurd, harmless, non-sexual one-liners for an early death — silly enough for anyone to read,
+  // never mean-spirited toward the player themselves.
+  const GAME_DEATH_LINES = [
+    "Oopsie! A pigeon filed a formal complaint against you.",
+    "You tripped over a rule you invented five seconds ago.",
+    "Plot twist: the wall was your landlord the whole time.",
+    "You have been legally reclassified as 'furniture'.",
+    "A goat has taken your job. It's doing great.",
+    "You blinked. The wall did not.",
+    "Breaking news: local hero defeated by a small rectangle.",
+    "Your license to run has been temporarily revoked.",
+    "You have achieved 'horizontal' when 'vertical' was needed.",
+    "The wall would like to thank you for your cooperation.",
+    "You just got outsmarted by geometry.",
+    "Somewhere, a physics teacher is nodding solemnly.",
+    "You have unlocked: lying down unexpectedly.",
+    "The ground called. It wants its face back.",
+    "A wild wall appeared. It was super effective.",
+  ];
+  function gameDeathLineFor(score){
+    // Only for genuinely early runs — a long run doesn't need a "you died instantly" joke.
+    if(score>60) return '';
+    const i = Math.floor(Math.random()*GAME_DEATH_LINES.length);
+    return GAME_DEATH_LINES[i];
+  }
+
+  let gameRAF = null, gameLastT = 0, gs = null;
+  let gameEmoji = GAME_DEFAULT_EMOJI, gameBest = 0, gamePlayerName = '', gameRelaxed = false;
+  let jumpHeld = false, jumpHoldStart = 0, jumpBufferedAt = -9999;
+  let gamePaused = false;
+  let gameDeathLine = '';
+
+  function getGameEmoji(){ try{ return String(tavo.get('emonImageViewerGameEmoji','global')||GAME_DEFAULT_EMOJI); }catch{ return GAME_DEFAULT_EMOJI; } }
+  function getGameBest(){ try{ return Number(tavo.get('emonImageViewerGameBest','global'))||0; }catch{ return 0; } }
+  function getGameName(){ try{ return String(tavo.get('emonImageViewerGameName','global')||'').trim(); }catch{ return ''; } }
+  function getGameRelaxed(){ try{ return !!tavo.get('emonImageViewerGameRelaxed','global'); }catch{ return false; } }
+  function getGameSavedRun(){ try{ const v=tavo.get('emonImageViewerGameRun','global'); return v&&typeof v==='object' ? v : null; }catch{ return null; } }
+  function getGameWinRect(){ try{ const v=tavo.get('emonImageViewerGameWinRect','global'); return v&&typeof v==='object' ? v : null; }catch{ return null; } }
+  function setGameBest(v){ try{ tavo.set('emonImageViewerGameBest', v,'global'); }catch{} }
+  function setGameEmojiPref(v){ try{ tavo.set('emonImageViewerGameEmoji', v,'global'); }catch{} }
+  function setGameName(v){ try{ tavo.set('emonImageViewerGameName', v,'global'); }catch{} }
+  function setGameRelaxed(v){ try{ tavo.set('emonImageViewerGameRelaxed', v,'global'); }catch{} }
+  function setGameSavedRun(v){ try{ tavo.set('emonImageViewerGameRun', v,'global'); }catch{} }
+  function clearGameSavedRun(){ try{ tavo.set('emonImageViewerGameRun', null,'global'); }catch{} }
+  function setGameWinRect(v){ try{ tavo.set('emonImageViewerGameWinRect', v,'global'); }catch{} }
+
+  function sizeGameCanvas(){
+    if(!gameCanvas) return;
+    const rect = gameCanvas.getBoundingClientRect();
+    const w = Math.max(240, Math.round(rect.width || GAME_DEFAULT_W));
+    const savedRect = getGameWinRect();
+    const h = Math.max(140, Math.min(340, Math.round((savedRect&&savedRect.ch) || GAME_DEFAULT_H)));
+    gameCanvas.width = w;
+    gameCanvas.height = h;
+    gameCanvas.style.height = h+'px';
+  }
+
+  function resetGame(fromSnapshot){
+    if(!gameCanvas) return;
+    const w = gameCanvas.width, h = gameCanvas.height;
+    if(fromSnapshot){
+      gs = { w, h, groundY: h-GAME_GROUND_H, charY:0, charV:0, obstacles:[],
+             speed:fromSnapshot.speed||210, spawnTimer:0.9, spawnEvery:fromSnapshot.spawnEvery||1.6,
+             score:fromSnapshot.score||0, alive:true, started:true };
+    } else {
+      gs = { w, h, groundY: h-GAME_GROUND_H, charY:0, charV:0, obstacles:[], speed:210, spawnTimer:0.9, spawnEvery:1.6, score:0, alive:true, started:false };
+    }
+    jumpHeld=false; jumpBufferedAt=-9999; gameDeathLine='';
+  }
+
+  function gamePointerDown(){
+    if(!gs || gamePaused) return;
+    if(!gs.started){ gs.started=true; return; }
+    if(!gs.alive){ resetGame(false); return; }
+    jumpHeld = true; jumpHoldStart = performance.now();
+    if(gs.charY===0){ gs.charV = GAME_JUMP_V; }
+    else { jumpBufferedAt = performance.now(); }
+  }
+  function gamePointerUp(){ jumpHeld = false; }
+
+  function spawnObstacle(){
+    const h = 20 + Math.random()*28;
+    const w = 14 + Math.random()*14;
+    gs.obstacles.push({x: gs.w+10, w, h});
+  }
+
+  function gameStep(dt){
+    if(!gs || !gs.started || !gs.alive || gamePaused) return;
+
+    if(gs.charY===0 && gs.charV===0 && jumpHeld && (performance.now()-jumpBufferedAt) < GAME_JUMP_BUFFER_MS){
+      gs.charV = GAME_JUMP_V; jumpHoldStart = performance.now(); jumpBufferedAt = -9999;
+    }
+
+    let g = GAME_G;
+    if(jumpHeld && gs.charV<0 && (performance.now()-jumpHoldStart) < GAME_JUMP_HOLD_MS) g -= GAME_JUMP_HOLD_ACCEL;
+    gs.charV += g*dt;
+    gs.charY += gs.charV*dt;
+    if(gs.charY>0){ gs.charY=0; gs.charV=0; }
+
+    if(gameRelaxed){
+      // Relaxed Mode: fixed gentle pace, no ramp — for anyone who wants the timing pressure off.
+      gs.speed = 175;
+      gs.spawnEvery = 1.75;
+    } else {
+      const ramp = Math.max(0, gs.score-25);
+      gs.speed = Math.min(460, 210 + ramp*1.1);
+      gs.spawnEvery = Math.max(0.85, 1.55 - ramp*0.0025);
+    }
+    gs.spawnTimer -= dt;
+    if(gs.spawnTimer<=0){ spawnObstacle(); gs.spawnTimer = gs.spawnEvery*(0.75+Math.random()*0.5); }
+
+    const hitboxPad = gameRelaxed ? 0.85 : 1; // slightly smaller effective hitbox in Relaxed Mode = more forgiving
+    const charBox = {x:GAME_CHAR_X-GAME_CHAR_SIZE*0.32*hitboxPad, y: gs.groundY+gs.charY-GAME_CHAR_SIZE*0.82, w:GAME_CHAR_SIZE*0.64*hitboxPad, h:GAME_CHAR_SIZE*0.82};
+    for(const o of gs.obstacles){
+      o.x -= gs.speed*dt;
+      const oBox = {x:o.x, y: gs.groundY-o.h, w:o.w, h:o.h};
+      if(charBox.x<oBox.x+oBox.w && charBox.x+charBox.w>oBox.x && charBox.y<oBox.y+oBox.h && charBox.y+charBox.h>oBox.y){
+        gs.alive=false;
+        const finalScore = Math.floor(gs.score);
+        gameDeathLine = gameDeathLineFor(finalScore);
+        if(finalScore>gameBest){ gameBest=finalScore; setGameBest(gameBest); }
+        clearGameSavedRun(); // a finished run is no longer "in progress"
+      }
+    }
+    gs.obstacles = gs.obstacles.filter(o=>o.x+o.w>-5);
+    gs.score += dt*12;
+  }
+
+  function gameDraw(){
+    if(!gs || !gctx) return;
+    const ctx=gctx, w=gs.w, h=gs.h;
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle='#ffffff16';
+    ctx.fillRect(0, gs.groundY, w, 2);
+    ctx.fillStyle='#f97373';
+    for(const o of gs.obstacles) ctx.fillRect(o.x, gs.groundY-o.h, o.w, o.h);
+
+    // draw the character mirrored so directional emoji (like the runner) face the direction of travel
+    ctx.save();
+    ctx.translate(GAME_CHAR_X, gs.groundY+gs.charY);
+    ctx.scale(-1,1);
+    ctx.font=`${GAME_CHAR_SIZE}px system-ui, sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='alphabetic';
+    ctx.fillText(gameEmoji, 0, 0);
+    ctx.restore();
+
+    if(gamePaused){
+      ctx.fillStyle='#00000095'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='#fff'; ctx.font='16px system-ui, sans-serif'; ctx.textAlign='center';
+      ctx.fillText(t('runtime.gamePausedLabel'), w/2, h/2);
+    }else if(!gs.started){
+      ctx.fillStyle='#ffffffdd'; ctx.font='14px system-ui, sans-serif'; ctx.textAlign='center';
+      ctx.fillText(t('runtime.gameTapStart'), w/2, h/2);
+    }else if(!gs.alive){
+      ctx.fillStyle='#00000090'; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.font='16px system-ui, sans-serif';
+      ctx.fillText(t('runtime.gameOver'), w/2, h/2-22);
+      if(gameDeathLine){
+        ctx.font='11.5px system-ui, sans-serif'; ctx.fillStyle='#ffe08a';
+        wrapText(ctx, gameDeathLine, w/2, h/2-2, w-40, 14);
+      }
+      ctx.font='13px system-ui, sans-serif'; ctx.fillStyle='#ffd27a';
+      ctx.fillText(gameTitleFor(Math.floor(gs.score)), w/2, h/2+26);
+      ctx.font='11px system-ui, sans-serif'; ctx.fillStyle='#ffffffaa';
+      ctx.fillText(t('runtime.gameTapRestart'), w/2, h/2+44);
+    }
+    if(gameScoreEl) gameScoreEl.textContent = Math.floor(gs.score);
+    if(gameBestEl) gameBestEl.textContent = gamePlayerName ? `${gameBest} · ${gameTitleFor(gameBest)} IS ${gamePlayerName}` : `${gameBest} · ${gameTitleFor(gameBest)}`;
+  }
+
+  function wrapText(ctx, text, cx, cy, maxWidth, lineHeight){
+    const words = text.split(' ');
+    let line = '', lines = [];
+    for(const word of words){
+      const test = line ? line+' '+word : word;
+      if(ctx.measureText(test).width > maxWidth && line){ lines.push(line); line = word; }
+      else line = test;
+    }
+    if(line) lines.push(line);
+    ctx.textAlign='center';
+    const startY = cy - ((lines.length-1)*lineHeight)/2;
+    lines.forEach((l,i)=>ctx.fillText(l, cx, startY + i*lineHeight));
+  }
+
+  function gameLoop(ts){
+    if(!gameLastT) gameLastT=ts;
+    const dt = Math.min(0.05, (ts-gameLastT)/1000);
+    gameLastT = ts;
+    gameStep(dt);
+    gameDraw();
+    gameRAF = requestAnimationFrame(gameLoop);
+  }
+
+  function refreshGamePicker(){
+    if(!gamePicker) return;
+    const presets=['🏃','👾','⚡','🐉','💀'];
+    gamePicker.querySelectorAll('button[data-emoji]').forEach(b=>b.classList.toggle('active', b.dataset.emoji===gameEmoji));
+    if(gameCustomInput) gameCustomInput.value = presets.includes(gameEmoji) ? '' : gameEmoji;
+  }
+
+  function renderGameTiers(){
+    if(!gameTiersList) return;
+    const rows = GAME_TITLES.map(g=>{
+      const isYours = gameBest>=g.min && (GAME_TITLES.find(x=>gameBest>=x.min)===g);
+      return `<div class="grow${isYours?' you':''}"><span>${esc(g.title)}</span><span>${g.min}+</span></div>`;
+    }).join('');
+    gameTiersList.innerHTML = rows;
+  }
+
+  function openGameTiers(){ renderGameTiers(); gameTiersEl?.classList.add('show'); }
+  function closeGameTiers(){ gameTiersEl?.classList.remove('show'); }
+
+  function checkNameGate(){
+    gamePlayerName = getGameName();
+    if(gameNameGate) gameNameGate.classList.toggle('show', !gamePlayerName);
+    return !!gamePlayerName;
+  }
+
+  function getGameSettingsOpen(){ try{ const v=tavo.get('emonImageViewerGameSettingsOpen','global'); return v===null||v===undefined ? false : !!v; }catch{ return false; } }
+  function setGameSettingsOpen(v){ try{ tavo.set('emonImageViewerGameSettingsOpen', v,'global'); }catch{} }
+  function applyGameSettingsCollapsed(){
+    if(!gameSettingsEl) return;
+    const open = getGameSettingsOpen();
+    gameSettingsEl.classList.toggle('collapsed', !open);
+    if(gameSettingsToggle) gameSettingsToggle.setAttribute('aria-label', t(open ? 'runtime.gameSettingsHide' : 'runtime.gameSettingsShow'));
+  }
+  if(gameSettingsToggle) gameSettingsToggle.onclick = ()=>{
+    setGameSettingsOpen(gameSettingsEl.classList.contains('collapsed'));
+    applyGameSettingsCollapsed();
+  };
+
+  function startJump(){
+    const hasName = checkNameGate();
+    requestAnimationFrame(()=>{
+      sizeGameCanvas();
+      const saved = getGameSavedRun();
+      resetGame(hasName ? saved : null);
+      gamePaused = false;
+      if(gamePauseBtn) gamePauseBtn.textContent = '⏸️';
+      gameLastT = 0;
+      if(gameRAF) cancelAnimationFrame(gameRAF);
+      gameRAF = requestAnimationFrame(gameLoop);
+    });
+  }
+  function stopJump(){
+    if(gameRAF){ cancelAnimationFrame(gameRAF); gameRAF = null; }
+  }
+
+  function openGame(){
+    if(!gameEl) return;
+    gameEmoji = getGameEmoji();
+    gameBest = getGameBest();
+    gameRelaxed = getGameRelaxed();
+    if(gameRelaxedToggle) gameRelaxedToggle.checked = gameRelaxed;
+    gameEl.classList.add('open');
+    closeGameTiers();
+    closeGameLib();
+    refreshGamePicker();
+    applyGameWindowRect();
+    applyGameSettingsCollapsed();
+    activateGame(getActiveGameId());
+  }
+
+  function persistRunSnapshot(){
+    if(gs && gs.started && gs.alive){
+      setGameSavedRun({score: gs.score, speed: gs.speed, spawnEvery: gs.spawnEvery});
+    }
+  }
+
+  function closeGame(){
+    if(!gameEl) return;
+    if(gameMode==='jump') persistRunSnapshot();
+    closeGameLib();
+    gameEl.classList.remove('open');
+    stopJump();
+    unloadGameFrame();
+  }
+
+  function togglePauseGame(){
+    if(!gs || !gs.started || !gs.alive) return;
+    gamePaused = !gamePaused;
+    if(gamePauseBtn) gamePauseBtn.textContent = gamePaused ? '▶️' : '⏸️';
+    if(gamePaused) persistRunSnapshot();
+  }
+
+  // ---- draggable header + resizable corner, distinct from the pinned-image drag/pinch ----
+  function applyGameWindowRect(){
+    const r = getGameWinRect();
+    if(!r) return;
+    const ins=safeInsets();
+    gameEl.style.left = Math.max(0, Math.min(innerWidth-40, r.x)) + 'px';
+    gameEl.style.top = Math.max(ins.top, Math.min(innerHeight-40-ins.bottom, r.y)) + 'px';
+    gameEl.style.transform = 'none';
+    if(r.w) gameEl.style.width = Math.max(260, Math.min(innerWidth*0.94, r.w)) + 'px';
+  }
+
+  function bindGameWindowControls(){
+    if(!gameDragHandle || !gameEl) return;
+    let dragging=false, sx=0, sy=0, ox=0, oy=0;
+    gameDragHandle.addEventListener('pointerdown', e=>{
+      if(e.target.closest('button')) return;
+      dragging=true;
+      const rect = gameEl.getBoundingClientRect();
+      gameEl.style.left = rect.left+'px'; gameEl.style.top = rect.top+'px'; gameEl.style.transform='none';
+      sx=e.clientX; sy=e.clientY; ox=rect.left; oy=rect.top;
+      gameDragHandle.setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    });
+    gameDragHandle.addEventListener('pointermove', e=>{
+      if(!dragging) return;
+      const ins=safeInsets();
+      const nx = Math.max(0, Math.min(innerWidth-60, ox+e.clientX-sx));
+      const ny = Math.max(ins.top, Math.min(innerHeight-60-ins.bottom, oy+e.clientY-sy));
+      gameEl.style.left = nx+'px'; gameEl.style.top = ny+'px';
+      e.preventDefault();
+    });
+    const endDrag = ()=>{
+      if(!dragging) return;
+      dragging=false;
+      const rect = gameEl.getBoundingClientRect();
+      saveGameWinRect(rect);
+    };
+    gameDragHandle.addEventListener('pointerup', endDrag);
+    gameDragHandle.addEventListener('pointercancel', endDrag);
+
+    if(!gameResizeHandle) return;
+    let resizing=false, rsx=0, rsy=0, rw=0, rh=0;
+    gameResizeHandle.addEventListener('pointerdown', e=>{
+      resizing=true;
+      rsx=e.clientX; rsy=e.clientY;
+      rw = gameEl.getBoundingClientRect().width;
+      rh = gameMode==='custom' ? (gameFrame ? gameFrame.offsetHeight : 300) : (gameCanvas ? gameCanvas.height : GAME_DEFAULT_H);
+      gameResizeHandle.setPointerCapture?.(e.pointerId);
+      e.preventDefault(); e.stopPropagation();
+    });
+    gameResizeHandle.addEventListener('pointermove', e=>{
+      if(!resizing) return;
+      const nw = Math.max(260, Math.min(innerWidth*0.94, rw+(e.clientX-rsx)));
+      gameEl.style.width = nw+'px';
+      if(gameMode==='custom'){
+        const ih = Math.max(180, Math.min(560, rh+(e.clientY-rsy)));
+        if(gameFrame) gameFrame.style.height = ih+'px';
+        e.preventDefault(); e.stopPropagation();
+        return;
+      }
+      const nh = Math.max(140, Math.min(340, rh+(e.clientY-rsy)));
+      if(gameCanvas){ gameCanvas.height = nh; gameCanvas.style.height = nh+'px'; if(gs){ gs.h=nh; gs.groundY=nh-GAME_GROUND_H; } }
+      e.preventDefault(); e.stopPropagation();
+    });
+    const endResize = e=>{
+      if(!resizing) return;
+      resizing=false;
+      const rect = gameEl.getBoundingClientRect();
+      saveGameWinRect(rect);
+      if(gameCanvas && gameMode==='jump'){ gameCanvas.width = Math.round(rect.width); if(gs){ gs.w=gameCanvas.width; } }
+    };
+    gameResizeHandle.addEventListener('pointerup', endResize);
+    gameResizeHandle.addEventListener('pointercancel', endResize);
+  }
+
+  if(gameBtn) gameBtn.onclick = openGame;
+  if(gameCloseBtn) gameCloseBtn.onclick = closeGame;
+  if(gamePauseBtn) gamePauseBtn.onclick = togglePauseGame;
+  if(gameBestBtn) gameBestBtn.onclick = ()=>{ if(gameMode==='jump') openGameTiers(); else postToFrame({type:'tiers'}); };
+  if(gameTiersClose) gameTiersClose.onclick = closeGameTiers;
+  bindGameWindowControls();
+
+  if(gameNameSave) gameNameSave.onclick = ()=>{
+    const v = String(gameNameInput?.value||'').trim().slice(0,16);
+    if(!v){ tavo.utils.toast(t('runtime.gameNameEnter')); return; }
+    setGameName(v); gamePlayerName=v;
+    gameNameGate?.classList.remove('show');
+    if(gameMode==='jump') resetGame(getGameSavedRun());
+    else activateGame(activeGameId);
+  };
+  if(gameChangeNameBtn) gameChangeNameBtn.onclick = ()=>{
+    if(gameNameInput) gameNameInput.value = gamePlayerName || '';
+    gameNameGate?.classList.add('show');
+  };
+  if(gameResetRunBtn) gameResetRunBtn.onclick = ()=>{
+    clearGameSavedRun();
+    resetGame(false);
+    tavo.utils.toast(t('runtime.gameRunReset'));
+  };
+  if(gameResetBestBtn) gameResetBestBtn.onclick = ()=>{
+    gameBest = 0; setGameBest(0);
+    tavo.utils.toast(t('runtime.gameBestReset'));
+  };
+  if(gameRelaxedToggle) gameRelaxedToggle.onchange = ()=>{
+    gameRelaxed = !!gameRelaxedToggle.checked;
+    setGameRelaxed(gameRelaxed);
+  };
+
+  if(gameCanvas){
+    gameCanvas.addEventListener('pointerdown', e=>{ e.preventDefault(); gamePointerDown(); });
+    gameCanvas.addEventListener('pointerup', e=>{ e.preventDefault(); gamePointerUp(); });
+    gameCanvas.addEventListener('pointercancel', gamePointerUp);
+    gameCanvas.addEventListener('pointerleave', gamePointerUp);
+  }
+  window.addEventListener('keydown', e=>{
+    if(gameEl && gameEl.classList.contains('open') && gameMode==='jump' && !gameEl.classList.contains('libopen') && !/^(INPUT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'') && (e.code==='Space'||e.key===' ')){
+      e.preventDefault();
+      if(!e.repeat) gamePointerDown();
+    }
+  });
+  window.addEventListener('keyup', e=>{
+    if(gameMode==='jump' && (e.code==='Space'||e.key===' ')) gamePointerUp();
+  });
+  if(gamePicker){
+    gamePicker.querySelectorAll('button[data-emoji]').forEach(b=>{
+      b.onclick=()=>{ gameEmoji=b.dataset.emoji; setGameEmojiPref(gameEmoji); refreshGamePicker(); };
+    });
+  }
+  if(gameCustomInput) gameCustomInput.addEventListener('change', ()=>{
+    const v=String(gameCustomInput.value||'').trim();
+    if(v){ gameEmoji=v; setGameEmojiPref(v); refreshGamePicker(); }
+  });
+  if(gameCustomClearBtn) gameCustomClearBtn.onclick = ()=>{
+    gameEmoji = GAME_DEFAULT_EMOJI;
+    setGameEmojiPref(GAME_DEFAULT_EMOJI);
+    if(gameCustomInput) gameCustomInput.value = '';
+    refreshGamePicker();
+    tavo.utils.toast(t('runtime.gameCustomCleared'));
+  };
+  window.addEventListener('resize', ()=>{
+    if(!gameEl || !gameEl.classList.contains('open')) return;
+    const ins=safeInsets();
+    const rect = gameEl.getBoundingClientRect();
+    const nx = Math.max(0, Math.min(innerWidth-60, rect.left));
+    const ny = Math.max(ins.top, Math.min(innerHeight-60-ins.bottom, rect.top));
+    if(gameEl.style.transform==='none'){ gameEl.style.left=nx+'px'; gameEl.style.top=ny+'px'; }
+  });
+  // The panel close button closes only the Image Preview panel. The game has its own X button.
+
+  // ---- Game library (v2.9.0): pick between built-in games and games you add yourself. ----
+  // Added games are single HTML files. Each one runs inside a sandboxed iframe (allow-scripts only, no
+  // same-origin), so it cannot touch your chats, Tavo data, or this plugin's page. The HTML itself is kept
+  // in a global-scope file; only a tiny list (id / name / emoji / file name) lives in a variable.
+  // Optional score protocol: a game may call
+  //   parent.postMessage({emonGame:1, type:'score'|'gameover', score:NUMBER, low:true?}, '*')
+  // and the window will show the score and remember a best score for that game.
+  const GAMES_VAR = 'emonImageViewerGames';
+  const GAME_BESTS_VAR = 'emonImageViewerGameBests';
+  const GAME_ACTIVE_VAR = 'emonImageViewerGameActive';
+  const GAMES_MAX = 30;
+  const GAME_MAX_CHARS = 2000000;
+  const GAME_FRAME_DEFAULT_H = 320;
+
+  const gameFrame = document.getElementById('emon-iv-game-frame');
+  const gameNameEl = document.getElementById('emon-iv-game-name');
+  const gameSwitchBtn = document.getElementById('emon-iv-game-switch');
+  const gameLibEl = document.getElementById('emon-iv-game-lib');
+  const gameLibList = document.getElementById('emon-iv-game-lib-list');
+  const gameLibClose = document.getElementById('emon-iv-game-lib-close');
+  const gameAddOpen = document.getElementById('emon-iv-game-add-open');
+  const gameAddForm = document.getElementById('emon-iv-game-add');
+  const gameAddName = document.getElementById('emon-iv-game-add-name');
+  const gameAddEmoji = document.getElementById('emon-iv-game-add-emoji');
+  const gameAddCode = document.getElementById('emon-iv-game-add-code');
+  const gameAddImport = document.getElementById('emon-iv-game-add-import');
+  const gameAddSave = document.getElementById('emon-iv-game-add-save');
+  const gameAddCancel = document.getElementById('emon-iv-game-add-cancel');
+  const gameAddAi = document.getElementById('emon-iv-game-add-ai');
+
+  let gameMode = 'jump';
+  let activeGameId = 'jump';
+
+  // ---------- built-in extra games (also handy as examples of the format) ----------
+  // Built-in games can also keep progress: they send {emonGame:1,type:'save',data:{...}} and get that data
+  // back in L.data the next time they load. They can show a best/title in the score row with
+  // {type:'status', score, best, lib, label}. The parent can send them {type:'tiers'|'pause'|'resume'}.
+  function snakeGame(L){
+    var N = 16;
+    var SKINS = [
+      {id:'violet',name:'Violet',cost:0,head:'#c4b5fd',body:['#8b5cf6','#7c4fe0']},
+      {id:'lcd',name:'Old LCD',cost:25,head:'#e3f2b0',body:['#8fb03c','#7a9a2f']},
+      {id:'steel',name:'Steel',cost:40,head:'#f1f5f9',body:['#94a3b8','#64748b']},
+      {id:'camo',name:'Camo',cost:60,head:'#cbd5a7',body:['#588157','#3a5a40','#6b705c']},
+      {id:'ember',name:'Ember',cost:80,head:'#fde68a',body:['#f97316','#ea580c','#dc2626']},
+      {id:'ocean',name:'Ocean',cost:80,head:'#a5f3fc',body:['#0ea5e9','#0284c7','#0369a1']},
+      {id:'rose',name:'Rose',cost:100,head:'#ffe4e6',body:['#fb7185','#f43f5e']},
+      {id:'candy',name:'Cotton Candy',cost:120,head:'#ffffff',body:['#f9a8d4','#a5b4fc','#99f6e4']},
+      {id:'neon',name:'Neon',cost:160,head:'#ffffff',body:['#22d3ee','#a3e635']},
+      {id:'gold',name:'Royal Gold',cost:200,head:'#fff7cc',body:['#facc15','#eab308','#ca8a04']},
+      {id:'rainbow',name:'Rainbow',cost:300,head:'#ffffff',body:['#ffffff'],rainbow:true}
+    ];
+    var FOODS = [
+      {id:'apple',name:'Apple',cost:0,e:'🍎'},
+      {id:'cherry',name:'Cherry',cost:20,e:'🍒'},
+      {id:'strawberry',name:'Strawberry',cost:40,e:'🍓'},
+      {id:'donut',name:'Donut',cost:60,e:'🍩'},
+      {id:'lollipop',name:'Lollipop',cost:80,e:'🍭'},
+      {id:'blossom',name:'Blossom',cost:100,e:'🌸'},
+      {id:'burger',name:'Burger',cost:120,e:'🍔'},
+      {id:'butterfly',name:'Butterfly',cost:150,e:'🦋'},
+      {id:'star',name:'Star',cost:200,e:'⭐'},
+      {id:'gem',name:'Gem',cost:300,e:'💎'}
+    ];
+    var BOARDS = [
+      {id:'night',name:'Night',cost:0,a:'#0a0f18',b:'#0e1522'},
+      {id:'lcd',name:'Old Phone LCD',cost:30,a:'#a3b86c',b:'#98ae62'},
+      {id:'plum',name:'Plum Dusk',cost:50,a:'#1b1220',b:'#26172d'},
+      {id:'ocean',name:'Deep Ocean',cost:50,a:'#06202e',b:'#0a2c40'},
+      {id:'forest',name:'Forest',cost:50,a:'#0d1f14',b:'#13301e'},
+      {id:'paper',name:'Paper',cost:90,a:'#f1ebdd',b:'#e7dfcc'}
+    ];
+    var CATS = {skin:SKINS, food:FOODS, board:BOARDS};
+    // The world is round in every mode: leave one edge, come back on the opposite one.
+    var MODES = {
+      easy:    {start:0.24, min:0.16, ramp:0.0025, mult:1, rocks:0},
+      medium:  {start:0.18, min:0.11, ramp:0.003,  mult:2, rocks:0},
+      extreme: {start:0.13, min:0.07, ramp:0.004,  mult:3, rocks:4}
+    };
+    var MODE_ORDER = ['easy','medium','extreme'];
+    var TITLES = [
+      {min:700, title:'🌀 Ouroboros'},
+      {min:450, title:'🌍 World Serpent'},
+      {min:320, title:'🌒 Eclipse Serpent'},
+      {min:230, title:'🕷️ Dread Weaver'},
+      {min:170, title:'💀 Crypt Lord'},
+      {min:120, title:'🐍 Anaconda Eater'},
+      {min:85,  title:'🩸 Blood Moon Hunter'},
+      {min:60,  title:'👁️ Nightmare Watcher'},
+      {min:40,  title:'🌑 Moonless Stalker'},
+      {min:25,  title:'🪦 Graveyard Slither'},
+      {min:12,  title:'🦇 Cave Whisperer'},
+      {min:5,   title:'🕸️ Cobweb Crawler'},
+      {min:0,   title:'🥚 Cursed Hatchling'}
+    ];
+    function titleFor(s){ for(var i=0;i<TITLES.length;i++) if(s>=TITLES[i].min) return TITLES[i].title; return TITLES[TITLES.length-1].title; }
+    function byId(list,id){ for(var i=0;i<list.length;i++) if(list[i].id===id) return list[i]; return null; }
+    function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+    function f(s,o){ return String(s||'').replace(/\{(\w+)\}/g,function(_,k){ return o&&(k in o) ? o[k] : '{'+k+'}'; }); }
+    function send(o){ try{ o.emonGame = 1; parent.postMessage(o,'*'); }catch(e){} }
+
+    // ---- saved data, sanitised ----
+    var D = (L.data && typeof L.data==='object') ? L.data : {};
+    D.pts = Math.max(0, Math.floor(Number(D.pts)||0));
+    if(!D.own || typeof D.own!=='object') D.own = {};
+    if(!D.eq || typeof D.eq!=='object') D.eq = {};
+    if(!D.best || typeof D.best!=='object') D.best = {};
+    Object.keys(CATS).forEach(function(k){
+      var list = CATS[k];
+      if(!Array.isArray(D.own[k])) D.own[k] = [];
+      if(D.own[k].indexOf(list[0].id) < 0) D.own[k].unshift(list[0].id);
+      D.own[k] = D.own[k].filter(function(id){ return !!byId(list,id); });
+      if(!byId(list,D.eq[k]) || D.own[k].indexOf(D.eq[k]) < 0) D.eq[k] = list[0].id;
+    });
+    MODE_ORDER.forEach(function(m){ D.best[m] = Math.max(0, Math.floor(Number(D.best[m])||0)); });
+    if(!MODES[D.mode]) D.mode = 'medium';
+    D.ctrl = D.ctrl === 'pad' ? 'pad' : 'gesture';
+
+    var wrap = document.getElementById('wrap'), cv = document.getElementById('c'), ctx = cv.getContext('2d');
+    var pad = document.getElementById('pad'), ov = document.getElementById('ov'), toastEl = document.getElementById('toast');
+    var ptsEl = document.getElementById('pts');
+    var ARROWS = {
+      l:'<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15 5v14L6 12z"/></svg>',
+      u:'<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 6l7 10H5z"/></svg>',
+      d:'<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 18L5 8h14z"/></svg>',
+      r:'<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M9 5v14l9-7z"/></svg>'
+    };
+    pad.innerHTML = ['l','u','d','r'].map(function(k){ return '<button data-d="'+k+'" aria-label="'+k+'">'+ARROWS[k]+'</button>'; }).join('');
+
+    var cell = 10, snake, dir, queue, food, rocks, alive, started, score, foods, runPts, newBest, acc = 0, last = 0;
+
+    // ---- saving ----
+    var saveT = null;
+    function save(){ if(saveT){ clearTimeout(saveT); saveT = null; } send({type:'save', data:D}); }
+    function saveSoon(){ if(!saveT) saveT = setTimeout(save, 800); }
+    window.addEventListener('pagehide', save);
+
+    function status(){
+      var b = D.best[D.mode], lib = Math.max(D.best.easy, D.best.medium, D.best.extreme);
+      send({type:'status', score:score, best:b, lib:lib, label: titleFor(b) + (L.name ? ' IS '+L.name : '')});
+    }
+    function toast(msg){
+      toastEl.textContent = msg; toastEl.style.display = 'block';
+      clearTimeout(toast.t); toast.t = setTimeout(function(){ toastEl.style.display = 'none'; }, 1700);
+    }
+    function paintBar(){ ptsEl.textContent = D.pts; }
+
+    // ---- game ----
+    function fit(){
+      var s = Math.max(120, Math.floor(Math.min(wrap.clientWidth - 6, wrap.clientHeight - 6)));
+      cv.width = s; cv.height = s; cell = s / N;
+    }
+    function applyCtrl(){ pad.style.display = D.ctrl === 'pad' ? 'flex' : 'none'; fit(); }
+    function occupied(x,y){
+      var i;
+      for(i=0;i<snake.length;i++) if(snake[i].x===x && snake[i].y===y) return true;
+      for(i=0;i<rocks.length;i++) if(rocks[i].x===x && rocks[i].y===y) return true;
+      return !!(food && food.x===x && food.y===y);
+    }
+    function placeFood(){
+      var p, guard = 0;
+      do{ p = {x:Math.floor(Math.random()*N), y:Math.floor(Math.random()*N)}; guard++; }
+      while(occupied(p.x,p.y) && guard < 400);
+      food = p;
+    }
+    function addRock(){
+      var guard = 0, p;
+      do{
+        p = {x:Math.floor(Math.random()*N), y:Math.floor(Math.random()*N)}; guard++;
+      } while((occupied(p.x,p.y) || Math.abs(p.x-snake[0].x)+Math.abs(p.y-snake[0].y) < 5) && guard < 200);
+      if(guard < 200) rocks.push(p);
+    }
+    function reset(){
+      snake = [{x:8,y:8},{x:7,y:8},{x:6,y:8}]; dir = {x:1,y:0}; queue = []; rocks = []; food = null;
+      score = 0; foods = 0; runPts = 0; newBest = false; alive = true; started = false; acc = 0;
+      placeFood(); paintBar(); status();
+    }
+    function turn(dx,dy){
+      if(ov.className.indexOf('show') >= 0) return;
+      var ref = queue.length ? queue[queue.length-1] : dir;
+      if((dx===-ref.x && dy===-ref.y) || (dx===ref.x && dy===ref.y)) return;
+      if(queue.length < 3) queue.push({x:dx,y:dy});
+      if(alive && !started) started = true;
+    }
+    function die(){
+      alive = false;
+      if(score > D.best[D.mode]){ D.best[D.mode] = score; newBest = true; }
+      save(); status(); paintBar();
+    }
+    function hit(list,x,y){ for(var i=0;i<list.length;i++) if(list[i].x===x && list[i].y===y) return true; return false; }
+    function step(){
+      var m = MODES[D.mode];
+      if(queue.length) dir = queue.shift();
+      // round world: past the last column you re-enter at the first, and the same for rows
+      var hx = (snake[0].x + dir.x + N) % N, hy = (snake[0].y + dir.y + N) % N;
+      if(hit(rocks,hx,hy)){ die(); return; }
+      var ate = (hx===food.x && hy===food.y);
+      // the tail cell is free to enter unless we are growing (then the tail stays put)
+      if(hit(ate ? snake : snake.slice(0,-1), hx, hy)){ die(); return; }
+      snake.unshift({x:hx,y:hy});
+      if(ate){
+        foods++; score += m.mult; D.pts += m.mult; runPts += m.mult;
+        placeFood();
+        if(m.rocks && foods % m.rocks === 0 && rocks.length < 10) addRock();
+        paintBar(); status(); saveSoon();
+      } else snake.pop();
+    }
+
+    function segColor(sk,i){
+      if(sk.rainbow) return 'hsl('+((i*24 + performance.now()/12) % 360)+',80%,62%)';
+      return i===0 ? sk.head : sk.body[i % sk.body.length];
+    }
+    function wrapLines(text,maxW){
+      var words = String(text).split(' '), line = '', out = [];
+      words.forEach(function(w){
+        var test = line ? line+' '+w : w;
+        if(ctx.measureText(test).width > maxW && line){ out.push(line); line = w; } else line = test;
+      });
+      if(line) out.push(line);
+      return out;
+    }
+    function overlayLines(lines){
+      var w = cv.width, gap = 6, total = 0;
+      ctx.fillStyle = '#000000b0'; ctx.fillRect(0,0,w,w);
+      var flat = [];
+      lines.forEach(function(l){
+        ctx.font = l.size+'px system-ui, sans-serif';
+        wrapLines(l.t, w-28).forEach(function(s){ flat.push({t:s,size:l.size,color:l.color}); });
+      });
+      flat.forEach(function(l){ total += l.size + gap; });
+      var y = (w - total)/2 + 6;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      flat.forEach(function(l){
+        ctx.font = l.size+'px system-ui, sans-serif'; ctx.fillStyle = l.color;
+        y += l.size; ctx.fillText(l.t, w/2, y); y += gap;
+      });
+    }
+    function draw(){
+      var w = cv.width, bd = byId(BOARDS, D.eq.board), sk = byId(SKINS, D.eq.skin), fd = byId(FOODS, D.eq.food), x, y;
+      ctx.fillStyle = bd.a; ctx.fillRect(0,0,w,w);
+      ctx.fillStyle = bd.b;
+      for(x=0;x<N;x++) for(y=0;y<N;y++) if((x+y)%2===0) ctx.fillRect(x*cell, y*cell, cell, cell);
+      rocks.forEach(function(r){
+        ctx.fillStyle = '#334155'; ctx.fillRect(r.x*cell+1, r.y*cell+1, cell-2, cell-2);
+        ctx.fillStyle = '#64748b'; ctx.fillRect(r.x*cell+2, r.y*cell+2, cell-5, cell-5);
+      });
+      ctx.font = Math.floor(cell*0.85)+'px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fff'; ctx.fillText(fd.e, (food.x+0.5)*cell, (food.y+0.55)*cell);
+      ctx.textBaseline = 'alphabetic';
+      snake.forEach(function(q,i){
+        ctx.fillStyle = segColor(sk,i);
+        ctx.fillRect(q.x*cell+1, q.y*cell+1, cell-2, cell-2);
+      });
+      var hd = snake[0], cx = (hd.x+0.5)*cell, cy = (hd.y+0.5)*cell, px = -dir.y, py = dir.x;
+      ctx.fillStyle = '#111';
+      [-1,1].forEach(function(s){
+        ctx.fillRect(cx + dir.x*cell*0.18 + px*s*cell*0.2 - 1, cy + dir.y*cell*0.18 + py*s*cell*0.2 - 1, 2.4, 2.4);
+      });
+      if(!alive){
+        var lines = [
+          {t:L.gameOver, size:20, color:'#ffffff'},
+          {t:titleFor(score), size:13, color:'#ffd27a'}
+        ];
+        if(newBest) lines.push({t:L.gsNewBest, size:12, color:'#a7f3d0'});
+        lines.push({t:'★ +'+runPts+' '+L.gsEarned, size:11.5, color:'#fde68a'});
+        lines.push({t:L.gameTapRestart, size:11.5, color:'#ffffffaa'});
+        overlayLines(lines);
+      } else if(!started){
+        var mm = MODES[D.mode];
+        overlayLines([
+          {t:L.gameTapStart, size:16, color:'#ffffff'},
+          {t:L['gsInfo'+cap(D.mode)], size:11.5, color:'#ffffffcc'},
+          {t:f(L.gsMult,{n:mm.mult}), size:11.5, color:'#fde68a'},
+          {t:L.gsWorld, size:10.5, color:'#ffffff99'}
+        ]);
+      }
+    }
+    function loop(ts){
+      if(!last) last = ts;
+      acc += Math.min(0.1, (ts-last)/1000); last = ts;
+      var m = MODES[D.mode], every = Math.max(m.min, m.start - foods*m.ramp);
+      while(acc >= every){ if(started && alive && ov.className.indexOf('show') < 0) step(); acc -= every; }
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    // ---- input: swipe gestures or on-screen arrow buttons (chosen in Settings) ----
+    var sx = 0, sy = 0, down = false, moved = false;
+    cv.addEventListener('pointerdown', function(e){ down = true; moved = false; sx = e.clientX; sy = e.clientY; e.preventDefault(); });
+    cv.addEventListener('pointermove', function(e){
+      if(!down || D.ctrl !== 'gesture') return;
+      var dx = e.clientX-sx, dy = e.clientY-sy;
+      if(Math.max(Math.abs(dx),Math.abs(dy)) < 16) return;
+      moved = true; sx = e.clientX; sy = e.clientY;
+      if(Math.abs(dx) > Math.abs(dy)) turn(dx>0?1:-1, 0); else turn(0, dy>0?1:-1);
+    });
+    cv.addEventListener('pointerup', function(){
+      if(down && !moved && ov.className.indexOf('show') < 0){
+        if(!alive){ reset(); started = true; }
+        else if(!started){ started = true; }
+      }
+      down = false;
+    });
+    cv.addEventListener('pointercancel', function(){ down = false; });
+    var DIRS = {l:[-1,0], u:[0,-1], d:[0,1], r:[1,0]};
+    [].forEach.call(pad.querySelectorAll('button'), function(b){
+      b.addEventListener('pointerdown', function(e){
+        e.preventDefault();
+        if(ov.className.indexOf('show') >= 0) return;
+        var v = DIRS[b.getAttribute('data-d')];
+        if(!alive) reset();
+        started = true;
+        turn(v[0], v[1]);
+      });
+    });
+    window.addEventListener('keydown', function(e){
+      var k = e.key;
+      if(ov.className.indexOf('show') >= 0) return;
+      if(k==='ArrowUp'||k==='w'){ turn(0,-1); e.preventDefault(); }
+      else if(k==='ArrowDown'||k==='s'){ turn(0,1); e.preventDefault(); }
+      else if(k==='ArrowLeft'||k==='a'){ turn(-1,0); e.preventDefault(); }
+      else if(k==='ArrowRight'||k==='d'){ turn(1,0); e.preventDefault(); }
+      else if(k===' '){ if(!alive) reset(); started = true; e.preventDefault(); }
+    });
+
+    // ---- overlays: settings, store, titles ----
+    var tab = 'skin';
+    function closeOv(){ ov.className = ''; ov.innerHTML = ''; }
+    function seg(act, items, cur){
+      return '<div class="seg">' + items.map(function(it){
+        return '<button class="'+(it.v===cur?'on':'')+'" data-act="'+act+'" data-v="'+it.v+'">'+it.t+'</button>';
+      }).join('') + '</div>';
+    }
+    function renderSettings(){
+      var h = '<div class="ovh"><b>'+L.gsSettings+'</b><button class="x" data-act="close">×</button></div><div class="body">';
+      h += '<div class="sec"><div class="lbl">'+L.gsMode+'</div>'
+        + seg('mode', MODE_ORDER.map(function(m){ return {v:m, t:L['gs'+cap(m)]}; }), D.mode)
+        + '<div class="hint">'+L['gsInfo'+cap(D.mode)]+' '+f(L.gsMult,{n:MODES[D.mode].mult})+'</div></div>';
+      h += '<div class="sec"><div class="lbl">'+L.gsControls+'</div>'
+        + seg('ctrl', [{v:'gesture',t:L.gsCtrlGesture},{v:'pad',t:L.gsCtrlPad}], D.ctrl) + '</div>';
+      h += '<button class="btn storebtn" data-act="store"><span>'+L.gsStore+'</span><span class="pbig">★ '+D.pts+'</span></button></div>';
+      ov.innerHTML = h; ov.className = 'show';
+    }
+    function previewHTML(cat,it){
+      if(cat==='skin') return '<canvas class="pv" width="64" height="18" data-skin="'+it.id+'"></canvas>';
+      if(cat==='food') return '<span class="pve">'+it.e+'</span>';
+      return '<span class="pvb" style="background:linear-gradient(90deg,'+it.a+' 50%,'+it.b+' 50%)"></span>';
+    }
+    function paintSkinPreviews(){
+      [].forEach.call(ov.querySelectorAll('canvas[data-skin]'), function(c){
+        var sk = byId(SKINS, c.getAttribute('data-skin')), g = c.getContext('2d'), i;
+        g.clearRect(0,0,64,18);
+        for(i=4;i>=0;i--){ g.fillStyle = segColor(sk,i); g.fillRect(2+i*12, 2, 11, 14); }
+      });
+    }
+    function renderStore(){
+      var h = '<div class="ovh"><button class="x" data-act="settings">‹</button><b>'+L.gsStore+'</b><span class="pbig">★ '+D.pts+'</span><button class="x" data-act="close">×</button></div>';
+      h += '<div class="tabs">' + ['skin','food','board'].map(function(k){
+        return '<button class="tab'+(k===tab?' on':'')+'" data-act="tab" data-k="'+k+'">'+L['gsTab'+cap(k)]+'</button>';
+      }).join('') + '</div><div class="tag">'+L.gsStoreTag+'</div><div class="rows">';
+      CATS[tab].forEach(function(it){
+        var owned = D.own[tab].indexOf(it.id) >= 0, eq = D.eq[tab] === it.id, btn;
+        if(eq) btn = '<button class="eq" disabled>✓ '+L.gsEquipped+'</button>';
+        else if(owned) btn = '<button data-act="equip" data-id="'+it.id+'">'+L.gsEquip+'</button>';
+        else btn = '<button class="buy'+(D.pts<it.cost?' dis':'')+'" data-act="buy" data-id="'+it.id+'">'+L.gsBuy+' '+it.cost+' ★</button>';
+        h += '<div class="row">'+previewHTML(tab,it)+'<span class="nm">'+it.name+'</span>'+btn+'</div>';
+      });
+      ov.innerHTML = h + '</div>'; ov.className = 'show';
+      paintSkinPreviews();
+    }
+    function renderTiers(){
+      var cur = titleFor(D.best[D.mode]);
+      var h = '<div class="ovh"><b>'+L.gsTiers+'</b><button class="x" data-act="close">×</button></div><div class="rows">';
+      TITLES.forEach(function(t){ h += '<div class="row'+(t.title===cur?' you':'')+'"><span class="nm">'+t.title+'</span><span class="mn">'+t.min+'+</span></div>'; });
+      ov.innerHTML = h + '</div>'; ov.className = 'show';
+    }
+    ov.addEventListener('click', function(e){
+      var b = e.target.closest('[data-act]'); if(!b) return;
+      var act = b.getAttribute('data-act'), id = b.getAttribute('data-id'), v = b.getAttribute('data-v');
+      if(act==='close'){ closeOv(); return; }
+      if(act==='settings'){ renderSettings(); return; }
+      if(act==='store'){ renderStore(); return; }
+      if(act==='tab'){ tab = b.getAttribute('data-k'); renderStore(); return; }
+      if(act==='mode'){
+        if(started && alive){ toast(L.gsLocked); return; }
+        if(MODES[v] && v !== D.mode){ D.mode = v; reset(); save(); }
+        renderSettings(); return;
+      }
+      if(act==='ctrl'){
+        if(v==='pad' || v==='gesture'){ D.ctrl = v; applyCtrl(); save(); }
+        renderSettings(); return;
+      }
+      var it = byId(CATS[tab], id); if(!it) return;
+      if(act==='equip' && D.own[tab].indexOf(id) >= 0){ D.eq[tab] = id; save(); renderStore(); return; }
+      if(act==='buy'){
+        if(D.own[tab].indexOf(id) >= 0) return;
+        if(D.pts < it.cost){ toast(L.gsNoPoints); return; }
+        D.pts -= it.cost; D.own[tab].push(id); D.eq[tab] = id;
+        save(); paintBar(); renderStore(); toast(L.gsBought);
+      }
+    });
+    document.getElementById('gear').addEventListener('click', renderSettings);
+    window.addEventListener('message', function(e){
+      var d = e.data; if(!d || d.emonGame !== 1) return;
+      if(d.type === 'tiers') renderTiers();
+    });
+    window.addEventListener('resize', fit);
+    applyCtrl(); reset(); requestAnimationFrame(loop);
+  }
+
+  function bombGame(L){
+    // New emoji sets unlock as you climb, so the board never feels familiar for long:
+    // levels 1-2 animals, 3-4 food, 5-6 sky & nature, 7-8 objects, 9-10 spooky, 11+ everything mixed.
+    var SETS = [
+      ['🐶','🐱','🦊','🐼','🐸','🦄','🐙','🐧','🐵','🐢','🦉','🐝'],
+      ['🍉','🍕','🍔','🍩','🍒','🥑','🌽','🍇','🍪','🥕','🍓','🍍'],
+      ['🚀','🌙','⭐','🪐','🌈','⚡','🔥','🌊','🌵','🍄','🌻','🌸'],
+      ['🎸','🎲','🧩','🔑','⏰','📷','🎧','🧭','🪁','💎','🔮','🎈'],
+      ['👻','💀','🦇','🐉','🦂','🏺','🧿','👽','🤡','🎃','🦖','🌋']
+    ];
+    function setIdx(n){ return n <= 10 ? Math.floor((n-1)/2) : 5; }
+    function poolFor(n){
+      var i = setIdx(n);
+      if(i < 5) return SETS[i].slice();
+      var all = []; SETS.forEach(function(s){ all = all.concat(s); }); return all;
+    }
+    var TITLES = [
+      {min:20, title:'👑 The Unblowable'},
+      {min:14, title:'🌌 Mind Like a Vault'},
+      {min:10, title:'🧠 Memory Monarch'},
+      {min:7,  title:'🦉 Cool Head Under Fire'},
+      {min:5,  title:'🕵️ Bomb Squad Rookie'},
+      {min:3,  title:'🧯 Fuse Whisperer'},
+      {min:2,  title:'✂️ Blue-Wire Guesser'},
+      {min:1,  title:'🧦 Sock Defuser'},
+      {min:0,  title:'💣 Bomb Snack'}
+    ];
+    // Loving roasts. {name} becomes the player's name.
+    var ROAST_EARLY = [
+      {t:'👑➜🩰 A Princess in Distress', l:'Yesterday, {name} was King of Kings. Today? Sitting in the tower, waiting to be rescued.'},
+      {t:'🥔 Certified Potato of the Realm', l:'Mommy says: "I did not carry you for nine months for this, {name}."'},
+      {t:'🍚 Go Eat Your Rice', l:'Mommy: "You have been on that phone for hours, {name}. Rice. Now."'},
+      {t:'🐌 Speed of a Sleepy Snail', l:'The cards saw you coming, {name}. They planned this together.'},
+      {t:'🧦 Lost Sock Energy', l:'{name} walked in with confidence and walked out with a lesson.'},
+      {t:'📵 Phone Confiscated', l:'Mommy: "Hand it over, {name}. Your brain is on leave today."'},
+      {t:'🐔 Brave Chicken Award', l:'Big plans, {name}. Small results. Still a lovable chicken.'},
+      {t:'🪑 Retired Before Starting', l:'{name}, the bench is warm and it has been missing you.'}
+    ];
+    var ROAST_MID = [
+      {t:'🦸 Hero of the First Levels', l:'The next level sends its regards, {name}. Also a small, loving laugh.'},
+      {t:'🥲 Almost Somebody', l:'Mommy: "I am proud of you, {name}. Now drink some water, you look pale."'},
+      {t:'🍜 Instant Noodle Brain', l:'Two minutes of genius, {name}. Then the water went cold.'},
+      {t:'🎭 Main Character, Wrong Movie', l:'{name} was cooking. Then forgot the stove was on.'},
+      {t:'🧯 Fire Extinguisher Required', l:'The fuse was short, {name}. So was the focus.'},
+      {t:'🐢 The Tortoise Who Did Not Win', l:'Slow, steady, and still late, {name}.'},
+      {t:'📚 Studied Hard, Forgot the Exam', l:'Mommy: "You remember every cartoon, {name}, but not where the cat was?"'},
+      {t:'🤡 Court Jester, Promoted', l:'Your Majesty {name}, the whole kingdom laughed. Lovingly.'}
+    ];
+    var ROAST_LATE = [
+      {t:'🔥 Legend, Slightly Burnt', l:'{name} went further than most people dare. The bomb just wanted attention.'},
+      {t:'🫡 Respect, Then Boom', l:'Even the bomb saluted you, {name}.'},
+      {t:'🧠 Big Brain, Small Timer', l:'It was not your memory, {name}. It was the clock\'s ego.'},
+      {t:'🏔️ Almost at the Summit', l:'Mommy: "Rest, {name}. The mountain will still be there tomorrow."'},
+      {t:'🎖️ Bomb Squad Veteran', l:'Retire with honour, {name}. Or try once more. We both know you will.'},
+      {t:'🌪️ Chaos Survived, Mostly', l:'{name} outlasted the tricks. The tricks outlasted the timer.'},
+      {t:'👑 King Without a Crown', l:'Not today\'s winner, {name}. Definitely tomorrow\'s problem.'},
+      {t:'🥹 So Close It Hurts', l:'Mommy: "Come and eat, {name}. You did enough. I am watching, and I am proud."'}
+    ];
+    var WISDOM = [
+      'Knowledge cancels fear. What you understand, you no longer dread.',
+      'Grades measure how well you follow a system. Life measures what you do when no system is watching.',
+      'Security is a good thing to have and a poor thing to worship.',
+      'Money is a tool. The moment it starts giving orders, you have become the tool.',
+      'Athens silenced Socrates. More than twenty-four centuries later, we are still asking his questions.',
+      'Be careful with anyone who needs your obedience more than your understanding.',
+      'Working hard matters. Knowing what you are working hard for matters more.',
+      'A cage with a good salary is still a cage. Choose it with open eyes, or choose another.',
+      'Comfort is a fine place to rest and a terrible place to live.',
+      'You do not need permission to become greater. You need a decision, then a long stretch of ordinary days.',
+      'Real life is messy, unfair and unclear. Nobody is coming with the answer key. Begin anyway.',
+      'Everyone you admire once felt lost. The difference is that they kept walking while lost.',
+      'Fear is often just an unread book about the thing in front of you.',
+      'The loudest voices tell you what to want. The quiet ones ask what you value.',
+      'Failure is not the opposite of success. It is the tuition.',
+      'You are not late. You are on your own road, and no one else has walked it.',
+      'Be kind to people who can do nothing for you. That is where character is tested.',
+      'Most of what scares you is a story you have never checked.',
+      'Learn for understanding, not for applause. Applause fades, understanding compounds.',
+      'A free mind is built slowly: read, doubt, test, listen, then decide.',
+      'The easiest people to control are the ones who never ask why.',
+      'You can lose money and recover it. You can lose time and never get it back. Spend the second one carefully.',
+      'Do not confuse being busy with being alive.',
+      'Respect is earned by what you do in private, when nothing rewards you for it.',
+      'Wisdom is not knowing everything. It is knowing what matters, and acting like it.'
+    ];
+    function f(s,o){ return String(s||'').replace(/\{(\w+)\}/g,function(_,k){ return o&&(k in o) ? o[k] : '{'+k+'}'; }); }
+    function send(o){ try{ o.emonGame = 1; parent.postMessage(o,'*'); }catch(e){} }
+    function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+    function titleFor(n){ for(var i=0;i<TITLES.length;i++) if(n>=TITLES[i].min) return TITLES[i].title; return TITLES[TITLES.length-1].title; }
+    var NAME = L.name || 'Player';
+
+    var D = (L.data && typeof L.data==='object') ? L.data : {};
+    D.best = Math.max(0, Math.floor(Number(D.best)||0));
+    D.got = Array.isArray(D.got) ? D.got.filter(function(i){ return typeof i==='number' && i>=0 && i<WISDOM.length; }) : [];
+    D.roast = typeof D.roast==='number' ? D.roast : -1;
+
+    var grid = document.getElementById('g'), stage = document.getElementById('stage'), ov = document.getElementById('ov'), toastEl = document.getElementById('toast');
+    var lvEl = document.getElementById('lv'), mvEl = document.getElementById('mv'), tmEl = document.getElementById('tm'), tkEl = document.getElementById('tk');
+
+    var level = 1, cleared = 0, P = null, state = 'idle';
+    var first = null, lock = false, moves = 0, mism = 0, matched = 0, remaining = 0, shufflesLeft = 0, gen = 0;
+    var running = false, timerStarted = false, tId = null, tLast = 0, holds = 0, hiddenHold = false;
+    var prevHTML = null;
+
+    function params(n){
+      var pairs = [6,8,8,10,10,12,12,12][Math.min(n,8)-1];
+      var time = pairs*5 + 5 - Math.max(0,n-8)*2; time = Math.max(time, pairs*3 + 5);
+      var slack = Math.max(1.65, 2.1 - 0.05*(n-1));
+      return {
+        pairs: pairs, time: Math.round(time), target: Math.ceil(pairs*slack),
+        swapEvery: n<3 ? 0 : (n===3 ? 5 : (n===4 ? 4 : 3)),
+        shuffles: n<=4 ? 1 : 0,
+        peek: Math.max(800, 2100 - (n-1)*150)
+      };
+    }
+    function fmt(s){ s = Math.max(0, Math.ceil(s)); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+    function status(){
+      send({type:'status', score:cleared, best:D.best, lib:D.best, label:titleFor(D.best) + ' IS ' + NAME});
+    }
+    function save(){ send({type:'save', data:D}); }
+    function toast(msg){
+      toastEl.textContent = msg; toastEl.style.display = 'block';
+      clearTimeout(toast.t); toast.t = setTimeout(function(){ toastEl.style.display = 'none'; }, 1800);
+    }
+    function paint(){
+      lvEl.textContent = L.gbLv+' '+level;
+      mvEl.textContent = L.gbMoves+' '+moves+'/'+(P?P.target:0);
+      tmEl.textContent = '💣 '+fmt(remaining);
+      tmEl.className = (timerStarted && remaining <= 10) ? 'hot' : '';
+      tkEl.textContent = (P && P.swapEvery) ? '🌀 '+(P.swapEvery - (mism % P.swapEvery)) : '';
+    }
+
+    // ---- timer (with holds so it pauses behind menus / when the game is hidden) ----
+    function stopTimer(){ running = false; if(tId){ clearInterval(tId); tId = null; } }
+    function startTimer(){
+      if(running || holds > 0 || state !== 'play') return;
+      running = true; tLast = performance.now(); tId = setInterval(tick, 100);
+    }
+    function hold(){ holds++; stopTimer(); }
+    function release(){ holds = Math.max(0, holds-1); if(holds === 0 && timerStarted) startTimer(); }
+    function tick(){
+      var now = performance.now(); remaining -= (now - tLast)/1000; tLast = now;
+      if(remaining <= 0){ remaining = 0; paint(); onBoom(); return; }
+      paint();
+    }
+    document.addEventListener('visibilitychange', function(){
+      if(document.hidden && !hiddenHold){ hiddenHold = true; hold(); }
+      else if(!document.hidden && hiddenHold){ hiddenHold = false; release(); }
+    });
+
+    // ---- board ----
+    function layout(count){
+      var cols = count<=16 ? 4 : (count<=20 ? 5 : 6), rows = Math.ceil(count/cols), gap = 6;
+      var W = stage.clientWidth - 8, H = stage.clientHeight - 8;
+      var cs = Math.max(24, Math.floor(Math.min((W - gap*(cols-1))/cols, (H - gap*(rows-1))/rows)));
+      grid.style.gridTemplateColumns = 'repeat('+cols+','+cs+'px)';
+      grid.style.gridAutoRows = cs+'px'; grid.style.gap = gap+'px';
+      grid.style.fontSize = Math.floor(cs*0.52)+'px';
+    }
+    function hideCard(c){ c.classList.remove('up'); c.textContent = '?'; }
+    function showCard(c){ c.classList.add('up'); c.textContent = c.dataset.e; }
+    function buildBoard(){
+      grid.innerHTML = '';
+      var faces = shuffle(poolFor(level)).slice(0, P.pairs), deck = shuffle(faces.concat(faces));
+      deck.forEach(function(e){
+        var b = document.createElement('button');
+        b.className = 'c'; b.dataset.e = e; b.textContent = '?';
+        b.onclick = function(){ flip(b); };
+        grid.appendChild(b);
+      });
+      layout(deck.length);
+    }
+    function beginLevel(){
+      gen++; P = params(level); cleared = level - 1;
+      first = null; lock = true; moves = 0; mism = 0; matched = 0; timerStarted = false;
+      remaining = P.time; shufflesLeft = P.shuffles; stopTimer();
+      closeCard(); buildBoard(); paint(); status();
+      state = 'peek';
+      [].forEach.call(grid.children, showCard);
+      toast('👀 '+L.gbMemorize);
+      var g = gen;
+      setTimeout(function(){
+        if(g !== gen) return;
+        [].forEach.call(grid.children, hideCard);
+        state = 'play'; lock = false;
+      }, P.peek);
+    }
+    function flip(b){
+      if(state !== 'play' || lock || b.classList.contains('up') || b.classList.contains('done')) return;
+      showCard(b);
+      if(!timerStarted){ timerStarted = true; startTimer(); }
+      if(!first){ first = b; return; }
+      moves++;
+      var a = first; first = null;
+      if(a.dataset.e === b.dataset.e){
+        a.classList.add('done'); b.classList.add('done'); matched++;
+        paint();
+        if(matched === P.pairs){ win(); return; }
+        if(moves >= P.target){ fail('moves'); }
+        return;
+      }
+      mism++; lock = true; paint();
+      var g = gen;
+      setTimeout(function(){
+        if(g !== gen || state !== 'play') return;
+        hideCard(a); hideCard(b); lock = false;
+        if(moves >= P.target){ fail('moves'); return; }
+        if(P.swapEvery && mism % P.swapEvery === 0) doSwap();
+      }, 650);
+    }
+    function doSwap(){
+      var list = [].filter.call(grid.children, function(c){ return !c.classList.contains('done') && !c.classList.contains('up'); });
+      if(list.length < 2) return;
+      shuffle(list);
+      var a = list[0], b = list[1], an = a.nextSibling, bn = b.nextSibling;
+      if(an === b) grid.insertBefore(b, a);
+      else if(bn === a) grid.insertBefore(a, b);
+      else { grid.insertBefore(a, bn); grid.insertBefore(b, an); }
+      a.classList.add('swap'); b.classList.add('swap');
+      setTimeout(function(){ a.classList.remove('swap'); b.classList.remove('swap'); }, 900);
+      toast('🌀 '+L.gbSwapped);
+    }
+    function reshuffle(){
+      var cards = [].filter.call(grid.children, function(c){ return !c.classList.contains('done'); });
+      var vals = shuffle(cards.map(function(c){ return c.dataset.e; }));
+      cards.forEach(function(c,i){
+        c.dataset.e = vals[i]; hideCard(c); c.classList.add('swap');
+        setTimeout(function(){ c.classList.remove('swap'); }, 900);
+      });
+      first = null; lock = false;
+    }
+    function onBoom(){
+      if(state !== 'play') return;
+      if(shufflesLeft > 0){
+        shufflesLeft--; gen++; reshuffle();
+        remaining = Math.round(P.time * 0.6); paint(); toast('💥 '+L.gbShuffled);
+      } else fail('bomb');
+    }
+
+    // ---- cards (win / lose / intro / wisdom) ----
+    function card(html){ ov.innerHTML = '<div class="card">'+html+'</div>'; ov.className = 'show center'; prevHTML = null; }
+    function closeCard(){ if(modalOpen) closeModal(false); ov.className = ''; ov.innerHTML = ''; prevHTML = null; }
+    // A "modal" (wisdom list, titles, restart question) sits on top of whatever card/board is showing and
+    // pauses the bomb while it is open. Closing it puts the previous card back.
+    var modalOpen = false, modalHeld = false, prevCls = '';
+    function modal(html, cls){
+      if(modalOpen) return;
+      modalOpen = true;
+      prevHTML = ov.className.indexOf('show') >= 0 ? ov.innerHTML : null; prevCls = ov.className;
+      modalHeld = (state === 'play'); if(modalHeld) hold();
+      ov.innerHTML = html; ov.className = 'show' + (cls ? ' '+cls : '');
+    }
+    function closeModal(restore){
+      if(!modalOpen) return;
+      modalOpen = false;
+      if(restore !== false && prevHTML){ ov.innerHTML = prevHTML; ov.className = prevCls; }
+      else { ov.className = ''; ov.innerHTML = ''; }
+      prevHTML = null;
+      if(modalHeld){ modalHeld = false; release(); }
+    }
+    function preview(n){
+      var p = params(n), h = '<div class="pv">💣 '+f(L.gbTimeInfo,{s:p.time})+'<br>🎯 '+f(L.gbTargetInfo,{n:p.target});
+      if(p.swapEvery) h += '<br>🌀 '+f(L.gbTrickInfo,{n:p.swapEvery});
+      h += '<br>' + (p.shuffles ? '🔀 '+L.gbMercy : '☠️ '+L.gbNoMercy);
+      if(n > 1 && setIdx(n) !== setIdx(n-1)) h += '<br>✨ '+L.gbNewSet;
+      return h + '</div>';
+    }
+    function showIntro(){
+      state = 'intro'; cleared = 0; level = 1; status(); paint();
+      card('<div class="big">🧩💣</div><div class="ttl">'+f(L.gbLevel,{n:1})+'</div>'+preview(1)+'<button class="btn pri" data-act="start">'+L.gbStart+'</button>');
+    }
+    function quoteHTML(idx, isNew){
+      return '<div class="quote">“'+WISDOM[idx]+'”</div><div class="qtag">'+(isNew ? '📜 '+L.gbNewWisdom : '📜 '+L.gbOldWisdom)+'</div>';
+    }
+    function win(){
+      stopTimer(); state = 'won'; gen++;
+      cleared = level; var left = Math.round(remaining), isNew = false;
+      if(cleared > D.best) D.best = cleared;
+      var unseen = [], i;
+      for(i=0;i<WISDOM.length;i++) if(D.got.indexOf(i) < 0) unseen.push(i);
+      var idx;
+      if(unseen.length){ idx = unseen[Math.floor(Math.random()*unseen.length)]; D.got.push(idx); isNew = true; }
+      else idx = Math.floor(Math.random()*WISDOM.length);
+      save(); status(); paint();
+      card('<div class="ttl">✅ '+f(L.gbCleared,{n:level})+'</div><div class="sub">'+f(L.gbStats,{m:moves,s:left})+'</div>'
+        + quoteHTML(idx,isNew) + preview(level+1)
+        + '<button class="btn pri" data-act="next">'+f(L.gbNext,{n:level+1})+' ▶</button>');
+    }
+    function fail(reason){
+      if(state === 'lost') return;
+      stopTimer(); state = 'lost'; gen++;
+      var pool = cleared <= 1 ? ROAST_EARLY : (cleared <= 4 ? ROAST_MID : ROAST_LATE);
+      var idx = Math.floor(Math.random()*pool.length);
+      if(pool.length > 1 && idx === D.roast) idx = (idx+1) % pool.length;
+      D.roast = idx;
+      if(cleared > D.best) D.best = cleared;
+      var r = pool[idx];
+      save(); status();
+      card('<div class="big">'+(reason==='bomb' ? '💥' : '🧨')+'</div>'
+        + '<div class="why">'+(reason==='bomb' ? L.gbBoom : f(L.gbOutMoves,{n:P.target}))+'</div>'
+        + '<div class="ttl warn">'+f(r.t,{name:NAME})+'</div><div class="sub">'+f(r.l,{name:NAME})+'</div>'
+        + '<div class="sub dim">'+f(L.gbRunStats,{n:cleared,b:D.best})+' · '+titleFor(D.best)+'</div>'
+        + '<button class="btn pri" data-act="again">'+L.gbTryAgain+'</button>');
+    }
+    function showWisdom(){
+      var h = '<div class="ovh"><b>📜 '+L.gbWisdom+' '+D.got.length+'/'+WISDOM.length+'</b><button class="x" data-act="mclose">×</button></div><div class="rows">';
+      if(!D.got.length) h += '<div class="empty">'+L.gbWisEmpty+'</div>';
+      D.got.slice().reverse().forEach(function(i){ h += '<div class="wq">“'+WISDOM[i]+'”</div>'; });
+      modal(h + '</div>');
+    }
+    function showTiers(){
+      var cur = titleFor(D.best);
+      var h = '<div class="ovh"><b>'+L.gbTiers+'</b><button class="x" data-act="mclose">×</button></div><div class="rows">';
+      TITLES.forEach(function(t){ h += '<div class="row'+(t.title===cur?' you':'')+'"><span class="nm">'+t.title+'</span><span class="mn">'+t.min+'+</span></div>'; });
+      modal(h + '</div>');
+    }
+    function askRestart(){
+      modal('<div class="card"><div class="ttl">'+L.gbRestartAsk+'</div><button class="btn pri" data-act="yes">'+L.gbYes+'</button> <button class="btn" data-act="mclose">'+L.gbNo+'</button></div>', 'center');
+    }
+    ov.addEventListener('click', function(e){
+      var b = e.target.closest('[data-act]'); if(!b) return;
+      var act = b.getAttribute('data-act');
+      if(act === 'start'){ level = 1; beginLevel(); }
+      else if(act === 'next'){ level++; beginLevel(); }
+      else if(act === 'again'){ level = 1; beginLevel(); }
+      else if(act === 'mclose'){ closeModal(); }
+      else if(act === 'yes'){ closeModal(false); level = 1; beginLevel(); }
+    });
+    document.getElementById('wis').onclick = showWisdom;
+    document.getElementById('r').onclick = function(){ if(state === 'play' || state === 'peek') askRestart(); else if(state === 'lost' || state === 'won' || state === 'intro') { /* card already offers next steps */ } };
+    window.addEventListener('message', function(e){
+      var d = e.data; if(!d || d.emonGame !== 1) return;
+      if(d.type === 'tiers') showTiers();
+      else if(d.type === 'pause') hold();
+      else if(d.type === 'resume') release();
+    });
+    window.addEventListener('resize', function(){ if(grid.children.length) layout(grid.children.length); });
+    window.addEventListener('pagehide', save);
+    showIntro();
+  }
+
+  const GAME_BASE_CSS = 'html,body{margin:0;height:100%;background:#070a10;color:#fff;font-family:system-ui,sans-serif;overflow:hidden}'
+    + 'body{position:relative;display:flex;flex-direction:column}button{font-family:inherit}'
+    + '#ov{position:absolute;inset:0;display:none;flex-direction:column;background:#070a10f4;padding:8px;box-sizing:border-box;z-index:5}'
+    + '#ov.show{display:flex}#ov.center{justify-content:center;align-items:center;background:#070a10ee}'
+    + '.ovh{display:flex;align-items:center;gap:8px;margin-bottom:6px}.ovh b{flex:1;font-size:14px}.pbig{font-size:13px;color:#fde68a}'
+    + '.x{border:1px solid #ffffff20;background:#ffffff10;color:#fff;border-radius:9px;width:30px;height:30px;font-size:15px}'
+    + '.rows{flex:1;min-height:0;overflow-y:auto;touch-action:pan-y;border:1px solid #ffffff14;border-radius:10px;padding:4px;width:100%;box-sizing:border-box}'
+    + '.row{display:flex;align-items:center;gap:8px;padding:6px;border-radius:8px}.row.you{background:#8b5cf62e}'
+    + '.row .nm{flex:1;min-width:0;font-size:12.5px}.row .mn{font-size:11px;opacity:.6}'
+    + '.row button,.btn,.tab{border:1px solid #ffffff20;background:#ffffff10;color:#fff;border-radius:9px;padding:0 10px;height:30px;font-size:12px;white-space:nowrap}'
+    + '.btn{height:36px;font-size:13px;padding:0 16px}.btn.pri,.row button.buy,.tab.on{background:#8b5cf6;border-color:#a78bfa}'
+    + '.row button.dis{opacity:.4}.row button.eq{background:#1f5f46;border-color:#2f7f61}'
+    + '.tabs{display:flex;gap:5px;margin-bottom:6px}.tab{flex:1;padding:0 4px}.tag{font-size:10.5px;opacity:.6;margin-bottom:6px}'
+    + '#toast{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);background:#000d;padding:6px 12px;border-radius:9px;font-size:12px;display:none;z-index:9;max-width:90%;text-align:center}'
+    + '.card{max-height:100%;overflow-y:auto;touch-action:pan-y;text-align:center;padding:6px 10px;box-sizing:border-box;width:100%}';
+  const SNAKE_CSS = '#top{flex:none;height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;box-sizing:border-box}'
+    + '#pill{font-size:12.5px;color:#fde68a;background:#ffffff0d;border:1px solid #ffffff18;border-radius:999px;padding:4px 11px}'
+    + '#gear{width:36px;height:30px;border-radius:9px;border:1px solid #ffffff20;background:#ffffff10;color:#fff;display:flex;align-items:center;justify-content:center;padding:0}'
+    + '#wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}'
+    + 'canvas{display:block;touch-action:none;border-radius:8px}'
+    + '#pad{flex:none;height:58px;display:none;gap:8px;padding:6px 8px 8px;box-sizing:border-box}'
+    + '#pad button{flex:1;border:1px solid #ffffff22;background:#ffffff12;color:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;touch-action:none;padding:0}'
+    + '#pad button:active{background:#8b5cf666}'
+    + '.body{flex:1;min-height:0;overflow-y:auto;touch-action:pan-y}'
+    + '.sec{margin-bottom:14px}.lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.6;margin-bottom:6px}'
+    + '.seg{display:flex;border:1px solid #ffffff22;border-radius:11px;overflow:hidden}'
+    + '.seg button{flex:1;height:36px;border:0;background:transparent;color:#ffffffb8;font-size:12.5px;padding:0 4px}'
+    + '.seg button+button{border-left:1px solid #ffffff18}.seg button.on{background:#8b5cf6;color:#fff;font-weight:700}'
+    + '.hint{font-size:11px;opacity:.6;margin-top:6px;line-height:1.4}'
+    + '.storebtn{display:flex;justify-content:space-between;align-items:center;width:100%;height:44px}'
+    + '.pv{width:64px;height:18px;flex:none}.pve{font-size:22px;width:64px;text-align:center;flex:none}.pvb{width:64px;height:18px;border-radius:5px;flex:none;border:1px solid #ffffff22}';
+  const BOMB_CSS = '#top{flex:none;height:34px;display:flex;align-items:center;gap:9px;padding:0 6px;font-size:12px;white-space:nowrap}#top .sp{flex:1}'
+    + '#top button{border:1px solid #ffffff22;background:#ffffff12;color:#fff;border-radius:9px;width:32px;height:26px;font-size:14px;padding:0}'
+    + '#tm.hot{color:#f87171;font-weight:800;animation:pl .6s infinite}@keyframes pl{50%{opacity:.35}}'
+    + '#stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}#g{display:grid}'
+    + '.c{border:1px solid #ffffff18;border-radius:10px;background:#1a2233;color:#ffffff55;padding:0;line-height:1}'
+    + '.c.up{background:#2b3552;color:#fff}.c.done{background:#1f5f46;color:#fff;opacity:.85}'
+    + '.c.swap{animation:sw .9s;box-shadow:0 0 0 2px #fbbf24}@keyframes sw{30%{transform:scale(1.15) rotate(-4deg)}}'
+    + '.big{font-size:34px}.ttl{font-size:17px;font-weight:800;margin:4px 0}.ttl.warn{color:#fbbf24}.why{font-size:12px;opacity:.75}'
+    + '.sub{font-size:12px;opacity:.85;line-height:1.45;margin:4px 0 8px}.sub.dim{opacity:.55;font-size:11px}'
+    + '.pv{font-size:11.5px;line-height:1.6;opacity:.85;margin:6px 0 10px}'
+    + '.quote{font-size:13px;line-height:1.5;font-style:italic;background:#ffffff0d;border:1px solid #ffffff18;border-radius:12px;padding:10px 12px;margin:8px 0 4px}'
+    + '.qtag{font-size:10.5px;opacity:.6;margin-bottom:8px}.wq{font-size:12.5px;line-height:1.45;font-style:italic;padding:8px;border-bottom:1px solid #ffffff10}'
+    + '.empty{font-size:12px;opacity:.55;padding:14px;text-align:center}';
+
+  function catalog(keys){
+    const ph = {n:'{n}', s:'{s}', m:'{m}', b:'{b}'}, o = {};
+    keys.forEach(k=>{ o[k] = t('runtime.'+k, ph); });
+    return o;
+  }
+  const SNAKE_KEYS = ['gsSettings','gsMode','gsControls','gsCtrlGesture','gsCtrlPad','gsWorld','gsEasy','gsMedium','gsExtreme','gsStore','gsTabSkin','gsTabFood','gsTabBoard','gsStoreTag','gsBuy','gsEquip','gsEquipped','gsNoPoints','gsBought','gsNewBest','gsEarned','gsTiers','gsLocked','gsInfoEasy','gsInfoMedium','gsInfoExtreme','gsMult'];
+  const BOMB_KEYS = ['gbNewSet','gbLv','gbLevel','gbMoves','gbStart','gbMemorize','gbTimeInfo','gbTargetInfo','gbTrickInfo','gbMercy','gbNoMercy','gbCleared','gbStats','gbNewWisdom','gbOldWisdom','gbNext','gbBoom','gbOutMoves','gbTryAgain','gbRunStats','gbShuffled','gbSwapped','gbWisdom','gbWisEmpty','gbRestartAsk','gbYes','gbNo','gbTiers'];
+  function buildBuiltinDoc(g){
+    const L = Object.assign({
+      tap: t('runtime.gameTapStart'), gameTapStart: t('runtime.gameTapStart'), gameOver: t('runtime.gameOver'), gameTapRestart: t('runtime.gameTapRestart'),
+      name: getGameName(), data: getBuiltinData(g.id)
+    }, catalog(g.keys));
+    const json = JSON.stringify(L).replace(/</g, '\\u003c');
+    return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'
+      + GAME_BASE_CSS + g.css + '</style></head><body>' + g.body + '<div id="toast"></div>'
+      + '<script>(' + g.fn.toString() + ')(' + json + ');<\/script></body></html>';
+  }
+  const BUILTIN_GAMES = [
+    { id:'snake', emoji:'🐍', name:'Snake', needsName:true, fn:snakeGame, css:SNAKE_CSS, keys:SNAKE_KEYS,
+      body:'<div id="top"><span id="pill">★ <b id="pts"></b></span><button id="gear" aria-label="Settings"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button></div><div id="wrap"><canvas id="c"></canvas></div><div id="pad"></div><div id="ov"></div>' },
+    { id:'bomb', emoji:'💣', name:'Memory Bomb', needsName:true, fn:bombGame, css:BOMB_CSS, keys:BOMB_KEYS,
+      body:'<div id="top"><span id="lv"></span><span id="mv"></span><span id="tm"></span><span id="tk"></span><span class="sp"></span><button id="wis" aria-label="Wisdom">📜</button><button id="r" aria-label="Restart">↻</button></div><div id="stage"><div id="g"></div></div><div id="ov"></div>' },
+  ];
+
+  // ---------- storage helpers ----------
+  function getUserGames(){
+    try{
+      const v = tavo.get(GAMES_VAR, 'global');
+      return Array.isArray(v) ? v.filter(g=>g && typeof g.id==='string' && typeof g.file==='string') : [];
+    }catch{ return []; }
+  }
+  function setUserGames(list){ try{ tavo.set(GAMES_VAR, list, 'global'); }catch{} }
+  const GAME_DATA_VAR = 'emonImageViewerGameData';
+  function getBuiltinAll(){ try{ const v = tavo.get(GAME_DATA_VAR, 'global'); return v && typeof v==='object' ? v : {}; }catch{ return {}; } }
+  function getBuiltinData(id){ const v = getBuiltinAll()[id]; return v && typeof v==='object' ? v : null; }
+  function setBuiltinData(id, data){
+    const all = getBuiltinAll(); all[id] = data;
+    try{ tavo.set(GAME_DATA_VAR, all, 'global'); }catch{}
+  }
+  function setBestDirect(id, v){
+    const b = getBests(); b[id] = v;
+    try{ tavo.set(GAME_BESTS_VAR, b, 'global'); }catch{}
+  }
+  function getActiveGameId(){ try{ return String(tavo.get(GAME_ACTIVE_VAR, 'global') || 'jump'); }catch{ return 'jump'; } }
+  function setActiveGameId(id){ try{ tavo.set(GAME_ACTIVE_VAR, id, 'global'); }catch{} }
+  function getBests(){ try{ const v = tavo.get(GAME_BESTS_VAR, 'global'); return v && typeof v==='object' ? v : {}; }catch{ return {}; } }
+  function saveBest(id, score, low){
+    const b = getBests(), cur = b[id];
+    if(cur===undefined || cur===null || (low ? score<cur : score>cur)){
+      b[id] = score;
+      try{ tavo.set(GAME_BESTS_VAR, b, 'global'); }catch{}
+    }
+    return b[id];
+  }
+  function saveGameWinRect(rect){
+    const prev = getGameWinRect() || {};
+    const ih = gameFrame && gameFrame.offsetHeight ? gameFrame.offsetHeight : prev.ih;
+    setGameWinRect({x:rect.left, y:rect.top, w:rect.width, ch: gameCanvas?gameCanvas.height:GAME_DEFAULT_H, ih:ih||GAME_FRAME_DEFAULT_H});
+  }
+
+  (function migrateOldMemory(){
+    try{
+      const b = getBests();
+      if('memory' in b){ delete b.memory; tavo.set(GAME_BESTS_VAR, b, 'global'); }
+    }catch{}
+  })();
+
+  function allGames(){
+    const list = [{ id:'jump', emoji:'🏃', name:t('runtime.gameTitle'), builtin:true, jump:true }];
+    BUILTIN_GAMES.forEach(g=>list.push({ id:g.id, emoji:g.emoji, name:g.name, builtin:true, builtinDef:g, needsName:!!g.needsName }));
+    getUserGames().forEach(g=>list.push({ id:g.id, emoji:g.emoji||'🎮', name:g.name||'Game', file:g.file }));
+    return list;
+  }
+  function findGame(id){ return allGames().find(g=>g.id===id) || null; }
+
+  // ---------- running a game ----------
+  function unloadGameFrame(){
+    if(gameFrame) gameFrame.srcdoc = '<!doctype html><body style="background:#070a10">';
+  }
+  function withBaseDoc(html){
+    if(/<!doctype/i.test(html)) return html;
+    return '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0}</style>' + html;
+  }
+  function showCustomBest(){
+    const b = getBests()[activeGameId];
+    if(gameBestEl) gameBestEl.textContent = (b===undefined||b===null) ? '—' : String(b);
+  }
+  async function loadGameHtml(g){
+    if(g.builtinDef) return buildBuiltinDoc(g.builtinDef);
+    const txt = await tavo.file.load(g.file, {scope:'global', encoding:'utf8'});
+    if(typeof txt !== 'string' || !txt) throw new Error('empty game file');
+    return withBaseDoc(txt);
+  }
+  function postToFrame(msg){
+    try{
+      if(gameFrame && gameFrame.contentWindow){
+        msg.emonGame = 1;
+        gameFrame.contentWindow.postMessage(msg, '*');
+      }
+    }catch{}
+  }
+  let libPaused = false;
+  async function activateGame(id){
+    if(!gameEl) return;
+    const g = findGame(id) || findGame('jump');
+    if(gameMode==='jump' && gs) persistRunSnapshot();
+    activeGameId = g.id;
+    setActiveGameId(g.id);
+    if(gameNameEl) gameNameEl.textContent = g.name;
+    if(g.jump){
+      gameMode = 'jump';
+      gameEl.dataset.mode = 'jump';
+      unloadGameFrame();
+      startJump();
+      return;
+    }
+    gameMode = 'custom';
+    gameEl.dataset.mode = 'custom';
+    stopJump();
+    libPaused = false;
+    if(gameNameGate) gameNameGate.classList.remove('show');
+    if(g.needsName){
+      gamePlayerName = getGameName();
+      if(!gamePlayerName){
+        // built-in games use the same player name as the Jump Game
+        if(gameNameGate) gameNameGate.classList.add('show');
+        unloadGameFrame();
+        if(gameScoreEl) gameScoreEl.textContent = '0';
+        showCustomBest();
+        return;
+      }
+    }
+    if(gameScoreEl) gameScoreEl.textContent = '0';
+    showCustomBest();
+    const rect = getGameWinRect();
+    if(gameFrame) gameFrame.style.height = Math.max(180, Math.min(560, (rect && rect.ih) || GAME_FRAME_DEFAULT_H)) + 'px';
+    try{
+      const html = await loadGameHtml(g);
+      if(activeGameId !== g.id) return; // user switched again while loading
+      gameFrame.srcdoc = html;
+    }catch(e){
+      tavo.utils.toast(t('runtime.gameLoadFailed'));
+      unloadGameFrame();
+    }
+  }
+  function refreshGameUI(){
+    const g = findGame(activeGameId) || findGame('jump');
+    if(gameNameEl && g) gameNameEl.textContent = g.name;
+    if(gameLibEl && gameLibEl.classList.contains('show')) renderGameLib();
+  }
+
+  window.addEventListener('message', e=>{
+    if(!gameFrame || gameMode!=='custom' || e.source !== gameFrame.contentWindow) return;
+    const d = e.data;
+    if(!d || d.emonGame !== 1) return;
+    const g = findGame(activeGameId);
+    if(d.type === 'save'){
+      // only built-in games may keep progress; keep it small and plain
+      if(g && g.builtinDef && d.data && typeof d.data === 'object'){
+        let ok = false;
+        try{ ok = JSON.stringify(d.data).length < 30000; }catch{}
+        if(ok) setBuiltinData(g.id, d.data);
+      }
+      return;
+    }
+    const sc = Math.floor(Number(d.score));
+    if(!Number.isFinite(sc)) return;
+    if(gameScoreEl) gameScoreEl.textContent = String(sc);
+    if(d.type === 'status'){
+      // built-in games report their own best and a title line, shown like the Jump Game's
+      const best = Math.floor(Number(d.best));
+      if(Number.isFinite(best) && gameBestEl){
+        const label = typeof d.label === 'string' ? d.label.slice(0,80) : '';
+        gameBestEl.textContent = label ? best + ' · ' + label : String(best);
+      }
+      const lib = Math.floor(Number(d.lib));
+      if(Number.isFinite(lib)) setBestDirect(activeGameId, lib);
+      return;
+    }
+    if(d.type==='gameover' || (d.type==='score' && !d.low)){
+      saveBest(activeGameId, sc, !!d.low);
+      showCustomBest();
+    }
+  });
+
+  // ---------- library window ----------
+  function openGameLib(){
+    if(!gameLibEl) return;
+    if(gameMode==='jump' && gs && gs.started && gs.alive && !gamePaused) togglePauseGame();
+    closeGameTiers();
+    if(gameMode==='custom' && !libPaused){ libPaused = true; postToFrame({type:'pause'}); }
+    gameEl.classList.add('libopen');
+    gameLibEl.classList.add('show');
+    gameAddForm.classList.remove('show');
+    renderGameLib();
+  }
+  function closeGameLib(){
+    if(!gameLibEl) return;
+    gameLibEl.classList.remove('show');
+    gameEl.classList.remove('libopen');
+    if(libPaused){ libPaused = false; postToFrame({type:'resume'}); }
+  }
+  function renderGameLib(){
+    if(!gameLibList) return;
+    const bests = getBests();
+    gameLibList.innerHTML = allGames().map(g=>{
+      let best;
+      if(g.jump) best = getGameBest() || null;
+      else best = bests[g.id];
+      const tag = g.builtin ? t('runtime.gameBuiltIn') : t('runtime.gameYours');
+      const bestTxt = (best===undefined||best===null) ? '' : ' · ' + t('runtime.gameBestShort', {n:best});
+      return '<div class="glrow'+(g.id===activeGameId?' active':'')+'" data-id="'+esc(g.id)+'">'
+        + '<span class="lemo">'+esc(g.emoji)+'</span>'
+        + '<div class="lmeta"><b>'+esc(g.name)+'</b><small>'+esc(tag+bestTxt)+'</small></div>'
+        + '<button data-act="play" title="'+esc(t('runtime.gamePlay'))+'">▶</button>'
+        + (g.builtin ? '' : '<button data-act="del" title="'+esc(t('runtime.gameDelete'))+'">🗑</button>')
+        + '</div>';
+    }).join('');
+    gameLibList.querySelectorAll('.glrow').forEach(row=>{
+      const id = row.dataset.id;
+      row.querySelector('[data-act="play"]').onclick = ()=>{ closeGameLib(); activateGame(id); };
+      const del = row.querySelector('[data-act="del"]');
+      if(del) del.onclick = ()=>deleteUserGame(id);
+    });
+  }
+  async function deleteUserGame(id){
+    const list = getUserGames(), g = list.find(x=>x.id===id);
+    if(!g) return;
+    const ok = typeof confirm === 'function' ? confirm(t('runtime.gameConfirmDelete', {name:g.name})) : true;
+    if(!ok) return;
+    try{ await tavo.file.delete(g.file, {scope:'global'}); }catch{}
+    setUserGames(list.filter(x=>x.id!==id));
+    const b = getBests();
+    if(id in b){ delete b[id]; try{ tavo.set(GAME_BESTS_VAR, b, 'global'); }catch{} }
+    if(activeGameId===id){ activeGameId = 'jump'; setActiveGameId('jump'); if(gameNameEl) gameNameEl.textContent = t('runtime.gameTitle'); gameMode='jump'; gameEl.dataset.mode='jump'; unloadGameFrame(); startJump(); }
+    tavo.utils.toast(t('runtime.gameDeleted'));
+    renderGameLib();
+  }
+
+  // ---------- adding a game ----------
+  function cleanPastedCode(raw){
+    let c = String(raw||'').trim();
+    const fence = c.match(/^```[a-zA-Z0-9]*\s*\n([\s\S]*?)\n?```\s*$/);
+    if(fence) c = fence[1].trim();
+    return c;
+  }
+  function resetAddForm(){
+    gameAddName.value = ''; gameAddEmoji.value = ''; gameAddCode.value = '';
+    gameAddForm.classList.remove('show');
+  }
+  async function saveNewGame(){
+    const name = String(gameAddName.value||'').trim().slice(0,24);
+    const emoji = String(gameAddEmoji.value||'').trim() || '🎮';
+    const code = cleanPastedCode(gameAddCode.value);
+    if(!name){ tavo.utils.toast(t('runtime.gameNeedName')); return; }
+    if(!code){ tavo.utils.toast(t('runtime.gameNeedCode')); return; }
+    if(code.indexOf('<') === -1){ tavo.utils.toast(t('runtime.gameNotHtml')); return; }
+    if(code.length > GAME_MAX_CHARS){ tavo.utils.toast(t('runtime.gameTooBig')); return; }
+    const list = getUserGames();
+    if(list.length >= GAMES_MAX){ tavo.utils.toast(t('runtime.gameLimit')); return; }
+    const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+    const file = 'emon-game-' + id + '.html';
+    try{
+      await tavo.file.save(file, code, {scope:'global', encoding:'utf8'});
+    }catch(e){ tavo.utils.toast(t('runtime.error')); return; }
+    list.push({ id, name, emoji, file });
+    setUserGames(list);
+    tavo.utils.toast(t('runtime.gameSaved', {name}));
+    resetAddForm();
+    renderGameLib();
+  }
+  async function importGameFile(){
+    try{
+      const files = await tavo.file.import({ scope:'global', extensions:['html','htm'], conflict:'rename' });
+      const f = files && files[0];
+      if(!f) return;
+      const text = await tavo.file.load(f.path, {encoding:'utf8'});
+      try{ await tavo.file.delete(f.path); }catch{}
+      gameAddCode.value = typeof text === 'string' ? text : '';
+      if(!gameAddName.value.trim()) gameAddName.value = String(f.originalName||'').replace(/\.[^.]+$/, '').slice(0,24);
+    }catch(e){ tavo.utils.toast(t('runtime.error')); }
+  }
+  async function copyAiPrompt(){
+    try{
+      await navigator.clipboard.writeText(t('runtime.gameAiPrompt'));
+      tavo.utils.toast(t('runtime.gameAiPromptCopied'));
+    }catch(e){ tavo.utils.toast(t('runtime.error')); }
+  }
+
+  if(gameSwitchBtn) gameSwitchBtn.onclick = ()=>{ gameLibEl.classList.contains('show') ? closeGameLib() : openGameLib(); };
+  if(gameLibClose) gameLibClose.onclick = closeGameLib;
+  const gameLibNameBtn = document.getElementById('emon-iv-game-lib-name');
+  if(gameLibNameBtn) gameLibNameBtn.onclick = ()=>{
+    closeGameLib();
+    if(gameNameInput) gameNameInput.value = getGameName();
+    gameNameGate?.classList.add('show');
+  };
+  if(gameAddOpen) gameAddOpen.onclick = ()=>{ gameAddForm.classList.toggle('show'); if(gameAddForm.classList.contains('show')) gameAddName.focus(); };
+  if(gameAddCancel) gameAddCancel.onclick = resetAddForm;
+  if(gameAddSave) gameAddSave.onclick = saveNewGame;
+  if(gameAddImport) gameAddImport.onclick = importGameFile;
+  if(gameAddAi) gameAddAi.onclick = copyAiPrompt;
+
+
+  refreshPrivacyUI();
+  setLookupMode('translate');
+
+  const c=cfg();
+  if(!c.enabled){fab.style.display='none';panel.style.display='none';return;}
+  if(c.resetFabPosition){
+    try{ tavo.set('emonImageViewerFabPosition', null,'global'); }catch{}
+  }
+  const bs=Math.max(28,Math.min(64,Number(c.buttonSize||54)));
+  const bo=Math.max(0,Math.min(1,Number(c.buttonOpacity ?? 1)));
+  fab.style.width=bs+'px';fab.style.height=bs+'px';fab.style.fontSize=Math.max(14,bs*.46)+'px';fab.style.setProperty('--emon-fab-opacity',String(bo));
+  if(c.stealthMode) fab.classList.add('stealth');
+  try{
+    const pos=tavo.get('emonImageViewerFabPosition','global');
+    if(pos && Number.isFinite(pos.x) && Number.isFinite(pos.y)){
+      requestAnimationFrame(()=>{
+        const ins=safeInsets();
+        fab.style.left=Math.max(4,Math.min(innerWidth-bs-4,pos.x))+'px';
+        fab.style.top=Math.max(ins.top,Math.min(innerHeight-bs-ins.bottom,pos.y))+'px';
+        fab.style.right='auto';fab.style.bottom='auto';
+      });
+    }
+  }catch{}
+
+  cleanTempPages();
+  try{
+    if (tavo.ui && typeof tavo.ui.onInsetsChanged === 'function') {
+      tavo.ui.onInsetsChanged(()=>{
+        if(fab.style.left && fab.style.top){
+          const ins=safeInsets();
+          const top=parseFloat(fab.style.top)||0;
+          fab.style.top=Math.max(ins.top,Math.min(innerHeight-fab.offsetHeight-ins.bottom,top))+'px';
+        }
+      });
+    }
+  }catch{}
+  renderText();
+  refreshGameUI();
+  renderProfiles();
+  restorePins();
+  loadSavedPreviews();
+  tavo.plugin.i18n.onChange(()=>{renderText();renderProfiles();loadSavedPreviews();refreshGameUI()});
+})();
+</script>
