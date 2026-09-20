@@ -111,10 +111,7 @@
 #emon-iv-game-customwrap{display:none}
 #emon-iv-game[data-mode="custom"] #emon-iv-game-customwrap{display:block}
 #emon-iv-game[data-mode="custom"] #emon-iv-game-jumpwrap,
-#emon-iv-game[data-mode="custom"] #emon-iv-game-settings,
-#emon-iv-game[data-mode="custom"] #emon-iv-game-tiers,
-#emon-iv-game[data-mode="custom"] #emon-iv-game-pause,
-#emon-iv-game[data-mode="custom"] #emon-iv-game-settings-toggle{display:none !important}
+#emon-iv-game[data-mode="custom"] #emon-iv-game-tiers{display:none !important}
 #emon-iv-game-frame{width:100%;height:300px;border:0;border-radius:13px;background:#070a10;display:block}
 #emon-iv-game-customhint{display:none}
 #emon-iv-game[data-mode="custom"] #emon-iv-game-customhint{display:block}
@@ -125,8 +122,30 @@
 #emon-iv-game.libopen #emon-iv-game-customwrap,
 #emon-iv-game.libopen #emon-iv-game-customhint,
 #emon-iv-game.libopen #emon-iv-game-namegate,
-#emon-iv-game.libopen #emon-iv-game-settings,
 #emon-iv-game.libopen #emon-iv-game-tiers{display:none !important}
+#emon-iv-game-set{display:none}
+#emon-iv-game-set.show{display:block}
+#emon-iv-game-set-body{max-height:min(62vh,460px);overflow-y:auto;border:1px solid #ffffff14;border-radius:12px;padding:10px}
+#emon-iv-game-set .gsec{margin-bottom:14px}
+#emon-iv-game-set .glbl{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.6;margin-bottom:7px}
+#emon-iv-game-set .gilbl{font-size:12px;opacity:.85;margin:8px 0 5px}
+#emon-iv-game-set .gseg{display:flex;border:1px solid #ffffff22;border-radius:11px;overflow:hidden}
+#emon-iv-game-set .gseg button{flex:1;height:34px;border:0;background:transparent;color:#ffffffb8;font-size:12px;padding:0 4px}
+#emon-iv-game-set .gseg button+button{border-left:1px solid #ffffff18}
+#emon-iv-game-set .gseg button.on{background:#8b5cf6;color:#fff;font-weight:700}
+#emon-iv-game-set .gseg.locked{opacity:.5}
+#emon-iv-game-set .ghint2{font-size:10.5px;opacity:.6;margin-top:5px;line-height:1.45}
+#emon-iv-game-set .ghint2.warn{color:#fbbf24;opacity:.9}
+#emon-iv-game-set .gnamerow{display:flex;gap:6px}
+#emon-iv-game-set .gnamerow input{flex:1;min-width:0;border:1px solid #ffffff22;background:#0b1019;color:#fff;border-radius:10px;padding:8px 10px;font-size:13px;outline:none}
+#emon-iv-game-set .gbtn{border:1px solid #ffffff18;background:#ffffff0c;color:#fff;border-radius:10px;padding:8px 10px;font-size:12px}
+#emon-iv-game-set .gbtn.pri{background:#8b5cf6;border-color:#a78bfa}
+#emon-iv-game-set .gbtn.danger{border-color:#f8717155;color:#fca5a5}
+#emon-iv-game-set .gbtnrow{display:flex;gap:6px;flex-wrap:wrap}
+#emon-iv-game-set .gbtnrow .gbtn{flex:1;min-width:0}
+#emon-iv-set-confirm{display:none;margin-top:6px;padding:10px;border:1px solid #f8717155;background:#7f1d1d33;border-radius:12px;font-size:12px;line-height:1.5}
+#emon-iv-set-confirm.show{display:block}
+#emon-iv-set-confirm .gbtnrow{margin-top:8px}
 #emon-iv-game-lib-body{max-height:min(58vh,430px);overflow-y:auto;border:1px solid #ffffff14;border-radius:12px;padding:6px}
 #emon-iv-game-lib .glrow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px}
 #emon-iv-game-lib .glrow.active{background:#8b5cf62e}
@@ -281,7 +300,6 @@
       <div id="emon-iv-game-lib-body">
         <div id="emon-iv-game-lib-list"></div>
         <button id="emon-iv-game-add-open" class="emon-iv-btn secondary glibadd" data-i18n="runtime.gameAdd">+ Add a game</button>
-        <button id="emon-iv-game-lib-name" class="emon-iv-btn secondary glibadd" data-i18n="runtime.gameChangeName">Change name</button>
         <div id="emon-iv-game-add">
           <div class="emon-iv-label" data-i18n="runtime.gameAddTitle">ADD A NEW GAME</div>
           <div class="gaddrow">
@@ -301,13 +319,15 @@
         </div>
       </div>
     </div>
-    <div id="emon-iv-game-tiers">
+    <div id="emon-iv-game-set">
       <div class="gtiers-head">
-        <div class="emon-iv-title" style="font-size:14px" data-i18n="runtime.gameTiersTitle">Titles by Score</div>
-        <button id="emon-iv-game-tiers-close" class="emon-iv-close" style="width:28px;height:28px;font-size:13px">×</button>
+        <div class="emon-iv-title" style="font-size:14px" data-i18n="runtime.gameSettingsTitle">Game settings</div>
+        <button id="emon-iv-game-set-close" class="emon-iv-close" style="width:28px;height:28px;font-size:13px">×</button>
       </div>
-      <div id="emon-iv-game-tiers-list"></div>
-    </div>
+      <div id="emon-iv-game-set-body">
+        <div class="gsec" id="emon-iv-set-player"></div>
+        <div class="gsec" id="emon-iv-set-items"></div>
+        <div class="gsec" id="emon-iv-set-jump">
     <div id="emon-iv-game-settings">
       <div class="gpicker" id="emon-iv-game-picker">
         <span data-i18n="runtime.gamePickChar">Character:</span>
@@ -323,9 +343,21 @@
       <div class="grow2">
         <button id="emon-iv-game-reset-run" data-i18n="runtime.gameResetRun">Reset run</button>
         <button id="emon-iv-game-reset-best" data-i18n="runtime.gameResetBest">Reset best</button>
-        <button id="emon-iv-game-change-name" data-i18n="runtime.gameChangeName">Change name</button>
       </div>
       <div class="ghint" data-i18n="runtime.gameHint">Tap or hold to jump (hold a little longer = jump higher). This game runs entirely on your device — nothing about it is ever sent anywhere.</div>
+    </div>
+        </div>
+        <div class="gsec" id="emon-iv-set-resets"></div>
+        <div class="gsec" id="emon-iv-set-all"></div>
+        <div id="emon-iv-set-confirm"></div>
+      </div>
+    </div>
+    <div id="emon-iv-game-tiers">
+      <div class="gtiers-head">
+        <div class="emon-iv-title" style="font-size:14px" data-i18n="runtime.gameTiersTitle">Titles by Score</div>
+        <button id="emon-iv-game-tiers-close" class="emon-iv-close" style="width:28px;height:28px;font-size:13px">×</button>
+      </div>
+      <div id="emon-iv-game-tiers-list"></div>
     </div>
     <div class="gresize" id="emon-iv-game-resize">⤡</div>
   </div>
@@ -346,6 +378,7 @@
   const statusEl = document.getElementById('emon-iv-status');
   const previewEl = document.getElementById('emon-iv-preview');
   const previewImg = document.getElementById('emon-iv-preview-img');
+  if (previewImg) previewImg.referrerPolicy = 'no-referrer';
   const previewMeta = document.getElementById('emon-iv-preview-meta');
   const pinBtn = document.getElementById('emon-iv-pin');
   const saveBtn = document.getElementById('emon-iv-save');
@@ -470,81 +503,148 @@
     return ta.value;
   }
 
-  function extractPageImage(html, baseUrl) {
+  // ---- Image loading: try several candidate images until one really loads. Never an ad, never a tracker. ----
+  // Privacy: only the page/image the user typed, plus the image files that page itself points to. Nothing goes through
+  // a third-party service, ad/tracker hosts are never contacted, and images are requested with no Referer header.
+  const AD_HOSTS = [
+    'doubleclick.net','googlesyndication.com','googleadservices.com','adservice.google.com','adsystem.com','amazon-adsystem.com',
+    'adnxs.com','taboola.com','outbrain.com','criteo.com','criteo.net','rubiconproject.com','pubmatic.com','openx.net','adform.net',
+    'moatads.com','scorecardresearch.com','quantserve.com','googletagmanager.com','google-analytics.com','ads-twitter.com',
+    'adsrvr.org','casalemedia.com','smartadserver.com','yieldmo.com','mgid.com','revcontent.com','zedo.com','popads.net',
+    'exoclick.com','trafficjunky.com','juicyads.com','adcash.com','2mdn.net','serving-sys.com','bidswitch.net','teads.tv',
+    'media.net','adsafeprotected.com','doubleverify.com','connect.facebook.net','hotjar.com','clarity.ms','bat.bing.com',
+    'adroll.com','mc.yandex.ru','an.yandex.ru','propellerads.com','onclickads.net','popcash.net','adskeeper.com','admaven.com'
+  ];
+  const AD_PATH_RE = /(^|[\/_.\-])(ads?|adv|adserver|adserv|advert|adverts|advertis\w*|sponsor\w*|tracking|tracker|beacon|doubleclick|affiliate)([\/_.\-]|$)/i;
+  const AD_CTX_RE = /(^|[\s_-])(ad|ads|adv|advert|advertisement|adsense|adslot|sponsor|sponsored|taboola|outbrain|doubleclick)([\s_-]|$)/i;
+  const AD_SIZES = ['300x250','728x90','970x90','970x250','160x600','300x600','320x50','320x100','468x60','336x280','120x600','300x50','234x60','120x240','125x125'];
+  function hostOf(u){ try{ return new URL(u).hostname.toLowerCase(); }catch{ return ''; } }
+  function isAdHost(u){ const h = hostOf(u); return !!h && AD_HOSTS.some(a=>h === a || h.endsWith('.'+a)); }
+  function isAdPath(u){ try{ return AD_PATH_RE.test(new URL(u).pathname); }catch{ return false; } }
+  function isAdSize(w,h){ return AD_SIZES.indexOf(w+'x'+h) >= 0; }
+  function inAdContext(node){
+    let el = node, depth = 0;
+    while(el && el.nodeType === 1 && depth < 5){
+      if(el.tagName === 'INS' || el.tagName === 'IFRAME') return true;
+      if(AD_CTX_RE.test((el.getAttribute('class') || '') + ' ' + (el.id || ''))) return true;
+      if(/sponsored/i.test(el.getAttribute('rel') || '')) return true;
+      el = el.parentElement; depth++;
+    }
+    return false;
+  }
+
+  // Every usable image the page points to, best first: social-preview tags, then JSON-LD, then real page images, then icons.
+  function extractPageImages(html, baseUrl) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
-
+    const out = [], seen = new Set();
+    const add = (value, source, extra) => {
+      const abs = absUrl(baseUrl, decodeHtml(String(value || '').trim()));
+      if(!abs || !(/^https?:/i.test(abs) || /^data:image\//i.test(abs))) return;
+      if(/^https?:/i.test(abs) && isAdHost(abs)) return;
+      if(source === 'content' && isAdPath(abs)) return;
+      if(seen.has(abs)) return;
+      seen.add(abs);
+      out.push(Object.assign({url:abs, source}, extra || {}));
+    };
     const metaSelectors = [
-      'meta[property="og:image"]','meta[property="og:image:url"]',
-      'meta[name="twitter:image"]','meta[name="twitter:image:src"]',
-      'meta[itemprop="image"]'
+      'meta[property="og:image"]','meta[property="og:image:secure_url"]','meta[property="og:image:url"]',
+      'meta[name="twitter:image"]','meta[name="twitter:image:src"]','meta[itemprop="image"]'
     ];
-    for (const sel of metaSelectors) {
-      const node = doc.querySelector(sel);
-      const value = node?.content?.trim();
-      const out = absUrl(baseUrl, decodeHtml(value));
-      if (out) return {url: out, source: 'metadata'};
-    }
+    metaSelectors.forEach(sel => doc.querySelectorAll(sel).forEach(n => add(n.content, 'metadata')));
+    doc.querySelectorAll('link[rel="image_src"],link[rel="image"]').forEach(n => add(n.getAttribute('href'), 'metadata'));
 
-    const linkSelectors = [
-      'link[rel="image_src"]','link[rel="image"]','link[rel="apple-touch-icon"]',
-      'link[rel="icon"]'
-    ];
-    for (const sel of linkSelectors) {
-      const node = doc.querySelector(sel);
-      const out = absUrl(baseUrl, node?.href);
-      if (out) return {url: out, source: 'metadata'};
-    }
-
-    for (const script of doc.querySelectorAll('script[type="application/ld+json"]')) {
+    doc.querySelectorAll('script[type="application/ld+json"]').forEach(script => {
       try {
         const data = JSON.parse(script.textContent || '');
         const stack = Array.isArray(data) ? [...data] : [data];
-        while (stack.length) {
+        let guard = 0;
+        while(stack.length && guard++ < 400){
           const x = stack.shift();
-          if (!x) continue;
-          if (typeof x === 'string' && looksLikeImage(x)) return {url: absUrl(baseUrl, x), source:'metadata'};
-          if (typeof x === 'object') {
-            if (typeof x.image === 'string') {
-              const out = absUrl(baseUrl, x.image); if (out) return {url: out, source:'metadata'};
-            }
-            if (Array.isArray(x.image)) {
-              for (const v of x.image) {
-                const out = absUrl(baseUrl, typeof v === 'string' ? v : v?.url);
-                if (out) return {url: out, source:'metadata'};
-              }
-            }
-            for (const v of Object.values(x)) if (v && typeof v === 'object') stack.push(v);
+          if(!x) continue;
+          if(typeof x === 'string'){ if(looksLikeImage(x)) add(x, 'metadata'); continue; }
+          if(typeof x === 'object'){
+            if(typeof x.image === 'string') add(x.image, 'metadata');
+            else if(Array.isArray(x.image)) x.image.forEach(v => add(typeof v === 'string' ? v : v && v.url, 'metadata'));
+            else if(x.image && typeof x.image === 'object') add(x.image.url, 'metadata');
+            Object.values(x).forEach(v => { if(v && typeof v === 'object') stack.push(v); });
           }
         }
       } catch {}
-    }
+    });
 
-    const imgs = [...doc.querySelectorAll('img[src], img[data-src], img[data-original], source[srcset]')];
-    const candidates = [];
-    for (const node of imgs) {
+    const content = [];
+    doc.querySelectorAll('img[src], img[data-src], img[data-original], img[srcset]').forEach((node, order) => {
+      if(inAdContext(node)) return;
       const raw = node.getAttribute('src') || node.getAttribute('data-src') || node.getAttribute('data-original');
       const srcset = node.getAttribute('srcset');
-      const candidate = raw || (srcset ? srcset.split(',')[0].trim().split(/\s+/)[0] : null);
-      const out = absUrl(baseUrl, decodeHtml(candidate));
-      if (out && looksLikeImage(out)) candidates.push(out);
-    }
-    candidates.sort((a,b) => (b.length - a.length));
-    if (candidates[0]) return {url:candidates[0], source:'content'};
+      let candidate = raw;
+      if(srcset){
+        // the largest entry of the srcset
+        const parts = srcset.split(',').map(p => p.trim().split(/\s+/)).filter(p => p[0]);
+        parts.sort((a,b) => (parseFloat(b[1]) || 0) - (parseFloat(a[1]) || 0));
+        if(parts[0]) candidate = parts[0][0];
+      }
+      const w = parseInt(node.getAttribute('width'), 10), h = parseInt(node.getAttribute('height'), 10);
+      if(w && h && (Math.min(w,h) < 80 || isAdSize(w,h))) return;
+      content.push({value:candidate, area:(w && h) ? w*h : 0, order});
+    });
+    content.sort((a,b) => (b.area - a.area) || (a.order - b.order)).slice(0,6).forEach(c => add(c.value, 'content'));
+
+    doc.querySelectorAll('link[rel="apple-touch-icon"],link[rel="icon"],link[rel="shortcut icon"]').forEach(n => add(n.getAttribute('href'), 'icon'));
+    return out.slice(0,10);
+  }
+
+  // Loads one candidate for real (no Referer, hard timeout) and reports its size, or null if it fails.
+  function probeImage(url, timeoutMs = 9000) {
+    return new Promise(resolve => {
+      const im = new Image();
+      let done = false;
+      const finish = v => { if(done) return; done = true; clearTimeout(timer); im.onload = im.onerror = null; resolve(v); };
+      const timer = setTimeout(() => finish(null), timeoutMs);
+      try{ im.referrerPolicy = 'no-referrer'; }catch{}
+      im.onload = () => finish({w: im.naturalWidth || 0, h: im.naturalHeight || 0});
+      im.onerror = () => finish(null);
+      im.src = url;
+    });
+  }
+
+  function isHtmlish(text){ return /<\s*(html|head|body|meta|title|img)\b/i.test(String(text || '').slice(0, 200000)); }
+
+  function sniffImageExt(b64){
+    try{
+      const bin = atob(String(b64 || '').slice(0, 32));
+      if(bin.startsWith('GIF8')) return 'gif';
+      if(bin.charCodeAt(0) === 0x89 && bin.slice(1,4) === 'PNG') return 'png';
+      if(bin.charCodeAt(0) === 0xFF && bin.charCodeAt(1) === 0xD8) return 'jpg';
+      if(bin.slice(0,4) === 'RIFF' && bin.slice(8,12) === 'WEBP') return 'webp';
+      if(bin.slice(4,12) === 'ftypavif') return 'avif';
+      if(bin.slice(0,2) === 'BM') return 'bmp';
+      if(/^\s*(<\?xml|<svg)/i.test(bin)) return 'svg';
+    }catch{}
     return null;
   }
 
   async function persistRemote(url, prefix='emon-preview') {
     if (/^data:image\//i.test(url)) return url;
-    const extMatch = (() => {
-      try {
-        const p = new URL(url).pathname.toLowerCase();
-        const m = p.match(/\.(avif|bmp|gif|jpe?g|png|svg|webp)$/);
-        return m ? (m[1] === 'jpg' ? 'jpg' : m[1]) : 'jpg';
-      } catch { return 'jpg'; }
-    })();
+    let ext = null;
+    try {
+      const m = new URL(url).pathname.toLowerCase().match(/\.(avif|bmp|gif|jpe?g|png|svg|webp)$/);
+      if(m) ext = m[1] === 'jpeg' ? 'jpg' : m[1];
+    } catch {}
     const safe = prefix.replace(/[^a-z0-9_-]/gi,'-').slice(0,32);
-    const name = `${safe}-${Date.now()}-${Math.random().toString(36).slice(2,7)}.${extMatch}`;
-    return await tavo.file.save(name, url, {scope:'chat'});
+    const stem = `${safe}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    if(ext) return await tavo.file.save(`${stem}.${ext}`, url, {scope:'chat'});
+    // No extension in the URL: save it, look at the first bytes, and keep it under its real type (GIFs stay GIFs).
+    const tmp = await tavo.file.save(`${stem}.tmp`, url, {scope:'chat'});
+    let real = 'jpg', b64 = null;
+    try{
+      b64 = await tavo.file.load(tmp, {scope:'chat', encoding:'base64'});
+      real = sniffImageExt(b64) || 'jpg';
+    }catch{}
+    if(!b64) return tmp;
+    const finalPath = await tavo.file.save(`${stem}.${real}`, b64, {scope:'chat', encoding:'base64'});
+    await tavo.file.delete(tmp, {scope:'chat'}).catch(()=>{});
+    return finalPath;
   }
 
   async function loadPreview(raw) {
@@ -552,31 +652,58 @@
     if (!url) { setStatus(t('runtime.invalidUrl')); return; }
     setStatus(t('runtime.loading'));
     previewEl.classList.remove('show');
+    const show = (cand, tried) => {
+      currentPreview = {src: cand.url, original: url, source: cand.source};
+      try{ previewImg.referrerPolicy = 'no-referrer'; }catch{}
+      previewImg.src = cand.url;
+      const msg = cand.source === 'direct' ? t('runtime.directLoaded')
+        : tried > 1 ? t('runtime.altLoaded', {n: tried})
+        : (cand.source === 'metadata' ? t('runtime.metaLoaded') : t('runtime.fallbackLoaded'));
+      previewMeta.textContent = cand.source === 'direct' ? t('runtime.sourceDirect')
+        : (cand.source === 'metadata' ? t('runtime.sourceMetadata') : t('runtime.sourceContent'));
+      previewEl.classList.add('show');
+      setStatus(msg);
+    };
+    const deadline = Date.now() + 28000;
     try {
+      // 1. A direct image link (or data: image). If it fails, the https version, then the page behind it, are tried.
       if (looksLikeImage(url) || /^data:image\//i.test(url)) {
-        const stored = /^https?:/i.test(url) ? url : url;
-        currentPreview = {src: stored, original:url, source:'direct'};
-        previewImg.src = stored;
-        previewMeta.textContent = t('runtime.sourceDirect');
-        previewEl.classList.add('show');
-        setStatus(t('runtime.directLoaded'));
-        return;
+        const direct = [url];
+        if (/^http:/i.test(url)) direct.push(url.replace(/^http:/i, 'https:'));
+        for (const u of direct) {
+          if (await probeImage(u)) { show({url:u, source:'direct'}, 1); return; }
+        }
+        if (/^data:/i.test(url)) throw new Error('bad data image');
       }
-
+      // 2. A web page: collect every image it points to and use the first one that really loads.
       const pageFile = await tavo.file.save(`emon-page-${Date.now()}.html`, url, {scope:'chat'});
+      let candidates = [], notAPage = false;
       try {
         const html = await tavo.file.load(pageFile, {encoding:'utf8'});
-        if (!html) throw new Error('empty page');
-        const found = extractPageImage(html, url);
-        if (!found?.url) throw new Error('no image');
-        currentPreview = {src: found.url, original:url, source:found.source};
-        previewImg.src = found.url;
-        previewMeta.textContent = found.source === 'metadata' ? t('runtime.metaLoaded') : t('runtime.fallbackLoaded');
-        previewEl.classList.add('show');
-        setStatus(found.source === 'metadata' ? t('runtime.metaLoaded') : t('runtime.fallbackLoaded'));
+        if (isHtmlish(html)) candidates = extractPageImages(html, url);
+        else notAPage = true;
       } finally {
         await tavo.file.delete(pageFile, {scope:'chat'}).catch(()=>{});
       }
+      if (notAPage) {
+        // not a web page: it may be an image link without a file extension (e.g. .../photo?id=7)
+        if (await probeImage(url)) { show({url, source:'direct'}, 1); return; }
+        throw new Error('neither a page nor an image');
+      }
+      let tried = 0;
+      for (const c of candidates) {
+        if (Date.now() > deadline) break;
+        tried++;
+        if (tried > 1) setStatus(t('runtime.tryingAlt', {n: tried}));
+        const r = await probeImage(c.url);
+        if (!r) continue;
+        const minSide = c.source === 'icon' ? 32 : 64;
+        if (Math.min(r.w, r.h) < minSide) continue;
+        if (c.source === 'content' && (isAdSize(r.w, r.h) || r.w / r.h > 6 || r.h / r.w > 6)) continue;
+        show(c, tried);
+        return;
+      }
+      throw new Error('no usable image');
     } catch (e) {
       console.error('[Image Preview]', e);
       setStatus(t('runtime.failed'));
@@ -1052,7 +1179,7 @@
         <button data-act="full" aria-label="${esc(t('runtime.fullscreen'))}">⛶</button>
         <button data-act="remove" aria-label="${esc(t('runtime.remove'))}">×</button>
       </div>
-      <img src="${esc(p.src)}" alt="">
+      <img src="${esc(p.src)}" alt="" referrerpolicy="no-referrer">
       <div class="sizebadge"></div>
       <div class="grip"></div>
     `;
@@ -1083,6 +1210,7 @@
     let mode = null; // 'drag' | 'resize' | 'pinch'
     let sx=0, sy=0, ox=0, oy=0, ow=0;
     let pinchStartDist=0, pinchStartWidth=0;
+    let tapCand=null, lastTapAt=0, lastTapX=0, lastTapY=0; // double-tap detection (touch drag blocks the browser's own dblclick)
 
     const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
     const showBadge = () => { if(badge){ badge.textContent = Math.round(p.width)+'px'; badge.classList.add('show'); } };
@@ -1101,11 +1229,13 @@
       el.setPointerCapture?.(e.pointerId);
       pointers.set(e.pointerId, {x:e.clientX, y:e.clientY});
       if (pointers.size >= 2) {
+        tapCand = null;
         beginPinch();
         showBadge();
       } else {
         mode = isGrip ? 'resize' : 'drag';
         sx=e.clientX; sy=e.clientY; ox=p.x; oy=p.y; ow=p.width;
+        tapCand = (!isGrip && e.target === el) ? {t:performance.now(), x:e.clientX, y:e.clientY} : null; // the image itself ignores touches, so a tap on the picture lands on the frame
         if (isGrip) showBadge();
       }
       e.preventDefault();
@@ -1135,7 +1265,18 @@
     });
 
     const endPointer = e => {
+      const wasSingle = pointers.size === 1;
       pointers.delete(e.pointerId);
+      if (e.type === 'pointerup' && wasSingle && tapCand) {
+        const now = performance.now(), moved = Math.hypot(e.clientX - tapCand.x, e.clientY - tapCand.y);
+        if (now - tapCand.t < 450 && moved < 12) {
+          if (now - lastTapAt < 380 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 40) {
+            lastTapAt = 0;
+            try { tavo.utils.preview(p.src); } catch {}
+          } else { lastTapAt = now; lastTapX = e.clientX; lastTapY = e.clientY; }
+        }
+      }
+      tapCand = null;
       try{ el.releasePointerCapture?.(e.pointerId); }catch{}
       if (pointers.size===0) {
         if (mode) savePins();
@@ -1535,16 +1676,11 @@
 
   function getGameSettingsOpen(){ try{ const v=tavo.get('emonImageViewerGameSettingsOpen','global'); return v===null||v===undefined ? false : !!v; }catch{ return false; } }
   function setGameSettingsOpen(v){ try{ tavo.set('emonImageViewerGameSettingsOpen', v,'global'); }catch{} }
+  // The Jump Game's controls now live inside the ⚙ panel (see "game settings panel"), so they are never collapsed here.
   function applyGameSettingsCollapsed(){
-    if(!gameSettingsEl) return;
-    const open = getGameSettingsOpen();
-    gameSettingsEl.classList.toggle('collapsed', !open);
-    if(gameSettingsToggle) gameSettingsToggle.setAttribute('aria-label', t(open ? 'runtime.gameSettingsHide' : 'runtime.gameSettingsShow'));
+    if(gameSettingsEl) gameSettingsEl.classList.remove('collapsed');
+    if(gameSettingsToggle) gameSettingsToggle.setAttribute('aria-label', t('runtime.gameSettingsToggle'));
   }
-  if(gameSettingsToggle) gameSettingsToggle.onclick = ()=>{
-    setGameSettingsOpen(gameSettingsEl.classList.contains('collapsed'));
-    applyGameSettingsCollapsed();
-  };
 
   function startJump(){
     const hasName = checkNameGate();
@@ -1572,6 +1708,7 @@
     gameEl.classList.add('open');
     closeGameTiers();
     closeGameLib();
+    closeSettingsPanel(true);
     refreshGamePicker();
     applyGameWindowRect();
     applyGameSettingsCollapsed();
@@ -1588,6 +1725,7 @@
     if(!gameEl) return;
     if(gameMode==='jump') persistRunSnapshot();
     closeGameLib();
+    closeSettingsPanel(true);
     gameEl.classList.remove('open');
     stopJump();
     unloadGameFrame();
@@ -1790,36 +1928,36 @@
     var N = 16;
     var SKINS = [
       {id:'violet',name:'Violet',cost:0,head:'#c4b5fd',body:['#8b5cf6','#7c4fe0']},
-      {id:'lcd',name:'Old LCD',cost:25,head:'#e3f2b0',body:['#8fb03c','#7a9a2f']},
-      {id:'steel',name:'Steel',cost:40,head:'#f1f5f9',body:['#94a3b8','#64748b']},
-      {id:'camo',name:'Camo',cost:60,head:'#cbd5a7',body:['#588157','#3a5a40','#6b705c']},
-      {id:'ember',name:'Ember',cost:80,head:'#fde68a',body:['#f97316','#ea580c','#dc2626']},
-      {id:'ocean',name:'Ocean',cost:80,head:'#a5f3fc',body:['#0ea5e9','#0284c7','#0369a1']},
-      {id:'rose',name:'Rose',cost:100,head:'#ffe4e6',body:['#fb7185','#f43f5e']},
-      {id:'candy',name:'Cotton Candy',cost:120,head:'#ffffff',body:['#f9a8d4','#a5b4fc','#99f6e4']},
-      {id:'neon',name:'Neon',cost:160,head:'#ffffff',body:['#22d3ee','#a3e635']},
-      {id:'gold',name:'Royal Gold',cost:200,head:'#fff7cc',body:['#facc15','#eab308','#ca8a04']},
-      {id:'rainbow',name:'Rainbow',cost:300,head:'#ffffff',body:['#ffffff'],rainbow:true}
+      {id:'lcd',name:'Old LCD',cost:60,head:'#e3f2b0',body:['#8fb03c','#7a9a2f']},
+      {id:'steel',name:'Steel',cost:100,head:'#f1f5f9',body:['#94a3b8','#64748b']},
+      {id:'camo',name:'Camo',cost:150,head:'#cbd5a7',body:['#588157','#3a5a40','#6b705c']},
+      {id:'ember',name:'Ember',cost:200,head:'#fde68a',body:['#f97316','#ea580c','#dc2626']},
+      {id:'ocean',name:'Ocean',cost:200,head:'#a5f3fc',body:['#0ea5e9','#0284c7','#0369a1']},
+      {id:'rose',name:'Rose',cost:250,head:'#ffe4e6',body:['#fb7185','#f43f5e']},
+      {id:'candy',name:'Cotton Candy',cost:300,head:'#ffffff',body:['#f9a8d4','#a5b4fc','#99f6e4']},
+      {id:'neon',name:'Neon',cost:400,head:'#ffffff',body:['#22d3ee','#a3e635']},
+      {id:'gold',name:'Royal Gold',cost:500,head:'#fff7cc',body:['#facc15','#eab308','#ca8a04']},
+      {id:'rainbow',name:'Rainbow',cost:800,head:'#ffffff',body:['#ffffff'],rainbow:true}
     ];
     var FOODS = [
       {id:'apple',name:'Apple',cost:0,e:'🍎'},
-      {id:'cherry',name:'Cherry',cost:20,e:'🍒'},
-      {id:'strawberry',name:'Strawberry',cost:40,e:'🍓'},
-      {id:'donut',name:'Donut',cost:60,e:'🍩'},
-      {id:'lollipop',name:'Lollipop',cost:80,e:'🍭'},
-      {id:'blossom',name:'Blossom',cost:100,e:'🌸'},
-      {id:'burger',name:'Burger',cost:120,e:'🍔'},
-      {id:'butterfly',name:'Butterfly',cost:150,e:'🦋'},
-      {id:'star',name:'Star',cost:200,e:'⭐'},
-      {id:'gem',name:'Gem',cost:300,e:'💎'}
+      {id:'cherry',name:'Cherry',cost:50,e:'🍒'},
+      {id:'strawberry',name:'Strawberry',cost:100,e:'🍓'},
+      {id:'donut',name:'Donut',cost:150,e:'🍩'},
+      {id:'lollipop',name:'Lollipop',cost:200,e:'🍭'},
+      {id:'blossom',name:'Blossom',cost:250,e:'🌸'},
+      {id:'burger',name:'Burger',cost:300,e:'🍔'},
+      {id:'butterfly',name:'Butterfly',cost:400,e:'🦋'},
+      {id:'star',name:'Star',cost:500,e:'⭐'},
+      {id:'gem',name:'Gem',cost:750,e:'💎'}
     ];
     var BOARDS = [
       {id:'night',name:'Night',cost:0,a:'#0a0f18',b:'#0e1522'},
-      {id:'lcd',name:'Old Phone LCD',cost:30,a:'#a3b86c',b:'#98ae62'},
-      {id:'plum',name:'Plum Dusk',cost:50,a:'#1b1220',b:'#26172d'},
-      {id:'ocean',name:'Deep Ocean',cost:50,a:'#06202e',b:'#0a2c40'},
-      {id:'forest',name:'Forest',cost:50,a:'#0d1f14',b:'#13301e'},
-      {id:'paper',name:'Paper',cost:90,a:'#f1ebdd',b:'#e7dfcc'}
+      {id:'lcd',name:'Old Phone LCD',cost:80,a:'#a3b86c',b:'#98ae62'},
+      {id:'plum',name:'Plum Dusk',cost:120,a:'#1b1220',b:'#26172d'},
+      {id:'ocean',name:'Deep Ocean',cost:120,a:'#06202e',b:'#0a2c40'},
+      {id:'forest',name:'Forest',cost:120,a:'#0d1f14',b:'#13301e'},
+      {id:'paper',name:'Paper',cost:200,a:'#f1ebdd',b:'#e7dfcc'}
     ];
     var CATS = {skin:SKINS, food:FOODS, board:BOARDS};
     // The world is round in every mode: leave one edge, come back on the opposite one.
@@ -1870,6 +2008,9 @@
     var wrap = document.getElementById('wrap'), cv = document.getElementById('c'), ctx = cv.getContext('2d');
     var pad = document.getElementById('pad'), ov = document.getElementById('ov'), toastEl = document.getElementById('toast');
     var ptsEl = document.getElementById('pts');
+    var pz = document.getElementById('pz'); pz.textContent = L.paused;
+    var shopBtn = document.getElementById('shop'); shopBtn.querySelector('span').textContent = L.gsShop;
+    var paused = false, pops = [];
     var ARROWS = {
       l:'<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15 5v14L6 12z"/></svg>',
       u:'<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 6l7 10H5z"/></svg>',
@@ -1927,7 +2068,7 @@
       placeFood(); paintBar(); status();
     }
     function turn(dx,dy){
-      if(ov.className.indexOf('show') >= 0) return;
+      if(paused || ov.className.indexOf('show') >= 0) return;
       var ref = queue.length ? queue[queue.length-1] : dir;
       if((dx===-ref.x && dy===-ref.y) || (dx===ref.x && dy===ref.y)) return;
       if(queue.length < 3) queue.push({x:dx,y:dy});
@@ -1951,6 +2092,7 @@
       snake.unshift({x:hx,y:hy});
       if(ate){
         foods++; score += m.mult; D.pts += m.mult; runPts += m.mult;
+        pops.push({x:hx, y:hy, v:m.mult, born:performance.now()});
         placeFood();
         if(m.rocks && foods % m.rocks === 0 && rocks.length < 10) addRock();
         paintBar(); status(); saveSoon();
@@ -2007,6 +2149,15 @@
       [-1,1].forEach(function(s){
         ctx.fillRect(cx + dir.x*cell*0.18 + px*s*cell*0.2 - 1, cy + dir.y*cell*0.18 + py*s*cell*0.2 - 1, 2.4, 2.4);
       });
+      var nowT = performance.now();
+      pops = pops.filter(function(p){ return nowT - p.born < 800; });
+      pops.forEach(function(p){
+        var age = (nowT - p.born) / 800;
+        ctx.globalAlpha = 1 - age;
+        ctx.font = 'bold ' + Math.floor(cell*0.95) + 'px system-ui, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#fde68a'; ctx.fillText('+' + p.v, (p.x+0.5)*cell, (p.y+0.2)*cell - age*cell*1.2);
+        ctx.globalAlpha = 1;
+      });
       if(!alive){
         var lines = [
           {t:L.gameOver, size:20, color:'#ffffff'},
@@ -2030,7 +2181,7 @@
       if(!last) last = ts;
       acc += Math.min(0.1, (ts-last)/1000); last = ts;
       var m = MODES[D.mode], every = Math.max(m.min, m.start - foods*m.ramp);
-      while(acc >= every){ if(started && alive && ov.className.indexOf('show') < 0) step(); acc -= every; }
+      while(acc >= every){ if(started && alive && !paused && ov.className.indexOf('show') < 0) step(); acc -= every; }
       draw();
       requestAnimationFrame(loop);
     }
@@ -2046,7 +2197,7 @@
       if(Math.abs(dx) > Math.abs(dy)) turn(dx>0?1:-1, 0); else turn(0, dy>0?1:-1);
     });
     cv.addEventListener('pointerup', function(){
-      if(down && !moved && ov.className.indexOf('show') < 0){
+      if(down && !moved && !paused && ov.className.indexOf('show') < 0){
         if(!alive){ reset(); started = true; }
         else if(!started){ started = true; }
       }
@@ -2057,7 +2208,7 @@
     [].forEach.call(pad.querySelectorAll('button'), function(b){
       b.addEventListener('pointerdown', function(e){
         e.preventDefault();
-        if(ov.className.indexOf('show') >= 0) return;
+        if(paused || ov.className.indexOf('show') >= 0) return;
         var v = DIRS[b.getAttribute('data-d')];
         if(!alive) reset();
         started = true;
@@ -2066,7 +2217,7 @@
     });
     window.addEventListener('keydown', function(e){
       var k = e.key;
-      if(ov.className.indexOf('show') >= 0) return;
+      if(paused || ov.className.indexOf('show') >= 0) return;
       if(k==='ArrowUp'||k==='w'){ turn(0,-1); e.preventDefault(); }
       else if(k==='ArrowDown'||k==='s'){ turn(0,1); e.preventDefault(); }
       else if(k==='ArrowLeft'||k==='a'){ turn(-1,0); e.preventDefault(); }
@@ -2077,20 +2228,24 @@
     // ---- overlays: settings, store, titles ----
     var tab = 'skin';
     function closeOv(){ ov.className = ''; ov.innerHTML = ''; }
-    function seg(act, items, cur){
-      return '<div class="seg">' + items.map(function(it){
-        return '<button class="'+(it.v===cur?'on':'')+'" data-act="'+act+'" data-v="'+it.v+'">'+it.t+'</button>';
-      }).join('') + '</div>';
+    // Settings (mode, controls) are declared to the window's gear panel and applied when it sends "set".
+    function applyMode(v){
+      if(!MODES[v]) return;
+      if(started && alive) return;
+      if(v !== D.mode){ D.mode = v; reset(); save(); }
     }
-    function renderSettings(){
-      var h = '<div class="ovh"><b>'+L.gsSettings+'</b><button class="x" data-act="close">×</button></div><div class="body">';
-      h += '<div class="sec"><div class="lbl">'+L.gsMode+'</div>'
-        + seg('mode', MODE_ORDER.map(function(m){ return {v:m, t:L['gs'+cap(m)]}; }), D.mode)
-        + '<div class="hint">'+L['gsInfo'+cap(D.mode)]+' '+f(L.gsMult,{n:MODES[D.mode].mult})+'</div></div>';
-      h += '<div class="sec"><div class="lbl">'+L.gsControls+'</div>'
-        + seg('ctrl', [{v:'gesture',t:L.gsCtrlGesture},{v:'pad',t:L.gsCtrlPad}], D.ctrl) + '</div>';
-      h += '<button class="btn storebtn" data-act="store"><span>'+L.gsStore+'</span><span class="pbig">★ '+D.pts+'</span></button></div>';
-      ov.innerHTML = h; ov.className = 'show';
+    function applyControls(v){
+      if(v !== 'pad' && v !== 'gesture') return;
+      D.ctrl = v; applyCtrl(); save();
+    }
+    function sendSettings(){
+      send({type:'settings', items:[
+        {id:'mode', label:L.gsMode, value:D.mode, locked:!!(started && alive), note:L.gsLocked,
+         hint:L['gsInfo'+cap(D.mode)]+' '+f(L.gsMult,{n:MODES[D.mode].mult}),
+         options:MODE_ORDER.map(function(m){ return {v:m, t:L['gs'+cap(m)]}; })},
+        {id:'ctrl', label:L.gsControls, value:D.ctrl, locked:false,
+         options:[{v:'gesture',t:L.gsCtrlGesture},{v:'pad',t:L.gsCtrlPad}]}
+      ]});
     }
     function previewHTML(cat,it){
       if(cat==='skin') return '<canvas class="pv" width="64" height="18" data-skin="'+it.id+'"></canvas>';
@@ -2105,7 +2260,7 @@
       });
     }
     function renderStore(){
-      var h = '<div class="ovh"><button class="x" data-act="settings">‹</button><b>'+L.gsStore+'</b><span class="pbig">★ '+D.pts+'</span><button class="x" data-act="close">×</button></div>';
+      var h = '<div class="ovh"><b>'+L.gsStore+'</b><span class="pbig">★ '+D.pts+'</span><button class="x" data-act="close">×</button></div>';
       h += '<div class="tabs">' + ['skin','food','board'].map(function(k){
         return '<button class="tab'+(k===tab?' on':'')+'" data-act="tab" data-k="'+k+'">'+L['gsTab'+cap(k)]+'</button>';
       }).join('') + '</div><div class="tag">'+L.gsStoreTag+'</div><div class="rows">';
@@ -2129,18 +2284,7 @@
       var b = e.target.closest('[data-act]'); if(!b) return;
       var act = b.getAttribute('data-act'), id = b.getAttribute('data-id'), v = b.getAttribute('data-v');
       if(act==='close'){ closeOv(); return; }
-      if(act==='settings'){ renderSettings(); return; }
-      if(act==='store'){ renderStore(); return; }
       if(act==='tab'){ tab = b.getAttribute('data-k'); renderStore(); return; }
-      if(act==='mode'){
-        if(started && alive){ toast(L.gsLocked); return; }
-        if(MODES[v] && v !== D.mode){ D.mode = v; reset(); save(); }
-        renderSettings(); return;
-      }
-      if(act==='ctrl'){
-        if(v==='pad' || v==='gesture'){ D.ctrl = v; applyCtrl(); save(); }
-        renderSettings(); return;
-      }
       var it = byId(CATS[tab], id); if(!it) return;
       if(act==='equip' && D.own[tab].indexOf(id) >= 0){ D.eq[tab] = id; save(); renderStore(); return; }
       if(act==='buy'){
@@ -2150,13 +2294,25 @@
         save(); paintBar(); renderStore(); toast(L.gsBought);
       }
     });
-    document.getElementById('gear').addEventListener('click', renderSettings);
+    shopBtn.addEventListener('click', renderStore);
     window.addEventListener('message', function(e){
       var d = e.data; if(!d || d.emonGame !== 1) return;
       if(d.type === 'tiers') renderTiers();
+      else if(d.type === 'pause'){ paused = true; pz.classList.add('show'); }
+      else if(d.type === 'resume'){ paused = false; pz.classList.remove('show'); }
+      else if(d.type === 'settings?') sendSettings();
+      else if(d.type === 'set'){
+        if(d.id === 'mode') applyMode(String(d.value));
+        else if(d.id === 'ctrl') applyControls(String(d.value));
+        sendSettings();
+      }
+      else if(d.type === 'reset' && d.what === 'best'){
+        MODE_ORDER.forEach(function(m){ D.best[m] = 0; });
+        newBest = false; save(); status();
+      }
     });
     window.addEventListener('resize', fit);
-    applyCtrl(); reset(); requestAnimationFrame(loop);
+    applyCtrl(); reset(); sendSettings(); requestAnimationFrame(loop);
   }
 
   function bombGame(L){
@@ -2260,7 +2416,8 @@
 
     var level = 1, cleared = 0, P = null, state = 'idle';
     var first = null, lock = false, moves = 0, mism = 0, matched = 0, remaining = 0, shufflesLeft = 0, gen = 0;
-    var running = false, timerStarted = false, tId = null, tLast = 0, holds = 0, hiddenHold = false;
+    var running = false, timerStarted = false, tId = null, tLast = 0, holdSet = {};
+    var pz = document.getElementById('pz'); pz.textContent = L.paused;
     var prevHTML = null;
 
     function params(n){
@@ -2293,21 +2450,22 @@
 
     // ---- timer (with holds so it pauses behind menus / when the game is hidden) ----
     function stopTimer(){ running = false; if(tId){ clearInterval(tId); tId = null; } }
+    function anyHold(){ for(var k in holdSet) if(holdSet[k]) return true; return false; }
     function startTimer(){
-      if(running || holds > 0 || state !== 'play') return;
+      if(running || anyHold() || state !== 'play') return;
       running = true; tLast = performance.now(); tId = setInterval(tick, 100);
     }
-    function hold(){ holds++; stopTimer(); }
-    function release(){ holds = Math.max(0, holds-1); if(holds === 0 && timerStarted) startTimer(); }
+    // Named holds: a menu, the window's pause button / panels, and a hidden page each stop the timer on their own.
+    function setHold(name, on){
+      holdSet[name] = !!on;
+      if(anyHold()) stopTimer(); else if(timerStarted) startTimer();
+    }
     function tick(){
       var now = performance.now(); remaining -= (now - tLast)/1000; tLast = now;
       if(remaining <= 0){ remaining = 0; paint(); onBoom(); return; }
       paint();
     }
-    document.addEventListener('visibilitychange', function(){
-      if(document.hidden && !hiddenHold){ hiddenHold = true; hold(); }
-      else if(!document.hidden && hiddenHold){ hiddenHold = false; release(); }
-    });
+    document.addEventListener('visibilitychange', function(){ setHold('hidden', document.hidden); });
 
     // ---- board ----
     function layout(count){
@@ -2408,7 +2566,7 @@
       if(modalOpen) return;
       modalOpen = true;
       prevHTML = ov.className.indexOf('show') >= 0 ? ov.innerHTML : null; prevCls = ov.className;
-      modalHeld = (state === 'play'); if(modalHeld) hold();
+      modalHeld = (state === 'play'); if(modalHeld) setHold('modal', true);
       ov.innerHTML = html; ov.className = 'show' + (cls ? ' '+cls : '');
     }
     function closeModal(restore){
@@ -2417,7 +2575,7 @@
       if(restore !== false && prevHTML){ ov.innerHTML = prevHTML; ov.className = prevCls; }
       else { ov.className = ''; ov.innerHTML = ''; }
       prevHTML = null;
-      if(modalHeld){ modalHeld = false; release(); }
+      if(modalHeld){ modalHeld = false; setHold('modal', false); }
     }
     function preview(n){
       var p = params(n), h = '<div class="pv">💣 '+f(L.gbTimeInfo,{s:p.time})+'<br>🎯 '+f(L.gbTargetInfo,{n:p.target});
@@ -2492,8 +2650,9 @@
     window.addEventListener('message', function(e){
       var d = e.data; if(!d || d.emonGame !== 1) return;
       if(d.type === 'tiers') showTiers();
-      else if(d.type === 'pause') hold();
-      else if(d.type === 'resume') release();
+      else if(d.type === 'pause'){ setHold('host', true); pz.classList.add('show'); }
+      else if(d.type === 'resume'){ setHold('host', false); pz.classList.remove('show'); }
+      else if(d.type === 'reset' && d.what === 'best'){ D.best = 0; save(); status(); }
     });
     window.addEventListener('resize', function(){ if(grid.children.length) layout(grid.children.length); });
     window.addEventListener('pagehide', save);
@@ -2514,10 +2673,11 @@
     + '.row button.dis{opacity:.4}.row button.eq{background:#1f5f46;border-color:#2f7f61}'
     + '.tabs{display:flex;gap:5px;margin-bottom:6px}.tab{flex:1;padding:0 4px}.tag{font-size:10.5px;opacity:.6;margin-bottom:6px}'
     + '#toast{position:absolute;left:50%;bottom:52px;transform:translateX(-50%);background:#000d;padding:6px 12px;border-radius:9px;font-size:12px;display:none;z-index:9;max-width:90%;text-align:center}'
+    + '#pz{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#070a10f2;font-size:20px;font-weight:700;letter-spacing:.04em;z-index:8}#pz.show{display:flex}'
     + '.card{max-height:100%;overflow-y:auto;touch-action:pan-y;text-align:center;padding:6px 10px;box-sizing:border-box;width:100%}';
   const SNAKE_CSS = '#top{flex:none;height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;box-sizing:border-box}'
     + '#pill{font-size:12.5px;color:#fde68a;background:#ffffff0d;border:1px solid #ffffff18;border-radius:999px;padding:4px 11px}'
-    + '#gear{width:36px;height:30px;border-radius:9px;border:1px solid #ffffff20;background:#ffffff10;color:#fff;display:flex;align-items:center;justify-content:center;padding:0}'
+    + '#shop{height:30px;border-radius:9px;border:1px solid #ffffff20;background:#ffffff10;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 11px;font-size:12px}'
     + '#wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}'
     + 'canvas{display:block;touch-action:none;border-radius:8px}'
     + '#pad{flex:none;height:58px;display:none;gap:8px;padding:6px 8px 8px;box-sizing:border-box}'
@@ -2550,22 +2710,22 @@
     keys.forEach(k=>{ o[k] = t('runtime.'+k, ph); });
     return o;
   }
-  const SNAKE_KEYS = ['gsSettings','gsMode','gsControls','gsCtrlGesture','gsCtrlPad','gsWorld','gsEasy','gsMedium','gsExtreme','gsStore','gsTabSkin','gsTabFood','gsTabBoard','gsStoreTag','gsBuy','gsEquip','gsEquipped','gsNoPoints','gsBought','gsNewBest','gsEarned','gsTiers','gsLocked','gsInfoEasy','gsInfoMedium','gsInfoExtreme','gsMult'];
+  const SNAKE_KEYS = ['gsShop','gsSettings','gsMode','gsControls','gsCtrlGesture','gsCtrlPad','gsWorld','gsEasy','gsMedium','gsExtreme','gsStore','gsTabSkin','gsTabFood','gsTabBoard','gsStoreTag','gsBuy','gsEquip','gsEquipped','gsNoPoints','gsBought','gsNewBest','gsEarned','gsTiers','gsLocked','gsInfoEasy','gsInfoMedium','gsInfoExtreme','gsMult'];
   const BOMB_KEYS = ['gbNewSet','gbLv','gbLevel','gbMoves','gbStart','gbMemorize','gbTimeInfo','gbTargetInfo','gbTrickInfo','gbMercy','gbNoMercy','gbCleared','gbStats','gbNewWisdom','gbOldWisdom','gbNext','gbBoom','gbOutMoves','gbTryAgain','gbRunStats','gbShuffled','gbSwapped','gbWisdom','gbWisEmpty','gbRestartAsk','gbYes','gbNo','gbTiers'];
   function buildBuiltinDoc(g){
     const L = Object.assign({
-      tap: t('runtime.gameTapStart'), gameTapStart: t('runtime.gameTapStart'), gameOver: t('runtime.gameOver'), gameTapRestart: t('runtime.gameTapRestart'),
+      tap: t('runtime.gameTapStart'), gameTapStart: t('runtime.gameTapStart'), gameOver: t('runtime.gameOver'), gameTapRestart: t('runtime.gameTapRestart'), paused: t('runtime.gamePaused'),
       name: getGameName(), data: getBuiltinData(g.id)
     }, catalog(g.keys));
     const json = JSON.stringify(L).replace(/</g, '\\u003c');
     return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>'
-      + GAME_BASE_CSS + g.css + '</style></head><body>' + g.body + '<div id="toast"></div>'
+      + GAME_BASE_CSS + g.css + '</style></head><body>' + g.body + '<div id="pz"></div><div id="toast"></div>'
       + '<script>(' + g.fn.toString() + ')(' + json + ');<\/script></body></html>';
   }
   const BUILTIN_GAMES = [
-    { id:'snake', emoji:'🐍', name:'Snake', needsName:true, fn:snakeGame, css:SNAKE_CSS, keys:SNAKE_KEYS,
-      body:'<div id="top"><span id="pill">★ <b id="pts"></b></span><button id="gear" aria-label="Settings"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button></div><div id="wrap"><canvas id="c"></canvas></div><div id="pad"></div><div id="ov"></div>' },
-    { id:'bomb', emoji:'💣', name:'Memory Bomb', needsName:true, fn:bombGame, css:BOMB_CSS, keys:BOMB_KEYS,
+    { id:'snake', emoji:'🐍', name:'Snake', needsName:true, pausable:true, fn:snakeGame, css:SNAKE_CSS, keys:SNAKE_KEYS,
+      body:'<div id="top"><span id="pill">★ <b id="pts"></b></span><button id="shop" aria-label="Shop"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l1 12H5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg><span></span></button></div><div id="wrap"><canvas id="c"></canvas></div><div id="pad"></div><div id="ov"></div>' },
+    { id:'bomb', emoji:'💣', name:'Memory Bomb', needsName:true, pausable:true, fn:bombGame, css:BOMB_CSS, keys:BOMB_KEYS,
       body:'<div id="top"><span id="lv"></span><span id="mv"></span><span id="tm"></span><span id="tk"></span><span class="sp"></span><button id="wis" aria-label="Wisdom">📜</button><button id="r" aria-label="Restart">↻</button></div><div id="stage"><div id="g"></div></div><div id="ov"></div>' },
   ];
 
@@ -2614,7 +2774,7 @@
 
   function allGames(){
     const list = [{ id:'jump', emoji:'🏃', name:t('runtime.gameTitle'), builtin:true, jump:true }];
-    BUILTIN_GAMES.forEach(g=>list.push({ id:g.id, emoji:g.emoji, name:g.name, builtin:true, builtinDef:g, needsName:!!g.needsName }));
+    BUILTIN_GAMES.forEach(g=>list.push({ id:g.id, emoji:g.emoji, name:g.name, builtin:true, builtinDef:g, needsName:!!g.needsName, pausable:!!g.pausable }));
     getUserGames().forEach(g=>list.push({ id:g.id, emoji:g.emoji||'🎮', name:g.name||'Game', file:g.file }));
     return list;
   }
@@ -2646,7 +2806,6 @@
       }
     }catch{}
   }
-  let libPaused = false;
   async function activateGame(id){
     if(!gameEl) return;
     const g = findGame(id) || findGame('jump');
@@ -2654,6 +2813,9 @@
     activeGameId = g.id;
     setActiveGameId(g.id);
     if(gameNameEl) gameNameEl.textContent = g.name;
+    userPaused = false; framePausedSent = false; frameSettings = null;
+    closeSettingsPanel(true);
+    if(gamePauseBtn){ gamePauseBtn.textContent = '⏸️'; gamePauseBtn.style.display = (g.jump || g.pausable) ? '' : 'none'; }
     if(g.jump){
       gameMode = 'jump';
       gameEl.dataset.mode = 'jump';
@@ -2664,7 +2826,6 @@
     gameMode = 'custom';
     gameEl.dataset.mode = 'custom';
     stopJump();
-    libPaused = false;
     if(gameNameGate) gameNameGate.classList.remove('show');
     if(g.needsName){
       gamePlayerName = getGameName();
@@ -2694,6 +2855,7 @@
     const g = findGame(activeGameId) || findGame('jump');
     if(gameNameEl && g) gameNameEl.textContent = g.name;
     if(gameLibEl && gameLibEl.classList.contains('show')) renderGameLib();
+    if(gameSetEl && gameSetEl.classList.contains('show')) renderSettingsPanel();
   }
 
   window.addEventListener('message', e=>{
@@ -2701,6 +2863,11 @@
     const d = e.data;
     if(!d || d.emonGame !== 1) return;
     const g = findGame(activeGameId);
+    if(d.type === 'settings'){
+      frameSettings = sanitizeSettings(d);
+      if(gameSetEl && gameSetEl.classList.contains('show')) renderSettingsPanel();
+      return;
+    }
     if(d.type === 'save'){
       // only built-in games may keep progress; keep it small and plain
       if(g && g.builtinDef && d.data && typeof d.data === 'object'){
@@ -2735,17 +2902,18 @@
     if(!gameLibEl) return;
     if(gameMode==='jump' && gs && gs.started && gs.alive && !gamePaused) togglePauseGame();
     closeGameTiers();
-    if(gameMode==='custom' && !libPaused){ libPaused = true; postToFrame({type:'pause'}); }
-    gameEl.classList.add('libopen');
+    closeSettingsPanel(true);
     gameLibEl.classList.add('show');
+    refreshLibOpen();
     gameAddForm.classList.remove('show');
     renderGameLib();
+    syncFramePause();
   }
   function closeGameLib(){
     if(!gameLibEl) return;
     gameLibEl.classList.remove('show');
-    gameEl.classList.remove('libopen');
-    if(libPaused){ libPaused = false; postToFrame({type:'resume'}); }
+    refreshLibOpen();
+    syncFramePause();
   }
   function renderGameLib(){
     if(!gameLibList) return;
@@ -2834,14 +3002,177 @@
     }catch(e){ tavo.utils.toast(t('runtime.error')); }
   }
 
+  // ---------- ⚙ game settings panel: one place for every game ----------
+  // Sections: Player (the name is shared by all games) · This game (its options + its own resets) · All games (reset everything).
+  // Built-in games declare their options with {type:'settings'} and the panel sends {type:'set'} back.
+  const gameSetEl = document.getElementById('emon-iv-game-set');
+  const gameSetClose = document.getElementById('emon-iv-game-set-close');
+  const setPlayerEl = document.getElementById('emon-iv-set-player');
+  const setItemsEl = document.getElementById('emon-iv-set-items');
+  const setJumpEl = document.getElementById('emon-iv-set-jump');
+  const setResetsEl = document.getElementById('emon-iv-set-resets');
+  const setAllEl = document.getElementById('emon-iv-set-all');
+  const setConfirmEl = document.getElementById('emon-iv-set-confirm');
+  let frameSettings = null, pendingYes = null, userPaused = false, framePausedSent = false;
+
+  function refreshLibOpen(){
+    gameEl.classList.toggle('libopen', gameLibEl.classList.contains('show') || gameSetEl.classList.contains('show'));
+  }
+  function syncFramePause(){
+    if(gameMode !== 'custom'){ framePausedSent = false; return; }
+    const want = userPaused || gameLibEl.classList.contains('show') || gameSetEl.classList.contains('show');
+    if(want !== framePausedSent){ framePausedSent = want; postToFrame({type: want ? 'pause' : 'resume'}); }
+  }
+  if(gameFrame) gameFrame.addEventListener('load', ()=>{ framePausedSent = false; if(gameMode==='custom') syncFramePause(); });
+  function toggleFramePause(){
+    userPaused = !userPaused;
+    if(gamePauseBtn) gamePauseBtn.textContent = userPaused ? '▶️' : '⏸️';
+    syncFramePause();
+  }
+  if(gamePauseBtn) gamePauseBtn.onclick = ()=>{ if(gameMode==='jump') togglePauseGame(); else toggleFramePause(); };
+
+  function sanitizeSettings(d){
+    const str = (v,n)=>String(v==null ? '' : v).slice(0,n);
+    if(!Array.isArray(d.items)) return null;
+    const items = [];
+    d.items.slice(0,6).forEach(it=>{
+      if(!it || typeof it !== 'object' || !Array.isArray(it.options)) return;
+      const options = it.options.slice(0,6).map(o=>({v:str(o&&o.v,24), t:str(o&&o.t,24)})).filter(o=>o.v && o.t);
+      if(!options.length) return;
+      items.push({ id:str(it.id,24), label:str(it.label,40), value:str(it.value,24), locked:!!it.locked, note:str(it.note,90), hint:str(it.hint,140), options });
+    });
+    return { gameId: activeGameId, items };
+  }
+
+  function hideConfirm(){
+    pendingYes = null;
+    if(setConfirmEl){ setConfirmEl.classList.remove('show'); setConfirmEl.innerHTML = ''; }
+  }
+  function askConfirm(text, onYes){
+    if(!setConfirmEl){ if(typeof confirm !== 'function' || confirm(text)) onYes(); return; }
+    pendingYes = onYes;
+    setConfirmEl.innerHTML = '<div>'+esc(text)+'</div><div class="gbtnrow"><button class="gbtn danger" data-sact="yes">'+esc(t('runtime.gameYes'))+'</button><button class="gbtn" data-sact="no">'+esc(t('runtime.gameNo'))+'</button></div>';
+    setConfirmEl.classList.add('show');
+    try{ setConfirmEl.scrollIntoView({block:'nearest'}); }catch{}
+  }
+
+  function renderSettingsPanel(){
+    if(!gameSetEl) return;
+    const g = findGame(activeGameId) || findGame('jump');
+    // Player
+    const keep = document.getElementById('emon-iv-set-name');
+    const typed = keep && document.activeElement === keep ? keep.value : getGameName();
+    setPlayerEl.innerHTML = '<div class="glbl">'+esc(t('runtime.gamePlayerSection'))+'</div>'
+      + '<div class="gnamerow"><input id="emon-iv-set-name" maxlength="16" value="'+esc(typed)+'" placeholder="'+esc(t('runtime.gameNamePlaceholder'))+'" />'
+      + '<button class="gbtn pri" data-sact="saveName">'+esc(t('runtime.gameNameSaveBtn'))+'</button></div>'
+      + '<div class="ghint2">'+esc(t('runtime.gamePlayerHint'))+'</div>';
+    // This game: options declared by the game itself
+    let h = '<div class="glbl">'+esc(t('runtime.gameThisGame'))+' · '+esc(g.name)+'</div>';
+    if(g.jump){ /* the Jump Game's own controls live in the block below */ }
+    else if(frameSettings && frameSettings.gameId === g.id){
+      frameSettings.items.forEach(it=>{
+        h += '<div class="gilbl">'+esc(it.label)+'</div><div class="gseg'+(it.locked?' locked':'')+'">'
+          + it.options.map(o=>'<button class="'+(o.v===it.value?'on':'')+'" data-sact="set" data-id="'+esc(it.id)+'" data-v="'+esc(o.v)+'">'+esc(o.t)+'</button>').join('')+'</div>';
+        if(it.locked && it.note) h += '<div class="ghint2 warn">'+esc(it.note)+'</div>';
+        else if(it.hint) h += '<div class="ghint2">'+esc(it.hint)+'</div>';
+      });
+    }
+    setItemsEl.innerHTML = h;
+    setJumpEl.style.display = g.jump ? '' : 'none';
+    // This game: resets
+    if(g.jump){
+      setResetsEl.innerHTML = '';
+    } else {
+      setResetsEl.innerHTML = '<div class="gbtnrow"><button class="gbtn" data-sact="askBest">'+esc(t('runtime.gameResetBestG'))+'</button>'
+        + (g.builtinDef ? '<button class="gbtn danger" data-sact="askProgress">'+esc(t('runtime.gameResetProgressG'))+'</button>' : '') + '</div>';
+    }
+    // All games
+    setAllEl.innerHTML = '<div class="glbl">'+esc(t('runtime.gameAllSection'))+'</div>'
+      + '<button class="gbtn danger" data-sact="askAll" style="width:100%">'+esc(t('runtime.gameResetAll'))+'</button>'
+      + '<div class="ghint2">'+esc(t('runtime.gameResetAllWarn'))+'</div>';
+  }
+
+  function openSettingsPanel(){
+    if(!gameSetEl) return;
+    closeGameTiers();
+    gameLibEl.classList.remove('show');
+    if(gameMode==='jump' && gs && gs.started && gs.alive && !gamePaused) togglePauseGame();
+    hideConfirm();
+    gameSetEl.classList.add('show');
+    refreshLibOpen();
+    if(gameMode === 'custom') postToFrame({type:'settings?'});
+    renderSettingsPanel();
+    syncFramePause();
+  }
+  function closeSettingsPanel(silent){
+    if(!gameSetEl) return;
+    gameSetEl.classList.remove('show');
+    hideConfirm();
+    refreshLibOpen();
+    if(!silent) syncFramePause();
+  }
+
+  function resetGameBest(g){
+    if(g.jump){ gameBest = 0; setGameBest(0); }
+    else {
+      const b = getBests(); delete b[g.id];
+      try{ tavo.set(GAME_BESTS_VAR, b, 'global'); }catch{}
+      if(g.builtinDef) postToFrame({type:'reset', what:'best'});
+      showCustomBest();
+    }
+    tavo.utils.toast(t('runtime.gameBestReset'));
+  }
+  function resetGameProgress(g){
+    if(g.builtinDef){
+      const all = getBuiltinAll(); delete all[g.id];
+      try{ tavo.set(GAME_DATA_VAR, all, 'global'); }catch{}
+    }
+    const b = getBests(); delete b[g.id];
+    try{ tavo.set(GAME_BESTS_VAR, b, 'global'); }catch{}
+    tavo.utils.toast(t('runtime.gameProgressDone'));
+    closeSettingsPanel();
+    activateGame(g.id);
+  }
+  function resetEverything(){
+    clearGameSavedRun(); gameBest = 0; setGameBest(0);
+    try{ tavo.set(GAME_DATA_VAR, null, 'global'); tavo.set(GAME_BESTS_VAR, null, 'global'); }catch{}
+    setGameName(''); gamePlayerName = '';
+    frameSettings = null;
+    if(gs){ gs.started = false; } // a finished reset must not re-save the run we just cleared
+    tavo.utils.toast(t('runtime.gameAllDone'));
+    closeSettingsPanel();
+    activateGame(activeGameId);
+  }
+  function saveNameFromPanel(){
+    const inp = document.getElementById('emon-iv-set-name');
+    const v = String((inp && inp.value) || '').trim().slice(0,16);
+    if(!v){ tavo.utils.toast(t('runtime.gameNameEnter')); return; }
+    setGameName(v); gamePlayerName = v;
+    tavo.utils.toast(t('runtime.gameNameSaved', {name:v}));
+    const g = findGame(activeGameId);
+    if(g && g.needsName){ closeSettingsPanel(); activateGame(activeGameId); }
+  }
+
+  if(gameSetEl) gameSetEl.addEventListener('click', e=>{
+    const b = e.target.closest('[data-sact]'); if(!b) return;
+    const act = b.getAttribute('data-sact');
+    const g = findGame(activeGameId) || findGame('jump');
+    if(act === 'saveName') saveNameFromPanel();
+    else if(act === 'set') postToFrame({type:'set', id:b.getAttribute('data-id'), value:b.getAttribute('data-v')});
+    else if(act === 'askBest') askConfirm(t('runtime.gameConfirmBest', {name:g.name}), ()=>resetGameBest(g));
+    else if(act === 'askProgress') askConfirm(t('runtime.gameConfirmProgress', {name:g.name}), ()=>resetGameProgress(g));
+    else if(act === 'askAll') askConfirm(t('runtime.gameConfirmAll'), resetEverything);
+    else if(act === 'yes'){ const fn = pendingYes; hideConfirm(); if(fn) fn(); }
+    else if(act === 'no') hideConfirm();
+  });
+  if(gameSetClose) gameSetClose.onclick = ()=>closeSettingsPanel();
+  if(gameSettingsToggle) gameSettingsToggle.onclick = ()=>{ gameSetEl.classList.contains('show') ? closeSettingsPanel() : openSettingsPanel(); };
+  // the Jump Game's own controls sit inside the panel, and its "Reset best" now asks first
+  if(setJumpEl && gameSettingsEl) setJumpEl.appendChild(gameSettingsEl);
+  if(gameResetBestBtn) gameResetBestBtn.onclick = ()=>askConfirm(t('runtime.gameConfirmBest', {name:t('runtime.gameTitle')}), ()=>resetGameBest(findGame('jump')));
+
   if(gameSwitchBtn) gameSwitchBtn.onclick = ()=>{ gameLibEl.classList.contains('show') ? closeGameLib() : openGameLib(); };
   if(gameLibClose) gameLibClose.onclick = closeGameLib;
-  const gameLibNameBtn = document.getElementById('emon-iv-game-lib-name');
-  if(gameLibNameBtn) gameLibNameBtn.onclick = ()=>{
-    closeGameLib();
-    if(gameNameInput) gameNameInput.value = getGameName();
-    gameNameGate?.classList.add('show');
-  };
   if(gameAddOpen) gameAddOpen.onclick = ()=>{ gameAddForm.classList.toggle('show'); if(gameAddForm.classList.contains('show')) gameAddName.focus(); };
   if(gameAddCancel) gameAddCancel.onclick = resetAddForm;
   if(gameAddSave) gameAddSave.onclick = saveNewGame;
