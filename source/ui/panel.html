@@ -9,8 +9,50 @@
 
 #emon-iv-fab span{filter:drop-shadow(0 1px 2px #000)}
 #emon-iv-panel{position:fixed;z-index:2147482999;right:28px;bottom:96px;width:min(620px,calc(100vw - 36px));max-height:min(78vh,720px);overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#0e131dfa;border:1px solid #ffffff20;border-radius:22px;box-shadow:0 14px 40px #0009;padding:18px;display:none}
-#emon-iv-panel.open{display:block}
+#emon-iv-panel.open,#emon-iv-panel.closing{display:block}
+#emon-iv-panel.open{animation:emonIvPanelIn .24s cubic-bezier(.2,.9,.3,1.1) backwards}
+#emon-iv-panel.closing{pointer-events:none;animation:emonIvPanelOut .18s ease-in both}
+@keyframes emonIvPanelIn{from{opacity:0;transform:translateY(14px) scale(.97)}}
+@keyframes emonIvPanelOut{to{opacity:0;transform:translateY(10px) scale(.97)}}
+@media (prefers-reduced-motion: reduce){#emon-iv-panel.open,#emon-iv-panel.closing{animation:none}#emon-iv-panel.closing{display:none}}
 .emon-iv-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+
+.emon-iv-pull-dock{display:flex;align-items:center;gap:6px;margin-left:auto}
+.emon-iv-pull{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:42px;height:36px;padding:0 9px;border:1px solid #ffffff16;background:#ffffff0b;color:#fff;border-radius:12px;font-size:15px;cursor:grab;touch-action:none;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .16s,background .16s,border-color .16s;transform-origin:50% 0}
+.emon-iv-pull::before{content:'';position:absolute;top:-6px;left:50%;width:1px;height:7px;background:#ffffff38;transform:translateX(-50%)}
+.emon-iv-pull .pull-label{font-size:10px;font-weight:700;opacity:.65;display:none}
+.emon-iv-pull:hover{background:#ffffff12;border-color:#ffffff28}
+.emon-iv-pull.dragging{cursor:grabbing;background:#8b5cf626;border-color:#a78bfa55}
+.emon-iv-pull.sway{animation:emonIvAnchorSway .75s ease-in-out infinite}
+@keyframes emonIvAnchorSway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+/* ===== Quick Lookup: a rope-and-anchor pull cord ===== */
+.emon-iv-lookup{--rope:30px;position:relative;margin-top:6px;padding:0;border:1px solid transparent;background:transparent;border-radius:17px;box-sizing:border-box;overflow:visible;transition:padding .3s ease,background .3s ease,border-color .3s ease}
+.emon-iv-lookup::before{content:'';display:block;height:74px;transition:height .32s cubic-bezier(.2,.8,.2,1)}
+.emon-iv-lookup.open{padding:9px;border-color:#ffffff12;background:#ffffff07}
+.emon-iv-lookup.open::before{height:0}
+.emon-iv-lookup.open{--rope:0px}
+.emon-iv-anchor{position:absolute;top:-1px;right:-1px;width:44px;height:0;z-index:4;pointer-events:none;transition:top .3s cubic-bezier(.2,.8,.2,1),right .3s ease}
+.emon-iv-lookup.open .emon-iv-anchor{top:5px;right:8px}
+.emon-iv-knot{position:absolute;top:-3px;left:50%;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;background:#ffffff66;transition:opacity .2s;z-index:1}
+.emon-iv-lookup.open .emon-iv-knot{opacity:0}
+.emon-iv-swing{position:absolute;top:0;left:0;width:44px;transform-origin:50% 0;animation:emonIvSwing 3.4s ease-in-out infinite;will-change:transform}
+.emon-iv-lookup.open .emon-iv-swing{animation:emonIvSwingMini 3.8s ease-in-out infinite}
+.emon-iv-lookup.dragging .emon-iv-swing{animation:none}
+@keyframes emonIvSwing{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@keyframes emonIvSwingMini{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.emon-iv-rope{display:block;width:2px;height:var(--rope);margin:0 auto;border-radius:1px;background:repeating-linear-gradient(180deg,#d9caa4 0 3px,#a08e63 3px 6px);transition:height .38s cubic-bezier(.2,.9,.3,1.3)}
+.emon-iv-lookup.dragging .emon-iv-rope{transition:none}
+.emon-iv-lookup-handle{pointer-events:auto;display:block;width:44px;height:38px;margin:0;padding:0;border:0;background:transparent;color:#fff;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
+.emon-iv-lookup-handle:active{transform:none;opacity:1}
+.emon-iv-lookup-handle .pull-anchor{display:inline-block;font-size:25px;line-height:38px;filter:drop-shadow(0 2px 3px #0009);transition:transform .3s cubic-bezier(.2,.9,.3,1.3)}
+.emon-iv-lookup.open .emon-iv-lookup-handle .pull-anchor{transform:scale(.72)}
+.emon-iv-lookup.dragging .emon-iv-lookup-handle{cursor:grabbing}
+.emon-iv-lookup-wrap{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;transition:grid-template-rows .34s cubic-bezier(.2,.8,.2,1),opacity .2s ease,visibility 0s linear .34s}
+.emon-iv-lookup.open .emon-iv-lookup-wrap{grid-template-rows:1fr;opacity:1;visibility:visible;transition:grid-template-rows .34s cubic-bezier(.2,.8,.2,1),opacity .3s ease .05s,visibility 0s}
+.emon-iv-lookup-body{min-height:0;overflow:hidden;padding:0 4px}
+.emon-iv-lookup-headrow{padding-right:46px;min-height:34px}
+@media (prefers-reduced-motion: reduce){.emon-iv-swing,.emon-iv-lookup.open .emon-iv-swing{animation:none}.emon-iv-lookup::before,.emon-iv-lookup-wrap,.emon-iv-rope,.emon-iv-anchor{transition:none}}
+.emon-iv-saved-card .saved-name{display:block;margin:7px 2px 1px;font-size:10.5px;opacity:.62;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .emon-iv-title{font-size:21px;font-weight:750}
 .emon-iv-close{border:1px solid #ffffff18;background:#ffffff10;color:#fff;border-radius:12px;width:42px;height:42px;font-size:20px}
 .emon-iv-section{margin-top:15px}
@@ -20,7 +62,7 @@
 .emon-iv-card img{width:100%;aspect-ratio:1;border-radius:11px;object-fit:cover;display:block;background:#080b10;cursor:pointer}
 .emon-iv-row{display:flex;gap:8px}
 .emon-iv-input{flex:1;min-width:0;border:1px solid #ffffff18;background:#0b1019;color:#fff;border-radius:13px;padding:12px 13px;font-size:14px;outline:none}
-.emon-iv-btn{border:0;background:#8b5cf6;color:#fff;border-radius:13px;padding:0 16px;font-weight:750}
+.emon-iv-btn{border:0;background:#8b5cf6;color:#fff;border-radius:13px;padding:0 16px;min-height:40px;font-weight:750}
 .emon-iv-btn.secondary{background:#ffffff10;border:1px solid #ffffff16}
 .emon-iv-status{font-size:12px;opacity:.7;margin-top:8px;min-height:16px}
 .emon-iv-preview{margin-top:12px;border-radius:16px;background:#070a0f;border:1px solid #ffffff12;overflow:hidden;display:none}
@@ -48,11 +90,17 @@
 .emon-iv-pinned .sizebadge.show{opacity:1}
 .emon-iv-pinned .zoom{font-size:11px}
 .emon-iv-pinned .dragtitle{cursor:text}
-.emon-iv-modal{position:fixed;inset:0;z-index:2147483005;display:flex;align-items:center;justify-content:center;background:#000000a0;padding:20px;box-sizing:border-box;opacity:0;pointer-events:none;transition:opacity .16s ease}
-.emon-iv-modal.show{opacity:1;pointer-events:auto}
-.emon-iv-modal .emon-iv-modal-card{transform:scale(.92) translateY(8px);transition:transform .18s cubic-bezier(.2,.9,.3,1.3)}
-.emon-iv-modal.show .emon-iv-modal-card{transform:scale(1) translateY(0)}
-@media (prefers-reduced-motion: reduce){.emon-iv-modal,.emon-iv-modal .emon-iv-modal-card{transition:none}}
+.emon-iv-modal{position:fixed;inset:0;z-index:2147483005;display:none;align-items:center;justify-content:center;background:#000000a0;padding:20px;box-sizing:border-box}
+.emon-iv-modal.show,.emon-iv-modal.closing{display:flex}
+.emon-iv-modal.show{animation:emonIvFadeIn .2s ease both}
+.emon-iv-modal.show .emon-iv-modal-card{animation:emonIvPopIn .3s cubic-bezier(.2,.9,.3,1.25) both}
+.emon-iv-modal.closing{pointer-events:none;animation:emonIvFadeOut .2s ease both}
+.emon-iv-modal.closing .emon-iv-modal-card{animation:emonIvPopOut .2s ease-in both}
+@keyframes emonIvFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes emonIvFadeOut{from{opacity:1}to{opacity:0}}
+@keyframes emonIvPopIn{from{transform:scale(.9) translateY(10px);opacity:0}to{transform:none;opacity:1}}
+@keyframes emonIvPopOut{from{transform:none;opacity:1}to{transform:scale(.92) translateY(10px);opacity:0}}
+@media (prefers-reduced-motion: reduce){.emon-iv-modal.show,.emon-iv-modal.show .emon-iv-modal-card,.emon-iv-modal.closing,.emon-iv-modal.closing .emon-iv-modal-card{animation:none}.emon-iv-modal.closing{display:none}}
 .emon-iv-modal-card{background:#0e131dfa;border:1px solid #ffffff20;border-radius:16px;padding:16px;width:min(340px,100%);max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;box-sizing:border-box}
 .emon-iv-modal-head{display:flex;justify-content:flex-end}
 .emon-iv-info-title{font-size:14px;font-weight:750;margin-bottom:10px;word-break:break-word}
@@ -79,7 +127,6 @@
   #emon-iv-fab{right:14px;bottom:92px}
 }
 
-.emon-iv-lookup{margin-top:15px;padding:13px;border:1px solid #ffffff12;background:#ffffff07;border-radius:17px}
 .emon-iv-tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}
 .emon-iv-tab{border:1px solid #ffffff14;background:#ffffff08;color:#fff;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:750;white-space:nowrap}
 .emon-iv-tab.active{background:#8b5cf6;border-color:#a78bfa}
@@ -97,7 +144,10 @@
 .emon-iv-lookup-note{font-size:10px;opacity:.5;margin-top:7px;line-height:1.35}
 
 #emon-iv-game{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483010;width:min(360px,calc(100vw - 28px));background:#0e131dfa;border:1px solid #ffffff22;border-radius:20px;box-shadow:0 12px 34px #0009;padding:14px;display:none;touch-action:none}
-#emon-iv-game.open{display:block}
+#emon-iv-game.open,#emon-iv-game.closing{display:block}
+#emon-iv-game.open{animation:emonIvGameIn .22s ease backwards}
+#emon-iv-game.closing{pointer-events:none;animation:emonIvFadeOut .18s ease both}
+@keyframes emonIvGameIn{from{opacity:0}}
 #emon-iv-game .ghead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;cursor:grab;padding:2px 0 8px}
 #emon-iv-game .ghead:active{cursor:grabbing}
 #emon-iv-game .gdots{opacity:.4;font-size:12px;letter-spacing:2px}
@@ -207,15 +257,23 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   <div id="emon-iv-panel">
     <div class="emon-iv-head">
       <div class="emon-iv-title" data-i18n="runtime.title">Image Preview</div>
-      <div style="display:flex;gap:8px">
-        <button class="emon-iv-close" id="emon-iv-help-btn" data-i18n-title="runtime.helpOpen">❔</button>
-        <button class="emon-iv-close" id="emon-iv-game-btn" data-i18n-title="runtime.gameOpen">🎮</button>
+      <div class="emon-iv-pull-dock">
+        <button class="emon-iv-pull" id="emon-iv-help-btn" data-pull-target="help" data-i18n-title="runtime.helpOpen" aria-label="Help">❔</button>
+        <button class="emon-iv-pull" id="emon-iv-game-btn" data-pull-target="game" data-i18n-title="runtime.gameOpen" aria-label="Games">🎮</button>
         <button class="emon-iv-close" id="emon-iv-close" data-i18n-title="runtime.close">×</button>
       </div>
     </div>
 
-    <div class="emon-iv-lookup">
-      <div class="emon-iv-head" style="margin-bottom:2px">
+    <div class="emon-iv-lookup" id="emon-iv-lookup-panel">
+      <div class="emon-iv-anchor" aria-hidden="false">
+        <span class="emon-iv-knot"></span>
+        <div class="emon-iv-swing" id="emon-iv-swing">
+          <span class="emon-iv-rope"></span>
+          <button id="emon-iv-lookup-handle" class="emon-iv-lookup-handle" type="button" aria-expanded="false" aria-label="Quick Lookup" data-i18n-title="runtime.anchorTitle"><span class="pull-anchor">⚓</span></button>
+        </div>
+      </div>
+      <div class="emon-iv-lookup-wrap"><div class="emon-iv-lookup-body" id="emon-iv-lookup-body">
+      <div class="emon-iv-head emon-iv-lookup-headrow" style="margin-bottom:2px">
         <div class="emon-iv-label" style="margin:0" data-i18n="runtime.lookupTitle">QUICK LOOKUP</div>
         <button id="emon-iv-privacy-toggle" class="emon-iv-close" style="width:auto;height:28px;padding:0 9px;font-size:11px"></button>
       </div>
@@ -253,6 +311,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       <div id="emon-iv-lookup-result" class="emon-iv-lookup-result"></div>
       <div class="emon-iv-lookup-note" data-i18n="runtime.lookupNote">Only the text you type above is sent to public lookup services, and only when you tap Look up — never your images, pins, or saved files. Turn on Privacy Mode to block this completely.</div>
       <div class="emon-iv-lookup-note" id="emon-iv-search-key-hint" style="display:none"></div>
+      </div></div>
     </div>
 
     <div class="emon-iv-section">
@@ -296,11 +355,11 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
         <div class="emon-iv-modal-head"><button id="emon-iv-help-close" class="emon-iv-close" style="width:30px;height:30px;font-size:14px">×</button></div>
         <div class="emon-iv-info-title" data-i18n="runtime.helpTitle">How Image Preview works</div>
         <div class="emon-iv-help-body">
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS1T">Preview &amp; pin images</b><p data-i18n="runtime.helpS1B">Paste an image link or a webpage link, then tap Preview. Pin on chat keeps it floating over the chat so you can look at it while you type. Drag it to move, pinch or use +/- to resize.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS2T">Save &amp; manage images</b><p data-i18n="runtime.helpS2B">Save preview keeps a copy for this chat. Tap any saved image for Fullscreen, Pin, Save to device, Copy link, Info and Delete. Rename or sort your pins from the PINNED ON CHAT list.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS3T">Quick Lookup</b><p data-i18n="runtime.helpS3B">Translate text, look up a word's meaning, or search the web, without leaving this panel.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS4T">Game Corner</b><p data-i18n="runtime.helpS4B">Tap 🎮 for a Jump Game, Snake and Memory Bomb, or add your own game. The ⚙ button inside a game holds your player name and that game's own settings and resets.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS5T">Your privacy</b><p data-i18n="runtime.helpS5B">Saved images and pins belong only to this chat. Built-in games are fully offline. Games you add yourself run in an isolated box and cannot read your chats or Tavo data.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS1T">Preview &amp; pin images</b><p data-i18n="runtime.helpS1B">Paste an image link or a webpage link, then tap Preview. Pin on chat keeps it floating over the chat so you can look at it while you type. Drag to move, pinch or use +/- to resize. The pin's toolbar also has reset, rotate, flip, fullscreen and remove; tap ︿ to fold the toolbar away.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS2T">Save &amp; manage images</b><p data-i18n="runtime.helpS2B">Save preview keeps a copy for this chat. Tap any saved image for Fullscreen, Pin, Save to device, Copy link, Rename, Info and Delete. Rename only changes the label; the image itself is never touched.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS3T">Quick Lookup ⚓</b><p data-i18n="runtime.helpS3B">The ⚓ hangs on a rope and sways by itself. Pull it down to open Translate, Meaning and Web Search. To close, tap the ⚓ or pull it down again. A tap on the closed anchor only gives the rope a tug.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS4T">Game Corner</b><p data-i18n="runtime.helpS4B">Tap 🎮 for a Jump Game, Snake and Memory Bomb, or add your own game. Drag the top bar to move the window and the corner to resize it. The ⚙ button inside a game holds your player name and that game's own settings and resets.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS5T">Your privacy</b><p data-i18n="runtime.helpS5B">Saved images and pins belong only to this chat. Built-in games are fully offline. Games you add yourself run in an isolated box and cannot read your chats or Tavo data. Privacy Mode blocks every lookup request.</p></div>
         </div>
       </div>
     </div>
@@ -331,6 +390,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
           <button data-sheet="pin"><span class="sheet-icon">📌</span><span data-i18n="runtime.pinExisting">Pin on chat</span></button>
           <button data-sheet="device"><span class="sheet-icon">↓</span><span data-i18n="runtime.saveDevice">Save to device</span></button>
           <button data-sheet="copy"><span class="sheet-icon">🔗</span><span data-i18n="runtime.copyLink">Copy link</span></button>
+          <button data-sheet="rename"><span class="sheet-icon">✎</span><span data-i18n="runtime.renameTitle">Rename</span></button>
           <button data-sheet="info"><span class="sheet-icon">ⓘ</span><span data-i18n="runtime.infoBtn">Info</span></button>
         </div>
         <div class="emon-iv-sheet-group" data-i18n="runtime.sheetDanger">DANGER ZONE</div>
@@ -491,6 +551,19 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   const savedEl = document.getElementById('emon-iv-saved');
   const refreshSavedBtn = document.getElementById('emon-iv-refresh-saved');
   const clearSavedBtn = document.getElementById('emon-iv-clear-saved');
+  const lookupPanel = document.getElementById('emon-iv-lookup-panel');
+  const lookupHandle = document.getElementById('emon-iv-lookup-handle');
+  const lookupBody = document.getElementById('emon-iv-lookup-body');
+  const lookupSwing = document.getElementById('emon-iv-swing');
+  // Every popup (help, info, rename, image actions) goes through these two, so closing it animates just like opening it.
+  const _closeTimers = new WeakMap();
+  function showModal(el){ if(!el) return; clearTimeout(_closeTimers.get(el)); el.classList.remove('closing'); el.classList.add('show'); }
+  function hideModal(el){
+    if(!el || !el.classList.contains('show')) return;
+    el.classList.remove('show'); el.classList.add('closing');
+    clearTimeout(_closeTimers.get(el));
+    _closeTimers.set(el, setTimeout(()=>el.classList.remove('closing'), 230));
+  }
   const lookupInput = document.getElementById('emon-iv-lookup-input');
   const lookupGo = document.getElementById('emon-iv-lookup-go');
   const lookupClear = document.getElementById('emon-iv-lookup-clear');
@@ -733,7 +806,35 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 
   // Local files can't carry their own metadata, so a small chat-scoped map remembers which
   // web address each one was downloaded from. Info (and the saved-card Copy link) use it later.
+  // Which local files count as "Saved previews" (also recovers files an older build renamed to saved-image-*).
+  const SAVED_RE = /^(?:emon-(?:pin|preview|saved-image)|saved-image)-/i;
+  const isSavedName = n => SAVED_RE.test(String(n || '').split('/').pop());
   function getSourceMap() { try { const v = tavo.get('emonImageViewerSourceMap', 'chat'); return v && typeof v === 'object' ? v : {}; } catch { return {}; } }
+  function getDisplayNameMap() { try { const v = tavo.get('emonImageViewerDisplayNames', 'chat'); return v && typeof v === 'object' ? v : {}; } catch { return {}; } }
+  function genericSavedLabel(f) {
+    const mime = String(f?.mimeType || '').toLowerCase();
+    const ext = String(extOf(f?.name || '') || '').toLowerCase();
+    if (mime === 'image/gif' || ext === 'gif') return 'Saved GIF';
+    if (mime.startsWith('image/')) return 'Saved image';
+    return 'Saved media';
+  }
+  function getDisplayName(path, fallback) { const map = getDisplayNameMap(); return String(map[path] || fallback || ''); }
+  function getSavedDisplayName(f) { const map = getDisplayNameMap(); return String(map[f?.path] || genericSavedLabel(f)); }
+  function setDisplayName(path, name) {
+    if (!path || !name) return;
+    try { const map = getDisplayNameMap(); map[path] = String(name).slice(0, 80); tavo.set('emonImageViewerDisplayNames', map, 'chat'); } catch {}
+  }
+  function moveDisplayName(oldPath, newPath, name) {
+    try {
+      const map = getDisplayNameMap();
+      if (oldPath in map) delete map[oldPath];
+      if (name) map[newPath] = String(name).slice(0, 80);
+      tavo.set('emonImageViewerDisplayNames', map, 'chat');
+    } catch {}
+  }
+  function forgetDisplayName(path) {
+    try { const map = getDisplayNameMap(); if (path in map) { delete map[path]; tavo.set('emonImageViewerDisplayNames', map, 'chat'); } } catch {}
+  }
   function recordSource(path, url) {
     if (!path || !/^https?:/i.test(url || '')) return;
     try {
@@ -754,22 +855,22 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   // If this exact web address was already saved before, reuse that file instead of making a new
   // copy. A stale record (the file was deleted some other way) is quietly forgotten and a fresh
   // save proceeds normally.
-  async function findExistingBySource(url) {
+  async function findExistingBySource(url, requireListed=false) {
     if (!/^https?:/i.test(url || '')) return null;
     const map = getSourceMap();
     for (const path in map) {
       if (map[path] !== url) continue;
+      if (requireListed && !isSavedName(path)) continue;   // e.g. a temporary "save to device" copy is not a saved preview
       try {
         if (await tavo.file.exists(path, {scope: 'chat'})) return path;
       } catch { return null; }
       forgetSource(path);
-      return null;
     }
     return null;
   }
 
-  async function persistRemote(url, prefix='emon-preview') {
-    const existing = await findExistingBySource(url);
+  async function persistRemote(url, prefix='emon-preview', requireListed=false) {
+    const existing = await findExistingBySource(url, requireListed);
     if (existing) return existing;
     let ext = null;
     if (/^data:image\//i.test(url)) {
@@ -885,12 +986,19 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       let src = preview.src;
       let already = false;
       if (/^https?:/i.test(src) || /^data:image\//i.test(src)) {
-        already = /^https?:/i.test(src) && !!(await findExistingBySource(src));
-        src = await persistRemote(src, 'emon-preview');
+        already = /^https?:/i.test(src) && !!(await findExistingBySource(src, true));
+        src = await persistRemote(src, 'emon-preview', true);
       } else if (!/^files\//i.test(src)) throw new Error('unsupported source');
-      setStatus(t(already ? 'runtime.alreadySaved' : 'runtime.savedHere'));
+      const msg = t(already ? 'runtime.alreadySaved' : 'runtime.savedHere');
+      setStatus(msg);
+      tavo.utils.toast(msg);
       await loadSavedPreviews();
-    } catch (e) { console.error('[Image Preview] save preview', e); tavo.utils.toast(t('runtime.error')); }
+      try { savedEl.scrollTo({left:0, behavior:'smooth'}); } catch {}
+    } catch (e) {
+      console.error('[Image Preview] save preview', e);
+      setStatus(t('runtime.failed') + (e && e.message ? ' (' + String(e.message).slice(0,80) + ')' : ''));
+      tavo.utils.toast(t('runtime.error'));
+    }
   }
 
   async function deleteSavedFile(path, removeLinkedPins=true) {
@@ -898,7 +1006,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     try {
       if (removeLinkedPins) pins.filter(p => p.src === path || p.src === path.replace(/^files\/chat\//,'')).forEach(p => removePin(p.id, false));
       await tavo.file.delete(path, {scope:'chat'});
-      forgetSource(path);
+      forgetSource(path); forgetDisplayName(path);
       savePins(); renderPinsList(); await loadSavedPreviews();
       tavo.utils.toast(t('runtime.deleted'));
     } catch (e) { console.error('[Image Preview] delete saved', e); tavo.utils.toast(t('runtime.error')); }
@@ -908,10 +1016,10 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     try {
       const ok = typeof confirm === 'function' ? confirm(t('runtime.confirmClear')) : true;
       if (!ok) return;
-      const files = await listChatFilesMatching(f => /^emon-(?:pin|preview)-/i.test(f.name) && /^image\//i.test(f.mimeType || ''));
+      const files = await listChatFilesMatching(f => SAVED_RE.test(f.name) && /^image\//i.test(f.mimeType || ''));
       const paths = new Set(files.map(f => f.path));
       pins.filter(p => paths.has(p.src) || paths.has(String(p.src).replace(/^files\/chat\//,''))).forEach(p => removePin(p.id, false));
-      for (const f of files) { await tavo.file.delete(f.path, {scope:'chat'}); forgetSource(f.path); }
+      for (const f of files) { await tavo.file.delete(f.path, {scope:'chat'}); forgetSource(f.path); forgetDisplayName(f.path); }
       savePins(); renderPinsList(); await loadSavedPreviews();
       tavo.utils.toast(t('runtime.cleared'));
     } catch (e) { console.error('[Image Preview] clear saved', e); tavo.utils.toast(t('runtime.error')); }
@@ -1270,9 +1378,107 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   const helpEl = document.getElementById('emon-iv-help');
   const helpBtn = document.getElementById('emon-iv-help-btn');
   const helpCloseBtn = document.getElementById('emon-iv-help-close');
-  if (helpBtn) helpBtn.onclick = () => helpEl && helpEl.classList.add('show');
-  if (helpCloseBtn) helpCloseBtn.onclick = () => helpEl && helpEl.classList.remove('show');
-  if (helpEl) helpEl.addEventListener('click', e => { if (e.target === helpEl) helpEl.classList.remove('show'); });
+  const pullHandles = [...root.querySelectorAll('[data-pull-target]')];
+  // Small hanging buttons (help, games): press = they swing, release = they open. A cancelled touch never opens anything.
+  function bindTapSway(el, onOpen) {
+    if (!el) return;
+    let startY=0, startX=0, dragging=false, suppressClick=false, handledPointerTap=false;
+    const down = e => {
+      startX=e.clientX; startY=e.clientY; dragging=false; suppressClick=false;
+      el.classList.add('sway'); el.setPointerCapture?.(e.pointerId); e.preventDefault();
+    };
+    const move = e => {
+      if (!el.classList.contains('sway')) return;
+      const dx=e.clientX-startX, dy=e.clientY-startY;
+      if(Math.hypot(dx,dy)>6) dragging=true;
+      if(!dragging) return;
+      const pull=Math.max(-24,Math.min(24,dy));
+      el.style.transform=`translateY(${pull}px) rotate(${Math.max(-8,Math.min(8,pull/3))}deg)`;
+      e.preventDefault();
+    };
+    const end = (e, cancelled) => {
+      if (!el.classList.contains('sway')) return;
+      el.classList.remove('sway'); el.style.transform='';
+      suppressClick=true;
+      if(!dragging && !cancelled){ handledPointerTap=true; onOpen?.(); }
+      setTimeout(()=>{suppressClick=false; handledPointerTap=false},260);
+      dragging=false;
+      try{el.releasePointerCapture?.(e.pointerId)}catch{}
+    };
+    el.addEventListener('pointerdown',down);
+    el.addEventListener('pointermove',move);
+    el.addEventListener('pointerup',e=>end(e,false));
+    el.addEventListener('pointercancel',e=>end(e,true));
+    // keyboard / accessibility clicks (detail 0) still work
+    el.addEventListener('click',e=>{ if(suppressClick || handledPointerTap || e.detail>0){e.preventDefault();e.stopPropagation();return;} onOpen?.(); });
+  }
+  if (helpCloseBtn) helpCloseBtn.onclick = () => hideModal(helpEl);
+  if (helpEl) helpEl.addEventListener('click', e => { if (e.target === helpEl) hideModal(helpEl); });
+  bindTapSway(helpBtn, ()=>showModal(helpEl));
+  bindTapSway(gameBtn, ()=>openGame());
+
+  // Quick Lookup: a rope with an anchor. It sways on its own.
+  //  - closed: pull the anchor DOWN to open the tools (a plain tap only gives the rope a little tug)
+  //  - open:   tap the anchor, or pull it down again, to close
+  (function bindLookupAnchor(el){
+    if(!el || !lookupPanel) return;
+    const BASE = 30, OPEN_AT = 38, MAX_PULL = 86;
+    let startX=0,startY=0,dy=0,dragging=false,active=false;
+    const isOpen = () => lookupPanel.classList.contains('open');
+    const setOpen = on => {
+      lookupPanel.classList.toggle('open', on);
+      el.setAttribute('aria-expanded', String(on));
+    };
+    const reset = () => {
+      lookupPanel.classList.remove('dragging');
+      lookupPanel.style.removeProperty('--rope');
+      if (lookupSwing) lookupSwing.style.transform = '';
+    };
+    const tug = () => {
+      try {
+        lookupSwing?.animate([
+          {transform:'rotate(-11deg)'},{transform:'rotate(9deg)'},{transform:'rotate(-5deg)'},{transform:'rotate(2deg)'},{transform:'rotate(0deg)'}
+        ], {duration:620, easing:'ease-out'});
+      } catch {}
+    };
+    el.addEventListener('pointerdown', e => {
+      if (e.button !== undefined && e.button !== 0) return;
+      active = true; dragging = false; dy = 0; startX = e.clientX; startY = e.clientY;
+      try { el.setPointerCapture?.(e.pointerId); } catch {}
+      e.preventDefault();
+    });
+    el.addEventListener('pointermove', e => {
+      if (!active) return;
+      const dx = e.clientX - startX;
+      dy = Math.max(0, Math.min(MAX_PULL, e.clientY - startY));   // only downward pulls count
+      if (!dragging && (Math.abs(e.clientY - startY) > 7 || Math.abs(dx) > 7)) {
+        dragging = true; lookupPanel.classList.add('dragging');
+      }
+      if (!dragging) return;
+      lookupPanel.style.setProperty('--rope', (isOpen() ? 0 : BASE) + dy + 'px');
+      if (lookupSwing) lookupSwing.style.transform = `rotate(${Math.max(-9, Math.min(9, dx / 6))}deg)`;
+      e.preventDefault();
+    });
+    const finish = (e, cancelled) => {
+      if (!active) return;
+      active = false;
+      try { el.releasePointerCapture?.(e.pointerId); } catch {}
+      const wasDrag = dragging, pulled = dy;
+      dragging = false; dy = 0;
+      reset();
+      if (cancelled) return;
+      if (wasDrag) {
+        if (pulled >= OPEN_AT) setOpen(!isOpen());   // a firm pull down toggles: opens when closed, closes when open
+      } else if (isOpen()) {
+        setOpen(false);                              // tap while open closes
+      } else {
+        tug();                                       // tap while closed: just a tug that says "pull me"
+      }
+    };
+    el.addEventListener('pointerup', e => finish(e, false));
+    el.addEventListener('pointercancel', e => finish(e, true));
+    el.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); if (e.detail === 0) { if (isOpen()) setOpen(false); else tug(); } });
+  })(lookupHandle);
   function fmtBytes(n) {
     if (!Number.isFinite(n)) return null;
     if (n < 1024) return n + ' B';
@@ -1301,17 +1507,17 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       im.src = src;
     });
   }
-  function closeImageInfo() { if (infoEl) infoEl.classList.remove('show'); }
+  function closeImageInfo() { hideModal(infoEl); }
   async function showImageInfo(ref, imgEl) {
     if (!infoEl || !ref || !ref.src) return;
     infoBody.innerHTML = `<div class="emon-iv-info-row"><span>${esc(t('runtime.loading'))}</span></div>`;
-    infoEl.classList.add('show');
+    showModal(infoEl);
     const isLocal = /^files\//i.test(ref.src);
     let sizeBytes = null, mime = null;
     if (isLocal) {
       try {
-        const page = await tavo.file.list({scope: 'chat', limit: 200});
-        const f = (page?.files || []).find(x => x.path === ref.src);
+        const matches = await listChatFilesMatching(x => x.path === ref.src, 50);
+        const f = matches[0] || null;
         if (f) { sizeBytes = f.size; mime = f.mimeType; }
       } catch {}
     }
@@ -1354,6 +1560,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       if (!/^files\//i.test(path)) path = await persistRemote(path, 'emon-device');
       await tavo.file.export(path);
       tavo.utils.toast(t('runtime.exported'));
+      if (/(^|\/)emon-device-/i.test(path)) { forgetSource(path); await tavo.file.delete(path, {scope:'chat'}).catch(()=>{}); }
     } catch { tavo.utils.toast(t('runtime.error')); }
   }
 
@@ -1367,23 +1574,65 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   let renameTarget = null;
   function openRenameModal(p) {
     if (!renameEl) return;
-    renameTarget = p;
+    renameTarget = {type:'pin', value:p};
     renameField.value = p.title || '';
-    renameEl.classList.add('show');
+    showModal(renameEl);
     setTimeout(() => { renameField.focus(); renameField.select(); }, 30);
   }
-  function closeRenameModal() { if (renameEl) renameEl.classList.remove('show'); renameTarget = null; }
-  function commitRename() {
+  function openSavedRenameModal(f) {
+    if (!renameEl) return;
+    renameTarget = {type:'saved', value:f};
+    renameField.value = getSavedDisplayName(f);
+    showModal(renameEl);
+    setTimeout(() => { renameField.focus(); renameField.select(); }, 30);
+  }
+  function closeRenameModal() { hideModal(renameEl); renameTarget = null; }
+  function cleanSavedBaseName(v, ext) {
+    let base = String(v || '').trim().replace(/[\/:*?"<>|]/g,' ').replace(/\s+/g,' ').replace(/^\.+|\.+$/g,'').slice(0,60).trim();
+    const lowerExt = String(ext||'').toLowerCase();
+    if (lowerExt && new RegExp('\\.' + lowerExt + '$','i').test(base)) base = base.slice(0, -(lowerExt.length+1)).trim();
+    return base || 'Image';
+  }
+  // Renaming a saved image only changes its label. The image file itself is never copied, moved or deleted,
+  // so a rename can no longer lose an image (Tavo has no real file-rename anyway).
+  async function renameSavedFile(f, requestedName) {
+    const ext = extOf(f.name) || (String(f.mimeType||'').split('/')[1] || 'jpg').toLowerCase();
+    const base = cleanSavedBaseName(requestedName, ext);
+    setDisplayName(f.path, base);
+    pins.forEach(pin => {
+      if (pin.src === f.path || pin.src === String(f.path).replace(/^files\/chat\//,'')) pin.title = base;
+    });
+    savePins(); renderPinsList();
+    document.querySelectorAll('.emon-iv-pinned').forEach(node => {
+      const pin = pins.find(x => String(x.id) === String(node.getAttribute('data-emon-pin')));
+      const t2 = node.querySelector('.dragtitle'); if (pin && t2 && (pin.src === f.path || pin.src === String(f.path).replace(/^files\/chat\//,''))) t2.textContent = base;
+    });
+    await loadSavedPreviews();
+    tavo.utils.toast(t('runtime.gallerySaved'));
+  }
+  async function commitRename() {
     if (!renameTarget) return;
     const v = renameField.value.trim().slice(0, 60);
     if (!v) { tavo.utils.toast(t('runtime.gameNameEnter')); return; }
-    renameTarget.title = v;
-    savePins();
-    renderPinsList();
-    const barTitle = document.querySelector(`[data-emon-pin="${renameTarget.id}"] .dragtitle`);
-    if (barTitle) barTitle.textContent = v;
-    tavo.utils.toast(t('runtime.gallerySaved'));
-    closeRenameModal();
+    try {
+      if (renameTarget.type === 'saved') {
+        const f = renameTarget.value;
+        closeRenameModal();
+        await renameSavedFile(f, v);
+        return;
+      }
+      const p = renameTarget.value;
+      p.title = v;
+      savePins();
+      renderPinsList();
+      const barTitle = document.querySelector(`[data-emon-pin="${p.id}"] .dragtitle`);
+      if (barTitle) barTitle.textContent = v;
+      tavo.utils.toast(t('runtime.gallerySaved'));
+      closeRenameModal();
+    } catch (e) {
+      console.error('[Image Preview] rename', e);
+      tavo.utils.toast(t('runtime.error'));
+    }
   }
   if (renameSaveBtn) renameSaveBtn.onclick = commitRename;
   if (renameCancelBtn) renameCancelBtn.onclick = closeRenameModal;
@@ -1665,23 +1914,24 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     if (!sheetEl) return;
     sheetFile = f;
     sheetThumb.src = f.path;
-    if (sheetSubtitle) sheetSubtitle.textContent = f.name || '';
+    if (sheetSubtitle) sheetSubtitle.textContent = getSavedDisplayName(f);
     const askEl = document.getElementById('emon-iv-sheet-delete-ask'), btnEl = document.getElementById('emon-iv-sheet-delete-btn');
     if (askEl) askEl.style.display = 'none';
     if (btnEl) btnEl.style.display = '';
-    sheetEl.classList.add('show');
+    showModal(sheetEl);
   }
-  function closeCardSheet() { if (sheetEl) sheetEl.classList.remove('show'); sheetFile = null; }
+  function closeCardSheet() { hideModal(sheetEl); sheetFile = null; }
   if (sheetClose) sheetClose.onclick = closeCardSheet;
   if (sheetEl) sheetEl.addEventListener('click', e => { if (e.target === sheetEl) closeCardSheet(); });
   if (sheetEl) sheetEl.addEventListener('click', async e => {
     const b = e.target.closest('[data-sheet]'); if (!b || !sheetFile) return;
     const act = b.getAttribute('data-sheet'); const f = sheetFile;
     if (act === 'view') { tavo.utils.preview(f.path); closeCardSheet(); }
-    else if (act === 'pin') { pinPreview({src: f.path, original: f.path, title: f.name}); closeCardSheet(); }
+    else if (act === 'pin') { pinPreview({src: f.path, original: f.path, title: getSavedDisplayName(f)}); closeCardSheet(); }
     else if (act === 'device') { await saveToDevice({src: f.path}); }
     else if (act === 'copy') { await copyPreviewLink({src: f.path, original: getSourceMap()[f.path] || f.path}); }
-    else if (act === 'info') { closeCardSheet(); showImageInfo({src: f.path, original: f.path, title: f.name}, null); }
+    else if (act === 'rename') { closeCardSheet(); openSavedRenameModal(f); }
+    else if (act === 'info') { closeCardSheet(); showImageInfo({src: f.path, original: f.path, title: getSavedDisplayName(f)}, null); }
     else if (act === 'delete') {
       document.getElementById('emon-iv-sheet-delete-btn').style.display = 'none';
       document.getElementById('emon-iv-sheet-delete-ask').style.display = '';
@@ -1696,7 +1946,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   async function loadSavedPreviews() {
     savedEl.innerHTML='';
     try{
-      const files = await listChatFilesMatching(f => /^emon-(?:pin|preview)-/i.test(f.name) && /^image\//i.test(f.mimeType || ''));
+      const files = await listChatFilesMatching(f => SAVED_RE.test(f.name) && /^image\//i.test(f.mimeType || ''));
       files.sort((a,b) => {
         const am = Date.parse(a.modifiedAt || '') || 0, bm = Date.parse(b.modifiedAt || '') || 0;
         return bm - am || String(b.name || '').localeCompare(String(a.name || ''));
@@ -1704,7 +1954,8 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       if(!files.length){savedEl.innerHTML=`<div class="emon-iv-empty">${esc(t('runtime.noSaved'))}</div>`;return;}
       for(const f of files.slice(0,40)){
         const card=document.createElement('button'); card.type='button'; card.className='emon-iv-card emon-iv-saved-card';
-        card.innerHTML=`<img src="${esc(f.path)}" alt="">`;
+        const displayName = getSavedDisplayName(f);
+        card.innerHTML=`<img src="${esc(f.path)}" alt=""><span class="saved-name">${esc(displayName)}</span>`;
         card.onclick=()=>openCardSheet(f);
         savedEl.appendChild(card);
       }
@@ -1739,8 +1990,16 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     fab.style.top=Math.max(ins.top,Math.min(innerHeight-fab.offsetHeight-ins.bottom,fabOrigY+dy))+'px';
     fab.style.right='auto';fab.style.bottom='auto';e.preventDefault();
   };
+  let _panelTimer = null;
+  function setPanelOpen(on){
+    clearTimeout(_panelTimer);
+    if(on){ panel.classList.remove('closing'); panel.classList.add('open'); return; }
+    if(!panel.classList.contains('open')) return;
+    panel.classList.add('closing'); panel.classList.remove('open');
+    _panelTimer = setTimeout(()=>panel.classList.remove('closing'), 200);
+  }
   const fabEnd=()=>{
-    if(!fabDragging){panel.classList.toggle('open');}
+    if(!fabDragging){ setPanelOpen(!panel.classList.contains('open')); }
     else { const r=fab.getBoundingClientRect(); try{tavo.set('emonImageViewerFabPosition',{x:r.left,y:r.top},'global');}catch{} }
     fabDragging=false;
   };
@@ -1749,7 +2008,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   fab.addEventListener('pointermove',fabMove);
   fab.addEventListener('pointerup',fabEnd);
   fab.addEventListener('pointercancel',()=>{fabDragging=false});
-  closeBtn.onclick=()=>panel.classList.remove('open');
+  closeBtn.onclick=()=>setPanelOpen(false);
   previewBtn.onclick=()=>loadPreview(urlEl.value);
   urlEl.addEventListener('keydown',e=>{if(e.key==='Enter')loadPreview(urlEl.value)});
   pinBtn.onclick=()=>pinPreview(currentPreview);
@@ -2088,7 +2347,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     gameBest = getGameBest();
     gameRelaxed = getGameRelaxed();
     if(gameRelaxedToggle) gameRelaxedToggle.checked = gameRelaxed;
-    gameEl.classList.add('open');
+    clearTimeout(gameEl._closeT); gameEl.classList.remove('closing'); gameEl.classList.add('open');
     closeGameTiers();
     closeGameLib();
     closeSettingsPanel(true);
@@ -2109,7 +2368,9 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     if(gameMode==='jump') persistRunSnapshot();
     closeGameLib();
     closeSettingsPanel(true);
-    gameEl.classList.remove('open');
+    gameEl.classList.add('closing');
+    clearTimeout(gameEl._closeT);
+    gameEl._closeT = setTimeout(()=>gameEl.classList.remove('open','closing'), 190);
     stopJump();
     unloadGameFrame();
   }
@@ -2196,7 +2457,6 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     gameResizeHandle.addEventListener('pointercancel', endResize);
   }
 
-  if(gameBtn) gameBtn.onclick = openGame;
   if(gameCloseBtn) gameCloseBtn.onclick = closeGame;
   if(gamePauseBtn) gamePauseBtn.onclick = togglePauseGame;
   if(gameBestBtn) gameBestBtn.onclick = ()=>{ if(gameMode==='jump') openGameTiers(); else postToFrame({type:'tiers'}); };
