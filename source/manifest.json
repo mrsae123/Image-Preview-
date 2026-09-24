@@ -4,13 +4,13 @@
   "name": {
     "$t": "plugin.name"
   },
-  "version": "2.12.0",
+  "version": "2.13.6",
   "author": "Emon",
   "description": {
     "$t": "plugin.description"
   },
   "releaseNotes": {
-    "$t": "releaseNotes.2_12_0"
+    "$t": "releaseNotes.2_13_6"
   },
   "localization": {
     "defaultLocale": "en",
