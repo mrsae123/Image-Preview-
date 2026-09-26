@@ -9,12 +9,28 @@
 
 #emon-iv-fab span{filter:drop-shadow(0 1px 2px #000)}
 #emon-iv-panel{position:fixed;z-index:2147482999;right:28px;bottom:96px;width:min(620px,calc(100vw - 36px));max-height:min(78vh,720px);overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:#0e131dfa;border:1px solid #ffffff20;border-radius:22px;box-shadow:0 14px 40px #0009;padding:18px;display:none}
-#emon-iv-panel.open,#emon-iv-panel.closing{display:block}
-#emon-iv-panel.open{animation:emonIvPanelIn .24s cubic-bezier(.2,.9,.3,1.1) backwards}
-#emon-iv-panel.closing{pointer-events:none;animation:emonIvPanelOut .18s ease-in both}
-@keyframes emonIvPanelIn{from{opacity:0;transform:translateY(14px) scale(.97)}}
-@keyframes emonIvPanelOut{to{opacity:0;transform:translateY(10px) scale(.97)}}
-@media (prefers-reduced-motion: reduce){#emon-iv-panel.open,#emon-iv-panel.closing{animation:none}#emon-iv-panel.closing{display:none}}
+#emon-iv-panel.open,#emon-iv-panel.closing{display:block;transform-origin:calc(100% - 10px) calc(100% + 8px);will-change:transform,opacity}
+#emon-iv-panel.open{animation:emonIvHoleOpen .34s cubic-bezier(.2,.82,.25,1) both}
+#emon-iv-panel.closing{pointer-events:none;animation:emonIvPouchPull .34s cubic-bezier(.5,0,.8,.28) both}
+/* Mobile-friendly "black hole" / pouch motion: transform + opacity only. Avoid animating blur,
+   box-shadow, border-radius, or brightness over a large scrollable panel. */
+@keyframes emonIvHoleOpen{0%{opacity:0;transform:scale(.12) rotate(-3deg)}58%{opacity:1;transform:scale(.86) rotate(1deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes emonIvPouchPull{0%{transform:scale(1,1) translate(0,0) rotate(0);opacity:1}32%{transform:scale(1.01,.97) translate(2px,1px) rotate(-1deg);opacity:1}68%{transform:scale(.46,.32) translate(12px,10px) rotate(4deg);opacity:.72}100%{transform:scale(.035,.025) translate(20px,16px) rotate(7deg);opacity:0}}
+#emon-iv-pouch-fx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;display:none;z-index:2147483001;overflow:visible}
+#emon-iv-pouch-fx.play{display:block}
+#emon-iv-pouch-fx path{fill:none;stroke:#d9caa4;stroke-width:2.5;stroke-linecap:round;stroke-dasharray:var(--rope-len,1);stroke-dashoffset:0;filter:drop-shadow(0 0 3px #d9caa477);opacity:.9}
+#emon-iv-pouch-fx ellipse{fill:none;stroke:#d9caa4;stroke-width:2.5;opacity:0;transform-box:fill-box;transform-origin:center;filter:drop-shadow(0 0 5px #d9caa466)}
+#emon-iv-pouch-fx.play path{animation:emonIvRopePull .34s ease-in both}
+#emon-iv-pouch-fx.play ellipse{animation:emonIvRopeLoop .34s cubic-bezier(.4,0,.7,1) both}
+@keyframes emonIvRopePull{0%{stroke-dashoffset:0;opacity:.9}100%{stroke-dashoffset:var(--rope-len,1);opacity:0}}
+@keyframes emonIvRopeLoop{0%{opacity:0;transform:scale(1.35) rotate(-8deg)}22%{opacity:.95;transform:scale(1) rotate(0)}68%{opacity:.8;transform:scale(.62) rotate(12deg)}100%{opacity:0;transform:scale(.12) rotate(18deg)}}
+@media (prefers-reduced-motion: reduce){#emon-iv-pouch-fx.play{display:none}}
+.emon-iv-lasso{position:absolute;left:50%;top:2px;width:84px;height:84px;margin-left:-42px;pointer-events:none;opacity:0;z-index:5}
+#emon-iv-panel.closing .emon-iv-lasso{opacity:1;animation:emonIvLasso .85s ease both}
+.emon-iv-lasso svg{width:100%;height:100%;overflow:visible}
+.emon-iv-lasso circle{fill:none;stroke:#d9caa4;stroke-width:3;stroke-dasharray:150;transform-origin:center}
+@keyframes emonIvLasso{0%{transform:translateY(-20px) scale(1.8) rotate(0deg);opacity:0}18%{opacity:1}50%{transform:translateY(4px) scale(1.05) rotate(190deg)}78%{transform:translateY(18px) scale(.5) rotate(260deg);opacity:1}100%{transform:translateY(30px) scale(.12) rotate(300deg);opacity:0}}
+@media (prefers-reduced-motion: reduce){#emon-iv-panel.open,#emon-iv-panel.closing,.emon-iv-lasso,#emon-iv-panel.closing .emon-iv-lasso{animation:none}#emon-iv-panel.closing{display:none}}
 .emon-iv-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 
 .emon-iv-pull-dock{display:flex;align-items:center;gap:6px;margin-left:auto}
@@ -78,6 +94,11 @@
 .emon-iv-pinrow button{border:1px solid #ffffff15;background:#ffffff0b;color:#fff;border-radius:10px;padding:7px 9px}
 .emon-iv-empty{font-size:12px;opacity:.48;padding:8px 0}
 .emon-iv-pinned{position:fixed;z-index:2147482998;left:0;top:0;width:220px;min-width:90px;max-width:65vw;max-height:70vh;background:#070a0fcc;border:1px solid #ffffff20;border-radius:16px;box-shadow:0 18px 50px #000a;overflow:hidden;touch-action:none;user-select:none}
+.emon-iv-pinned.emon-iv-spawn{animation:emonIvCrtOpen .5s ease-out both;transform-origin:center center}
+.emon-iv-pinned.emon-iv-despawn{animation:emonIvCrtClose .5s ease-in both;transform-origin:center center;pointer-events:none}
+@keyframes emonIvCrtClose{0%{transform:scaleY(1) scaleX(1);opacity:1}40%{transform:scaleY(.4) scaleX(1);opacity:.96}78%{transform:scaleY(.025) scaleX(.88);opacity:.72}100%{transform:scaleY(.006) scaleX(.3);opacity:0}}
+@media (prefers-reduced-motion: reduce){.emon-iv-pinned.emon-iv-despawn{animation:none;opacity:0}}
+@media (prefers-reduced-motion: reduce){.emon-iv-pinned.emon-iv-spawn{animation:none}}
 .emon-iv-pinned img{display:block;width:100%;height:auto;max-height:60vh;object-fit:contain;background:#000;pointer-events:none}
 .emon-iv-pinned .bar{display:flex;flex-wrap:wrap;gap:5px;align-items:center;padding:5px;background:#111722e8}
 .emon-iv-pinned .bar.collapsed{width:fit-content;padding:3px;border-radius:0 0 10px 0;gap:0}
@@ -90,18 +111,21 @@
 .emon-iv-pinned .sizebadge.show{opacity:1}
 .emon-iv-pinned .zoom{font-size:11px}
 .emon-iv-pinned .dragtitle{cursor:text}
-.emon-iv-modal{position:fixed;inset:0;z-index:2147483005;display:none;align-items:center;justify-content:center;background:#000000a0;padding:20px;box-sizing:border-box}
+.emon-iv-modal{all:initial;position:fixed;inset:0;z-index:2147483005;display:none;align-items:center;justify-content:center;background:#000000a0;padding:20px;box-sizing:border-box;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff} .emon-iv-modal,.emon-iv-modal *{box-sizing:border-box}
 .emon-iv-modal.show,.emon-iv-modal.closing{display:flex}
-.emon-iv-modal.show{animation:emonIvFadeIn .2s ease both}
-.emon-iv-modal.show .emon-iv-modal-card{animation:emonIvPopIn .3s cubic-bezier(.2,.9,.3,1.25) both}
-.emon-iv-modal.closing{pointer-events:none;animation:emonIvFadeOut .2s ease both}
-.emon-iv-modal.closing .emon-iv-modal-card{animation:emonIvPopOut .2s ease-in both}
+.emon-iv-modal.show{animation:emonIvFadeIn .3s ease both}
+.emon-iv-modal.show .emon-iv-modal-card{animation:emonIvPopIn .4s cubic-bezier(.2,.9,.3,1.25) both}
+.emon-iv-modal.closing{pointer-events:none;animation:emonIvFadeOut .45s ease both}
+.emon-iv-modal.closing .emon-iv-modal-card{transform-origin:96% 6%;animation:emonIvCrushOut .45s cubic-bezier(.5,0,.85,.35) both}
 @keyframes emonIvFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes emonIvFadeOut{from{opacity:1}to{opacity:0}}
 @keyframes emonIvPopIn{from{transform:scale(.9) translateY(10px);opacity:0}to{transform:none;opacity:1}}
-@keyframes emonIvPopOut{from{transform:none;opacity:1}to{transform:scale(.92) translateY(10px);opacity:0}}
+/* Closing: the popup gets squeezed and pulled into its own X, corner-first, instead of just fading. */
+@keyframes emonIvCrushOut{0%{transform:scale(1) translate(0,0);opacity:1}55%{transform:scale(.5,.32) translate(9%,-7%);opacity:.85}100%{transform:scale(.02) translate(45%,-45%);opacity:0}}
+/* Opening: an old-TV power-on flicker - a flat line at the middle, then it opens up. */
+@keyframes emonIvCrtOpen{0%{transform:scaleY(.006) scaleX(.4);opacity:.2}25%{transform:scaleY(.03) scaleX(.94);opacity:.9}55%{transform:scaleY(.42) scaleX(1);opacity:1}100%{transform:scaleY(1) scaleX(1);opacity:1}}
 @media (prefers-reduced-motion: reduce){.emon-iv-modal.show,.emon-iv-modal.show .emon-iv-modal-card,.emon-iv-modal.closing,.emon-iv-modal.closing .emon-iv-modal-card{animation:none}.emon-iv-modal.closing{display:none}}
-.emon-iv-modal-card{background:#0e131dfa;border:1px solid #ffffff20;border-radius:16px;padding:16px;width:min(340px,100%);max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;box-sizing:border-box}
+.emon-iv-modal-card{background:#0e131dfa;border:1px solid #ffffff20;border-radius:16px;padding:16px;width:min(340px,100%);max-height:80vh;overflow-y:auto;overflow-anchor:none;-webkit-overflow-scrolling:touch;touch-action:pan-y;box-sizing:border-box}
 .emon-iv-modal-head{display:flex;justify-content:flex-end}
 .emon-iv-info-title{font-size:14px;font-weight:750;margin-bottom:10px;word-break:break-word}
 .emon-iv-info-row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:6px 0;border-top:1px solid #ffffff12}
@@ -145,9 +169,8 @@
 
 #emon-iv-game{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483010;width:min(360px,calc(100vw - 28px));background:#0e131dfa;border:1px solid #ffffff22;border-radius:20px;box-shadow:0 12px 34px #0009;padding:14px;display:none;touch-action:none}
 #emon-iv-game.open,#emon-iv-game.closing{display:block}
-#emon-iv-game.open{animation:emonIvGameIn .22s ease backwards}
-#emon-iv-game.closing{pointer-events:none;animation:emonIvFadeOut .18s ease both}
-@keyframes emonIvGameIn{from{opacity:0}}
+#emon-iv-game.open{animation:emonIvCrtOpen .5s ease-out backwards;transform-origin:center center}
+#emon-iv-game.closing{pointer-events:none;transform-origin:96% 6%;animation:emonIvCrushOut .45s cubic-bezier(.5,0,.85,.35) both}
 #emon-iv-game .ghead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;cursor:grab;padding:2px 0 8px}
 #emon-iv-game .ghead:active{cursor:grabbing}
 #emon-iv-game .gdots{opacity:.4;font-size:12px;letter-spacing:2px}
@@ -254,7 +277,12 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 
 <div id="emon-iv-root">
   <button id="emon-iv-fab" aria-label="Image Preview"><span>🖼️</span></button>
+  <svg id="emon-iv-pouch-fx" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path id="emon-iv-pouch-rope" d="M0 0 Q50 50 100 100"></path>
+    <ellipse id="emon-iv-pouch-loop" cx="50" cy="50" rx="34" ry="24"></ellipse>
+  </svg>
   <div id="emon-iv-panel">
+    <div class="emon-iv-lasso" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="24"/></svg></div>
     <div class="emon-iv-head">
       <div class="emon-iv-title" data-i18n="runtime.title">Image Preview</div>
       <div class="emon-iv-pull-dock">
@@ -530,6 +558,9 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 
   const fab = document.getElementById('emon-iv-fab');
   const panel = document.getElementById('emon-iv-panel');
+  const pouchFx = document.getElementById('emon-iv-pouch-fx');
+  const pouchRope = document.getElementById('emon-iv-pouch-rope');
+  const pouchLoop = document.getElementById('emon-iv-pouch-loop');
   const closeBtn = document.getElementById('emon-iv-close');
   const profilesEl = document.getElementById('emon-iv-profiles');
   const urlEl = document.getElementById('emon-iv-url');
@@ -557,12 +588,62 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   const lookupSwing = document.getElementById('emon-iv-swing');
   // Every popup (help, info, rename, image actions) goes through these two, so closing it animates just like opening it.
   const _closeTimers = new WeakMap();
-  function showModal(el){ if(!el) return; clearTimeout(_closeTimers.get(el)); el.classList.remove('closing'); el.classList.add('show'); }
+  const _openedAt = new WeakMap();
+  // Tavo can render plugin fragments inside a transformed/scrolling host. In that situation a
+  // position:fixed descendant of the fragment is no longer guaranteed to be viewport-fixed.
+  // Modal overlays are therefore temporarily portaled to document.body while visible. This keeps
+  // Saved Preview sheets and Info dialogs anchored to the actual phone viewport, regardless of the
+  // host chat's scroll/transform state.
+  const _modalHome = new WeakMap();
+  function portalModal(el){
+    if(!el || el.parentNode === document.body) return;
+    if(!_modalHome.has(el)) _modalHome.set(el, el.parentNode);
+    document.body.appendChild(el);
+  }
+  function restoreModal(el){
+    const home = _modalHome.get(el);
+    if(home && home.isConnected && el.parentNode === document.body) home.appendChild(el);
+  }
+  function showModal(el){
+    if(!el) return;
+    document.querySelectorAll('.emon-iv-modal.show, .emon-iv-modal.closing').forEach(other => {
+      if (other === el) return;
+      clearTimeout(_closeTimers.get(other));
+      other.classList.remove('show', 'closing');
+      restoreModal(other);
+    });
+    clearTimeout(_closeTimers.get(el));
+    portalModal(el);
+    el.classList.remove('closing');
+    el.classList.add('show');
+    const card = el.querySelector('.emon-iv-modal-card');
+    if (card) card.scrollTop = 0;
+    _openedAt.set(el, Date.now());
+  }
   function hideModal(el){
     if(!el || !el.classList.contains('show')) return;
-    el.classList.remove('show'); el.classList.add('closing');
     clearTimeout(_closeTimers.get(el));
-    _closeTimers.set(el, setTimeout(()=>el.classList.remove('closing'), 230));
+    if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+      el.classList.remove('show','closing');
+      restoreModal(el);
+      return;
+    }
+    el.classList.remove('show'); el.classList.add('closing');
+    _closeTimers.set(el, setTimeout(()=>{
+      el.classList.remove('closing');
+      restoreModal(el);
+    }, 460));
+  }
+  // A tap that opens a popup can, on some devices, still fire a trailing "click" on the backdrop that just
+  // appeared under the finger — which would read as "tap outside to close" and shut it instantly. Ignoring
+  // backdrop clicks for a brief moment after opening filters that out without delaying a real outside tap.
+  function bindBackdropClose(el, closeFn){
+    if(!el) return;
+    el.addEventListener('click', e => {
+      if (e.target !== el) return;
+      if (Date.now() - (_openedAt.get(el) || 0) < 350) return;
+      closeFn();
+    });
   }
   const lookupInput = document.getElementById('emon-iv-lookup-input');
   const lookupGo = document.getElementById('emon-iv-lookup-go');
@@ -1413,7 +1494,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     el.addEventListener('click',e=>{ if(suppressClick || handledPointerTap || e.detail>0){e.preventDefault();e.stopPropagation();return;} onOpen?.(); });
   }
   if (helpCloseBtn) helpCloseBtn.onclick = () => hideModal(helpEl);
-  if (helpEl) helpEl.addEventListener('click', e => { if (e.target === helpEl) hideModal(helpEl); });
+  bindBackdropClose(helpEl, () => hideModal(helpEl));
   bindTapSway(helpBtn, ()=>showModal(helpEl));
   bindTapSway(gameBtn, ()=>openGame());
 
@@ -1543,7 +1624,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       + rows.map(([k, v]) => `<div class="emon-iv-info-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
   }
   if (infoClose) infoClose.onclick = closeImageInfo;
-  if (infoEl) infoEl.addEventListener('click', e => { if (e.target === infoEl) closeImageInfo(); });
+  bindBackdropClose(infoEl, closeImageInfo);
 
   // ---------- Copy link / Save to device, for the live preview ----------
   async function copyPreviewLink(preview) {
@@ -1558,8 +1639,10 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     try {
       let path = preview.src;
       if (!/^files\//i.test(path)) path = await persistRemote(path, 'emon-device');
+      // tavo.file.export just hands the file to Tavo's own "Save to downloads / Share" sheet — it does not
+      // mean the user actually finished (or even saw) that choice yet. Claiming "Image exported" here would be
+      // announcing success before it's true, and that sheet is already its own feedback, so no toast on success.
       await tavo.file.export(path);
-      tavo.utils.toast(t('runtime.exported'));
       if (/(^|\/)emon-device-/i.test(path)) { forgetSource(path); await tavo.file.delete(path, {scope:'chat'}).catch(()=>{}); }
     } catch { tavo.utils.toast(t('runtime.error')); }
   }
@@ -1640,7 +1723,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   if (renameField) renameField.addEventListener('keydown', e => {
     if (e.key === 'Enter') commitRename(); else if (e.key === 'Escape') closeRenameModal();
   });
-  if (renameEl) renameEl.addEventListener('click', e => { if (e.target === renameEl) closeRenameModal(); });
+  bindBackdropClose(renameEl, closeRenameModal);
 
   function defaultPinPos(size) {
     return { x: Math.max(8, window.innerWidth - size - 22), y: Math.max(80, window.innerHeight - size - 170) };
@@ -1698,7 +1781,11 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 
   function removePin(id, persist=true) {
     const el = document.querySelector(`[data-emon-pin="${id}"]`);
-    el?.remove();
+    if (el) {
+      el.classList.remove('emon-iv-spawn');
+      if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){ el.remove(); }
+      else { el.classList.add('emon-iv-despawn'); setTimeout(() => el.remove(), 520); }
+    }
     pins = pins.filter(p => p.id !== id);
     if (persist) { savePins(); renderPinsList(); setStatus(t('runtime.unpinned')); }
   }
@@ -1771,7 +1858,9 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       <div class="sizebadge"></div>
       <div class="grip"></div>
     `;
+    el.classList.add('emon-iv-spawn');
     document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.classList.remove('emon-iv-spawn'), {once:true});
     bindPinDrag(el,p);
     el.querySelector('[data-act="minus"]').onclick = e => {e.stopPropagation();setScale(p,p.scale*.85)};
     el.querySelector('[data-act="plus"]').onclick = e => {e.stopPropagation();setScale(p,p.scale*1.18)};
@@ -1892,7 +1981,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       if(!chars.length){profilesEl.innerHTML=`<div class="emon-iv-empty">${esc(t('runtime.noProfiles'))}</div>`;return;}
       for(const ch of chars){
         const card=document.createElement('button');card.className='emon-iv-card';
-        card.innerHTML=`<img src="${esc(ch.avatar||'')}" alt=""><div class="name">${esc(ch.name||t('runtime.profile'))}</div>`;
+        card.innerHTML=`<img src="${esc(ch.avatar||'')}" alt="" loading="lazy" decoding="async"><div class="name">${esc(ch.name||t('runtime.profile'))}</div>`;
         card.onclick=()=>{
           if(!ch.avatar)return;
           currentPreview={src:ch.avatar,original:ch.avatar,source:'direct',title:ch.name};
@@ -1919,10 +2008,15 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     if (askEl) askEl.style.display = 'none';
     if (btnEl) btnEl.style.display = '';
     showModal(sheetEl);
+    // The thumbnail can still be loading (a local file read) when the sheet opens. overflow-anchor:none stops
+    // the browser from auto-scrolling to compensate once it lands, but as a safety net, also re-pin to the top
+    // when the load actually finishes, in case anything else nudges the scroll position in the meantime.
+    const sheetCard = sheetEl.querySelector('.emon-iv-modal-card');
+    sheetThumb.onload = sheetThumb.onerror = () => { if (sheetCard && sheetEl.classList.contains('show')) sheetCard.scrollTop = 0; };
   }
   function closeCardSheet() { hideModal(sheetEl); sheetFile = null; }
   if (sheetClose) sheetClose.onclick = closeCardSheet;
-  if (sheetEl) sheetEl.addEventListener('click', e => { if (e.target === sheetEl) closeCardSheet(); });
+  bindBackdropClose(sheetEl, closeCardSheet);
   if (sheetEl) sheetEl.addEventListener('click', async e => {
     const b = e.target.closest('[data-sheet]'); if (!b || !sheetFile) return;
     const act = b.getAttribute('data-sheet'); const f = sheetFile;
@@ -1955,7 +2049,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       for(const f of files.slice(0,40)){
         const card=document.createElement('button'); card.type='button'; card.className='emon-iv-card emon-iv-saved-card';
         const displayName = getSavedDisplayName(f);
-        card.innerHTML=`<img src="${esc(f.path)}" alt=""><span class="saved-name">${esc(displayName)}</span>`;
+        card.innerHTML=`<img src="${esc(f.path)}" alt="" loading="lazy" decoding="async"><span class="saved-name">${esc(displayName)}</span>`;
         card.onclick=()=>openCardSheet(f);
         savedEl.appendChild(card);
       }
@@ -1991,12 +2085,36 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     fab.style.right='auto';fab.style.bottom='auto';e.preventDefault();
   };
   let _panelTimer = null;
+  function playPouchFx(){
+    if(!pouchFx || !pouchRope || !pouchLoop || !fab || !panel || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    try{
+      const fr=fab.getBoundingClientRect(), pr=panel.getBoundingClientRect();
+      const fx=fr.left+fr.width/2, fy=fr.top+fr.height/2;
+      const px=pr.right-14, py=pr.bottom-14;
+      const mx=(fx+px)/2, my=(fy+py)/2-18;
+      pouchFx.setAttribute('viewBox','0 0 '+Math.max(1,innerWidth)+' '+Math.max(1,innerHeight));
+      pouchRope.setAttribute('d',`M ${px} ${py} Q ${mx} ${my} ${fx} ${fy}`);
+      const len=Math.max(1,pouchRope.getTotalLength());
+      pouchRope.style.setProperty('--rope-len',String(len));
+      pouchLoop.setAttribute('cx',String(px)); pouchLoop.setAttribute('cy',String(py));
+      pouchLoop.setAttribute('rx',String(Math.max(18,Math.min(46,pr.width*.09))));
+      pouchLoop.setAttribute('ry',String(Math.max(14,Math.min(34,pr.height*.07))));
+      pouchFx.classList.remove('play');
+      void pouchFx.offsetWidth;
+      pouchFx.classList.add('play');
+      clearTimeout(pouchFx._timer);
+      pouchFx._timer=setTimeout(()=>pouchFx.classList.remove('play'),380);
+    }catch{}
+  }
   function setPanelOpen(on){
     clearTimeout(_panelTimer);
     if(on){ panel.classList.remove('closing'); panel.classList.add('open'); return; }
     if(!panel.classList.contains('open')) return;
+    const reduced=!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if(reduced){ panel.classList.remove('open','closing'); return; }
+    playPouchFx();
     panel.classList.add('closing'); panel.classList.remove('open');
-    _panelTimer = setTimeout(()=>panel.classList.remove('closing'), 200);
+    _panelTimer = setTimeout(()=>panel.classList.remove('closing'), 360);
   }
   const fabEnd=()=>{
     if(!fabDragging){ setPanelOpen(!panel.classList.contains('open')); }
@@ -2370,7 +2488,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     closeSettingsPanel(true);
     gameEl.classList.add('closing');
     clearTimeout(gameEl._closeT);
-    gameEl._closeT = setTimeout(()=>gameEl.classList.remove('open','closing'), 190);
+    gameEl._closeT = setTimeout(()=>gameEl.classList.remove('open','closing'), 460);
     stopJump();
     unloadGameFrame();
   }
@@ -2449,6 +2567,10 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     const endResize = e=>{
       if(!resizing) return;
       resizing=false;
+      if(gameMode==='custom' && gameFrame){
+        const liveH = gameFrame.offsetHeight;
+        gameFrameBaseH = Math.max(180, Math.min(560, liveH - gamePadHeightApplied));
+      }
       const rect = gameEl.getBoundingClientRect();
       saveGameWinRect(rect);
       if(gameCanvas && gameMode==='jump'){ gameCanvas.width = Math.round(rect.width); if(gs){ gs.w=gameCanvas.width; } }
@@ -2879,6 +3001,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     }
     function applyControls(v){
       if(v !== 'pad' && v !== 'gesture') return;
+      send({type:'padHeight', on: v === 'pad'});
       D.ctrl = v; applyCtrl(); save();
     }
     function sendSettings(){
@@ -2955,6 +3078,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       }
     });
     window.addEventListener('resize', fit);
+    send({type:'padHeight', on: D.ctrl === 'pad'});
     applyCtrl(); reset(); sendSettings(); requestAnimationFrame(loop);
   }
 
@@ -3404,7 +3528,9 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   }
   function saveGameWinRect(rect){
     const prev = getGameWinRect() || {};
-    const ih = gameFrame && gameFrame.offsetHeight ? gameFrame.offsetHeight : prev.ih;
+    const ih = (gameMode === 'custom')
+      ? gameFrameBaseH
+      : (gameFrame && gameFrame.offsetHeight ? gameFrame.offsetHeight : prev.ih);
     setGameWinRect({x:rect.left, y:rect.top, w:rect.width, ch: gameCanvas?gameCanvas.height:GAME_DEFAULT_H, ih:ih||GAME_FRAME_DEFAULT_H});
   }
 
@@ -3424,8 +3550,18 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   function findGame(id){ return allGames().find(g=>g.id===id) || null; }
 
   // ---------- running a game ----------
+  // Snake's on-screen D-pad (58px, matches SNAKE_CSS #pad) used to eat into the board's own space when
+  // switched on, shrinking the board. Now the host frame grows/shrinks by that same amount instead,
+  // so the board itself stays the same size no matter which control scheme is picked.
+  const GAME_PAD_EXTRA_H = 58;
+  let gamePadHeightApplied = 0;
+  // The board's own (pad-free) height, as the user actually chose it - by saved size or by dragging the
+  // resize corner. This is always what gets written to disk; the pad's extra room is layered on top of it
+  // live and is never itself persisted, so switching controls repeatedly can no longer make the window grow.
+  let gameFrameBaseH = GAME_FRAME_DEFAULT_H;
   function unloadGameFrame(){
     if(gameFrame) gameFrame.srcdoc = '<!doctype html><body style="background:#070a10">';
+    gamePadHeightApplied = 0;
   }
   function withBaseDoc(html){
     if(/<!doctype/i.test(html)) return html;
@@ -3456,7 +3592,8 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     activeGameId = g.id;
     setActiveGameId(g.id);
     if(gameNameEl) gameNameEl.textContent = g.name;
-    userPaused = false; framePausedSent = false; frameSettings = null;
+    userPaused = false; framePausedSent = false; frameSettings = null; gamePadHeightApplied = 0;
+    gameFrameBaseH = GAME_FRAME_DEFAULT_H;
     closeSettingsPanel(true);
     if(gamePauseBtn){ gamePauseBtn.textContent = '⏸️'; gamePauseBtn.style.display = (g.jump || g.pausable) ? '' : 'none'; }
     if(g.jump){
@@ -3484,7 +3621,8 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     if(gameScoreEl) gameScoreEl.textContent = '0';
     showCustomBest();
     const rect = getGameWinRect();
-    if(gameFrame) gameFrame.style.height = Math.max(180, Math.min(560, (rect && rect.ih) || GAME_FRAME_DEFAULT_H)) + 'px';
+    gameFrameBaseH = Math.max(180, Math.min(560, (rect && rect.ih) || GAME_FRAME_DEFAULT_H));
+    if(gameFrame) gameFrame.style.height = gameFrameBaseH + 'px';
     try{
       const html = await loadGameHtml(g);
       if(activeGameId !== g.id) return; // user switched again while loading
@@ -3509,6 +3647,14 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     if(d.type === 'settings'){
       frameSettings = sanitizeSettings(d);
       if(gameSetEl && gameSetEl.classList.contains('show')) renderSettingsPanel();
+      return;
+    }
+    if(d.type === 'padHeight'){
+      const want = d.on ? GAME_PAD_EXTRA_H : 0;
+      if(want !== gamePadHeightApplied && gameFrame){
+        gameFrame.style.height = Math.max(180, Math.min(560, gameFrameBaseH + want)) + 'px';
+        gamePadHeightApplied = want;
+      }
       return;
     }
     if(d.type === 'save'){
