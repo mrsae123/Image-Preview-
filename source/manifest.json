@@ -4,13 +4,14 @@
   "name": {
     "$t": "plugin.name"
   },
-  "version": "2.13.17",
+  "version": "2.14.0",
+  "entry": "entry.js",
   "author": "Emon",
   "description": {
     "$t": "plugin.description"
   },
   "releaseNotes": {
-    "$t": "releaseNotes.2_13_17"
+    "$t": "releaseNotes.2_14_0"
   },
   "localization": {
     "defaultLocale": "en",
@@ -25,6 +26,14 @@
     "variable"
   ],
   "contributes": {
+    "sidebar": [
+      {
+        "id": "reset-fab-position",
+        "label": {
+          "$t": "actions.resetFabPosition"
+        }
+      }
+    ],
     "htmlFragments": [
       {
         "id": "emon-image-viewer",
@@ -76,14 +85,6 @@
           "type": "switch",
           "label": {
             "$t": "settings.stealthMode"
-          },
-          "default": false
-        },
-        {
-          "key": "resetFabPosition",
-          "type": "switch",
-          "label": {
-            "$t": "settings.resetFabPosition"
           },
           "default": false
         },
