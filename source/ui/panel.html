@@ -5,6 +5,12 @@
 #emon-iv-fab.dragging{opacity:.78!important;transform:scale(.94)}
 #emon-iv-fab.stealth{opacity:0!important;box-shadow:none}
 #emon-iv-fab.stealth.peek{opacity:.58!important;box-shadow:0 6px 20px #0006}
+#emon-iv-fab.reset-pulse{animation:emon-iv-fab-reset-pulse .55s ease}
+@keyframes emon-iv-fab-reset-pulse{
+  0%{box-shadow:0 8px 24px #0008,0 0 0 0 #9b6cffb0}
+  70%{box-shadow:0 8px 24px #0008,0 0 0 16px #9b6cff00}
+  100%{box-shadow:0 8px 24px #0008,0 0 0 0 #9b6cff00}
+}
 #emon-iv-fab span{font-size:inherit;line-height:1}
 
 #emon-iv-fab span{filter:drop-shadow(0 1px 2px #000)}
@@ -1396,10 +1402,11 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   }
 
   // ---- Quick Lookup history: off by default, entirely local, capped, editable/clearable ----
-  function isHistoryEnabled(){ try{ return !!tavo.get('emonImageViewerHistoryOn','global'); }catch{ return false; } }
-  function setHistoryEnabled(v){ try{ tavo.set('emonImageViewerHistoryOn', v,'global'); }catch{} }
-  function getLookupHistory(){ try{ const v=tavo.get('emonImageViewerLookupHistory','global'); return Array.isArray(v)?v:[]; }catch{ return []; } }
-  function setLookupHistory(list){ try{ tavo.set('emonImageViewerLookupHistory', list,'global'); }catch{} }
+  // Chat scope (default) — history now stays with the chat it was looked up in, instead of one mixed device-wide list.
+  function isHistoryEnabled(){ try{ return !!tavo.get('emonImageViewerHistoryOn'); }catch{ return false; } }
+  function setHistoryEnabled(v){ try{ tavo.set('emonImageViewerHistoryOn', v); }catch{} }
+  function getLookupHistory(){ try{ const v=tavo.get('emonImageViewerLookupHistory'); return Array.isArray(v)?v:[]; }catch{ return []; } }
+  function setLookupHistory(list){ try{ tavo.set('emonImageViewerLookupHistory', list); }catch{} }
 
   function recordLookupHistory(mode, target, text){
     if(!isHistoryEnabled()) return;
@@ -2126,6 +2133,21 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   fab.addEventListener('pointermove',fabMove);
   fab.addEventListener('pointerup',fabEnd);
   fab.addEventListener('pointercancel',()=>{fabDragging=false});
+  // Fired by the plugin's "Reset FAB position" sidebar action (see entry.js). Clearing the inline
+  // overrides lets the default CSS corner position (see #emon-iv-fab) take over immediately.
+  window.addEventListener('emon-iv-fab-reset',()=>{
+    try{
+      fab.style.left='';fab.style.top='';fab.style.right='';fab.style.bottom='';
+      fab.classList.remove('dragging');
+      const reduced=!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      if(!reduced){
+        fab.classList.remove('reset-pulse');
+        void fab.offsetWidth; // restart the animation if it was already mid-play
+        fab.classList.add('reset-pulse');
+        setTimeout(()=>fab.classList.remove('reset-pulse'),560);
+      }
+    }catch{}
+  });
   closeBtn.onclick=()=>setPanelOpen(false);
   previewBtn.onclick=()=>loadPreview(urlEl.value);
   urlEl.addEventListener('keydown',e=>{if(e.key==='Enter')loadPreview(urlEl.value)});
@@ -3974,9 +3996,6 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 
   const c=cfg();
   if(!c.enabled){fab.style.display='none';panel.style.display='none';return;}
-  if(c.resetFabPosition){
-    try{ tavo.set('emonImageViewerFabPosition', null,'global'); }catch{}
-  }
   const bs=Math.max(28,Math.min(64,Number(c.buttonSize||54)));
   const bo=Math.max(0,Math.min(1,Number(c.buttonOpacity ?? 1)));
   fab.style.width=bs+'px';fab.style.height=bs+'px';fab.style.fontSize=Math.max(14,bs*.46)+'px';fab.style.setProperty('--emon-fab-opacity',String(bo));
