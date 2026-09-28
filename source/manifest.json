@@ -4,14 +4,14 @@
   "name": {
     "$t": "plugin.name"
   },
-  "version": "2.18.0",
+  "version": "2.21.1",
   "entry": "entry.js",
   "author": "Emon",
   "description": {
     "$t": "plugin.description"
   },
   "releaseNotes": {
-    "$t": "releaseNotes.2_18_0"
+    "$t": "releaseNotes.2_21_1"
   },
   "localization": {
     "defaultLocale": "en",
@@ -94,40 +94,6 @@
           "max": 1,
           "step": 0.05,
           "default": 1
-        },
-        {
-          "key": "fabIcon",
-          "type": "select",
-          "label": {
-            "$t": "settings.fabIcon"
-          },
-          "default": "leaf",
-          "options": [
-            { "value": "leaf", "label": { "$t": "settings.fabIconLeaf" } },
-            { "value": "classic", "label": { "$t": "settings.fabIconClassic" } },
-            { "value": "moon", "label": { "$t": "settings.fabIconMoon" } },
-            { "value": "star", "label": { "$t": "settings.fabIconStar" } },
-            { "value": "blossom", "label": { "$t": "settings.fabIconBlossom" } },
-            { "value": "butterfly", "label": { "$t": "settings.fabIconButterfly" } },
-            { "value": "wave", "label": { "$t": "settings.fabIconWave" } },
-            { "value": "orb", "label": { "$t": "settings.fabIconOrb" } }
-          ]
-        },
-        {
-          "key": "fabTheme",
-          "type": "select",
-          "label": {
-            "$t": "settings.fabTheme"
-          },
-          "default": "forest",
-          "options": [
-            { "value": "forest", "label": { "$t": "settings.fabThemeForest" } },
-            { "value": "violet", "label": { "$t": "settings.fabThemeViolet" } },
-            { "value": "sunset", "label": { "$t": "settings.fabThemeSunset" } },
-            { "value": "ocean", "label": { "$t": "settings.fabThemeOcean" } },
-            { "value": "rose", "label": { "$t": "settings.fabThemeRose" } },
-            { "value": "mono", "label": { "$t": "settings.fabThemeMono" } }
-          ]
         },
         {
           "key": "stealthMode",
