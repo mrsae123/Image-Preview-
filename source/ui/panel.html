@@ -153,13 +153,18 @@
 .emon-iv-sheet-thumb{width:100%;max-height:200px;object-fit:contain;border-radius:12px;background:#000;margin-bottom:12px;display:block}
 .emon-iv-sheet-card{width:min(390px,100%);padding:14px}.emon-iv-sheet-heading{font-size:15px;font-weight:800;letter-spacing:-.01em;margin:0 0 2px}.emon-iv-sheet-subtitle{font-size:11px;opacity:.52;margin:0 0 11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.emon-iv-sheet-group{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;opacity:.48;margin:12px 2px 6px}.emon-iv-sheet-actions{display:flex;flex-direction:column;gap:6px}.emon-iv-sheet-actions button{display:flex;align-items:center;gap:11px;width:100%;min-height:43px;border:1px solid #ffffff12;background:#ffffff08;color:#fff;border-radius:12px;padding:10px 12px;font-size:13px;text-align:left;-webkit-tap-highlight-color:transparent;outline:none;transition:background .14s,border-color .14s,transform .1s}.emon-iv-sheet-actions button:focus{outline:none;box-shadow:none}.emon-iv-sheet-actions button:focus-visible{border-color:#ffffff2b;box-shadow:0 0 0 2px #8b5cf62b}.emon-iv-sheet-actions button:active{background:#ffffff12;transform:scale(.992)}.emon-iv-sheet-actions button .sheet-icon{width:26px;height:26px;display:grid;place-items:center;border-radius:8px;background:#ffffff09;font-size:14px;flex:none}.emon-iv-sheet-actions button.danger{margin-top:2px;border-color:#f8717138;color:#fca5a5;background:#7f1d1d18}
 .emon-iv-sheet-confirm{font-size:12.5px;opacity:.85;line-height:1.5;margin-bottom:4px}
-.emon-iv-extract-card{width:min(430px,100%);max-height:82vh;display:flex;flex-direction:column}
-.emon-iv-extract-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:2px;margin:2px 0 4px}
+.emon-iv-extract-card{width:min(430px,100%);max-height:min(82vh,100%);display:flex;flex-direction:column}
+.emon-iv-extract-card>*{flex-shrink:0}
+.emon-iv-extract-card .emon-iv-sheet-subtitle{white-space:normal}
+.emon-iv-extract-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:max-content;align-content:start;gap:8px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:2px;margin:2px 0 4px;flex:1 1 auto;min-height:140px}
 .emon-iv-extract-tile{position:relative;border-radius:10px;overflow:hidden;background:#0006;aspect-ratio:1/1;border:2px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .emon-iv-extract-tile img{width:100%;height:100%;object-fit:cover;display:block}
 .emon-iv-extract-tile.picked{border-color:#9b6cff}
 .emon-iv-extract-tile.picked::after{content:'✓';position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#9b6cff;color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center}
 .emon-iv-extract-tile.broken{opacity:.35;pointer-events:none}
+.emon-iv-extract-tile.saved{cursor:default}
+.emon-iv-extract-tile.saved img{opacity:.5}
+.emon-iv-extract-tile .badge{position:absolute;left:4px;bottom:4px;max-width:calc(100% - 8px);padding:0 6px;border-radius:8px;background:#000c;color:#fff;font-size:10px;font-weight:700;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .emon-iv-extract-tile.broken::before{content:'⚠';position:absolute;inset:0;display:grid;place-items:center;font-size:18px}
 .emon-iv-extract-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px}
 .emon-iv-extract-row button{min-height:40px;border:1px solid #ffffff12;background:#ffffff08;color:#fff;border-radius:11px;padding:8px 10px;font-size:12px;font-weight:750;-webkit-tap-highlight-color:transparent}
@@ -171,8 +176,10 @@
 .emon-iv-saved-card.picked{outline:2px solid #9b6cff;outline-offset:-2px;border-radius:12px}
 .emon-iv-saved-card.picked::after{content:'✓';position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#9b6cff;color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center}
 .emon-iv-extract-row button.danger{background:#7f1d1d;border-color:#f87171}
-.emon-iv-recycle-card-wrap{width:min(460px,100%);max-height:85vh;display:flex;flex-direction:column}
-.emon-iv-recycle-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:2px;margin:6px 0}
+.emon-iv-recycle-card-wrap{width:min(460px,100%);max-height:min(85vh,100%);display:flex;flex-direction:column}
+.emon-iv-recycle-card-wrap>*{flex-shrink:0}
+.emon-iv-recycle-card-wrap .emon-iv-sheet-subtitle{white-space:normal}
+.emon-iv-recycle-grid{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:max-content;align-content:start;gap:10px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:2px;margin:6px 0;flex:1 1 auto;min-height:140px}
 .emon-iv-recycle-card{position:relative;border-radius:12px;overflow:hidden;background:#ffffff08;border:2px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;flex-direction:column}
 .emon-iv-recycle-card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
 .emon-iv-recycle-card .recycle-name{display:block;margin:6px 7px 0;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -208,7 +215,7 @@
 @media (prefers-reduced-motion: reduce){.emon-iv-extract-tile{transition:none}}
 .emon-iv-sheet-actions button.secondary{opacity:.72}
 .emon-iv-modal-row button.danger.pri{background:#7f1d1d;border-color:#f87171;color:#fff}.emon-iv-sheet-actions button.danger .sheet-icon{background:#7f1d1d2e}
-.emon-iv-help{font-size:11px;opacity:.5;margin-top:8px;line-height:1.4}.emon-iv-saved-card{cursor:pointer}.emon-iv-saved-card img{transition:transform .14s,opacity .14s}.emon-iv-saved-card:active img{transform:scale(.97);opacity:.9}
+.emon-iv-help{font-size:11px;opacity:.5;margin-top:8px;line-height:1.4}.emon-iv-preview:not(.show)+.emon-iv-help{display:none}.emon-iv-saved-card{cursor:pointer}.emon-iv-saved-card img{transition:transform .14s,opacity .14s}.emon-iv-saved-card:active img{transform:scale(.97);opacity:.9}
 @media(max-width:600px){
   #emon-iv-panel{right:12px;bottom:82px;width:calc(100vw - 24px);max-height:72vh;padding:14px}
   #emon-iv-fab{right:14px;bottom:92px}
@@ -443,6 +450,8 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
         <button id="emon-iv-preview-btn" class="emon-iv-btn" data-i18n="runtime.preview">Preview</button>
       </div>
       <button id="emon-iv-import" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.importImage">Import from device</button>
+      <button id="emon-iv-scan-chat" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.scanChat">Scan this chat for images</button>
+      <div class="emon-iv-help" data-i18n="runtime.scanChatHint">Looks through this chat's character card, persona, lorebooks and messages for image and GIF links. Nothing leaves your device while it scans.</div>
       <div id="emon-iv-status" class="emon-iv-status"></div>
       <div id="emon-iv-preview" class="emon-iv-preview">
         <img id="emon-iv-preview-img" alt="" />
@@ -533,6 +542,10 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
         <div class="emon-iv-modal-head"><button id="emon-iv-extract-close" class="emon-iv-close" style="width:30px;height:30px;font-size:14px">×</button></div>
         <div class="emon-iv-sheet-heading" data-i18n="runtime.extractTitle">Found images</div>
         <div class="emon-iv-sheet-subtitle" id="emon-iv-extract-subtitle"></div>
+        <div class="emon-iv-help" id="emon-iv-extract-note" style="display:none;margin:0 0 6px"></div>
+        <div class="emon-iv-extract-row" id="emon-iv-extract-rescan-row" style="display:none;grid-template-columns:1fr;margin:0 0 6px">
+          <button id="emon-iv-extract-rescan" class="secondary" data-i18n="runtime.scanRescan">Rescan chat</button>
+        </div>
         <div class="emon-iv-extract-row">
           <button id="emon-iv-extract-select-all" class="secondary" data-i18n="runtime.selectAll">Select all</button>
           <button id="emon-iv-extract-select-none" class="secondary" data-i18n="runtime.selectNone">Select none</button>
@@ -917,7 +930,13 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     renderPinsList();
   }
 
-  function setStatus(msg) { statusEl.textContent = msg || ''; }
+  let statusTimer = 0;
+  function setStatus(msg) {
+    statusEl.textContent = msg || '';
+    clearTimeout(statusTimer);
+    // finished messages fade away on their own; progress messages (ending in …) wait for the next update
+    if (msg && !/(…|\.\.\.)$/.test(msg)) statusTimer = setTimeout(() => { statusEl.textContent = ''; }, 7000);
+  }
 
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1164,11 +1183,15 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   // If this exact web address was already saved before, reuse that file instead of making a new
   // copy. A stale record (the file was deleted some other way) is quietly forgotten and a fresh
   // save proceeds normally.
+  // recordSource() keeps only the first 500 characters of an address, so compare them the same way
+  // (otherwise a long link was never recognised as already saved).
+  const srcKey = u => String(u || '').slice(0, 500);
   async function findExistingBySource(url, requireListed=false) {
     if (!/^https?:/i.test(url || '')) return null;
     const map = getSourceMap();
+    const key = srcKey(url);
     for (const path in map) {
-      if (map[path] !== url) continue;
+      if (map[path] !== key) continue;
       if (requireListed && !isSavedName(path)) continue;   // e.g. a temporary "save to device" copy is not a saved preview
       try {
         if (await tavo.file.exists(path, {scope: 'chat'})) return path;
@@ -1474,20 +1497,49 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   }
 
 
+  // Remembers which device files were already imported (name + size -> saved path), so picking the
+  // same file again does not add a second copy to Saved Previews.
+  const DEVICE_MAP_VAR = 'emonImageViewerDeviceImports';
+  function getDeviceMap() { try { const v = tavo.get(DEVICE_MAP_VAR, 'chat'); return v && typeof v === 'object' ? v : {}; } catch { return {}; } }
+  function rememberDeviceImport(key, path) {
+    if (!key) return;
+    try {
+      const map = getDeviceMap();
+      delete map[key]; map[key] = path;                        // newest last
+      const keys = Object.keys(map);
+      if (keys.length > 300) delete map[keys[0]];              // keep the map from growing forever
+      tavo.set(DEVICE_MAP_VAR, map, 'chat');
+    } catch {}
+  }
   async function importLocalImage() {
     try {
       const imported = await tavo.file.import({multiple:true, scope:'chat', extensions:['png','jpg','jpeg','webp','gif','bmp','avif','svg'], conflict:'rename'});
+      let added = 0, dup = 0;
       for (const f of (imported || [])) {
         if (!/^image\//i.test(f.mimeType || '')) continue;
+        const key = Number.isFinite(f.size) && f.size > 0 ? `${f.originalName || f.name}|${f.size}` : '';
+        const known = key ? getDeviceMap()[key] : '';
+        if (known && isSavedName(known) && await tavo.file.exists(known, {scope:'chat'}).catch(() => false)) {
+          await tavo.file.delete(f.path, {scope:'chat'}).catch(() => {});      // same file as before: drop the fresh copy
+          currentPreview = {src:known, original:known, source:'direct', title:f.originalName || f.name};
+          previewImg.src = known; previewMeta.textContent = t('runtime.imported'); previewEl.classList.add('show');
+          dup++; continue;
+        }
         const dataUrl = await tavo.file.load(f.path, {encoding:'dataUrl'});
         if (!dataUrl) continue;
         const ext = (f.name.match(/\.([a-z0-9]+)$/i)?.[1] || 'png').toLowerCase();
         const saved = await tavo.file.save(`emon-preview-${Date.now()}-${Math.random().toString(36).slice(2,7)}.${ext}`, dataUrl, {scope:'chat'});
         await tavo.file.delete(f.path, {scope:'chat'});
+        rememberDeviceImport(key, saved);
         currentPreview = {src:saved, original:saved, source:'direct', title:f.originalName || f.name};
         previewImg.src = saved; previewMeta.textContent = t('runtime.imported'); previewEl.classList.add('show');
+        added++;
       }
-      if (imported?.length) { setStatus(t('runtime.imported')); await loadSavedPreviews(); }
+      if (imported?.length) {
+        setStatus(t(dup && !added ? 'runtime.alreadySaved' : 'runtime.imported'));
+        if (dup) tavo.utils.toast(t('runtime.alreadySaved'));
+        await loadSavedPreviews();
+      }
     } catch (e) { console.error('[Image Preview] import', e); tavo.utils.toast(t('runtime.error')); }
   }
 
@@ -2526,42 +2578,60 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   const extractSaveAllBtn = document.getElementById('emon-iv-extract-save-all');
   const extractSelectAllBtn = document.getElementById('emon-iv-extract-select-all');
   const extractSelectNoneBtn = document.getElementById('emon-iv-extract-select-none');
+  const extractNote = document.getElementById('emon-iv-extract-note');
+  const extractRescanRow = document.getElementById('emon-iv-extract-rescan-row');
+  const extractRescanBtn = document.getElementById('emon-iv-extract-rescan');
+  const scanChatBtn = document.getElementById('emon-iv-scan-chat');
   let extractItems = [];
   const EXTRACT_MAX = 200;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  // One click handler and one error handler for the whole grid instead of two per tile: far fewer listeners
+  // to keep alive (up to 200 tiles) on a small phone. Image "error" events do not bubble, so that one
+  // listens in the capture phase.
+  if (extractGrid) {
+    extractGrid.addEventListener('click', (e) => {
+      const tile = e.target.closest && e.target.closest('.emon-iv-extract-tile');
+      const it = tile && extractItems[Number(tile.dataset.i)];
+      if (!it || it.broken || it.already) return;          // broken and already-saved tiles can't be picked
+      it.picked = !it.picked;
+      tile.classList.toggle('picked', it.picked);
+      updateExtractButtons();
+    });
+    extractGrid.addEventListener('error', (e) => {
+      const tile = e.target && e.target.closest && e.target.closest('.emon-iv-extract-tile');
+      const it = tile && extractItems[Number(tile.dataset.i)];
+      if (!it || it.broken) return;
+      it.broken = true; it.picked = false;
+      tile.classList.add('broken'); tile.classList.remove('picked');
+      updateExtractButtons();
+    }, true);
+  }
 
   function renderExtractGrid() {
     if (!extractGrid) return;
-    extractGrid.innerHTML = extractItems.map((it, i) =>
-      `<div class="emon-iv-extract-tile picked" data-i="${i}"><img src="${esc(it.url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"></div>`
-    ).join('');
-    extractGrid.querySelectorAll('.emon-iv-extract-tile').forEach(tile => {
-      const i = Number(tile.dataset.i);
-      tile.querySelector('img').addEventListener('error', () => {
-        extractItems[i].broken = true; extractItems[i].picked = false;
-        tile.classList.add('broken'); tile.classList.remove('picked');
-        updateExtractButtons();
-      }, {once:true});
-      tile.addEventListener('click', () => {
-        if (extractItems[i].broken) return;
-        extractItems[i].picked = !extractItems[i].picked;
-        tile.classList.toggle('picked', extractItems[i].picked);
-        updateExtractButtons();
-      });
-    });
+    extractGrid.innerHTML = extractItems.length
+      ? extractItems.map((it, i) =>
+          `<div class="emon-iv-extract-tile${it.already ? ' saved' : it.picked ? ' picked' : ''}" data-i="${i}"><img src="${esc(it.url)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">${it.already ? `<span class="badge">${esc(t('runtime.tileSaved'))}</span>` : ''}</div>`
+        ).join('')
+      : `<div class="emon-iv-empty" style="grid-column:1/-1">${esc(t('runtime.scanNone'))}</div>`;
     updateExtractButtons();
   }
 
+  // Tiles already in Saved Previews can't be picked, so they never count as "selected" or in "Save all".
   function extractedUsable(selectedOnly){
-    return extractItems.filter(it => (!selectedOnly || it.picked) && !it.broken);
+    return extractItems.filter(it => (!selectedOnly || it.picked) && !it.broken && !it.already);
   }
 
   function updateExtractButtons() {
     const selected = extractedUsable(true).length;
     const usable = extractedUsable(false).length;
+    const found = extractItems.filter(it => !it.broken).length;
+    const saved = extractItems.filter(it => it.already && !it.broken).length;
     if (extractSubtitle) {
-      extractSubtitle.textContent = t('runtime.extractSubtitle')
-        .replace('{n}', String(usable))
-        .replace('{selected}', String(selected));
+      extractSubtitle.textContent = saved
+        ? t('runtime.extractSubtitleSaved', { n: found, saved, selected })
+        : t('runtime.extractSubtitle', { n: found, selected });
     }
     if (extractSaveSelectedBtn) {
       extractSaveSelectedBtn.textContent = t('runtime.saveExtractSelected').replace('{n}', String(selected));
@@ -2574,22 +2644,33 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   }
 
   let extractSaving = false;
+  function extractResultText(saved, skipped, failed) {
+    if (!saved && skipped && !failed) return t('runtime.resNothingNew', { n: skipped });
+    const parts = [];
+    if (saved) parts.push(t('runtime.resSaved', { n: saved }));
+    if (skipped) parts.push(t('runtime.resSkipped', { n: skipped }));
+    if (failed) parts.push(t('runtime.resFailed', { n: failed }));
+    return parts.join(' · ');
+  }
   async function saveExtracted(list) {
     if (extractSaving) return;
     extractSaving = true;
     if (extractSaveSelectedBtn) extractSaveSelectedBtn.disabled = true;
     if (extractSaveAllBtn) extractSaveAllBtn.disabled = true;
     try {
-      let saved = 0;
+      let saved = 0, skipped = 0, failed = 0;
       for (const it of list) {
         try {
+          // Already in Saved Previews (maybe saved a moment ago from somewhere else)? Leave it alone.
+          if (await findExistingBySource(it.url, true)) { skipped++; continue; }
           await persistRemote(it.url, 'emon-preview', true);
           saved++;
-        } catch (e) { console.warn('[Image Preview] extracted save failed', e); }
+        } catch (e) { failed++; console.warn('[Image Preview] extracted save failed', e); }
       }
       await loadSavedPreviews();
       hideModal(extractModal);
-      tavo.utils.toast(t('runtime.extractSavedToast').replace('{n}', String(saved)));
+      const msg = extractResultText(saved, skipped, failed);
+      if (msg) tavo.utils.toast(msg);
     } finally {
       extractSaving = false;
     }
@@ -2607,8 +2688,8 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   };
   if (extractCloseBtn) extractCloseBtn.onclick = () => hideModal(extractModal);
   if (extractSelectAllBtn) extractSelectAllBtn.onclick = () => {
-    extractItems.forEach(it => { if (!it.broken) it.picked = true; });
-    extractGrid.querySelectorAll('.emon-iv-extract-tile').forEach(tile => { if (!tile.classList.contains('broken')) tile.classList.add('picked'); });
+    extractItems.forEach(it => { if (!it.broken && !it.already) it.picked = true; });
+    extractGrid.querySelectorAll('.emon-iv-extract-tile:not(.broken):not(.saved)').forEach(tile => tile.classList.add('picked'));
     updateExtractButtons();
   };
   if (extractSelectNoneBtn) extractSelectNoneBtn.onclick = () => {
@@ -2618,21 +2699,267 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   };
   bindBackdropClose(extractModal, () => hideModal(extractModal));
 
+  // Web addresses of everything already in Saved Previews, so the picker can mark them and skip them.
+  async function savedSourceSet() {
+    const out = new Set();
+    try {
+      const files = await listChatFilesMatching(f => SAVED_RE.test(f.name) && /^image\//i.test(f.mimeType || ''));
+      const map = getSourceMap();
+      for (const f of files) if (map[f.path]) out.add(map[f.path]);
+    } catch {}
+    return out;
+  }
+
+  // Shows the picker for a list of found links. `meta` is null for "Extract images from text" (entry.js), or
+  // { scan:true, note, keep } for "Scan this chat for images" (adds the summary line and the Rescan button).
+  // `keep` marks a rescan: the person's tile choices carry over, and the result says what changed.
+  async function showExtractPicker(raw, meta) {
+    const scan = !!(meta && meta.scan);
+    const keep = !!(meta && meta.keep);
+    // Only public web addresses (and, for a chat scan, no ad/tracker hosts), and at most EXTRACT_MAX tiles: a
+    // huge or hostile paste or card must never make the phone open thousands of connections, or connect to
+    // other devices on your network.
+    const good = [...new Set(raw.filter(u => typeof u === 'string' && isPublicHttpUrl(u) && !(scan && isAdHost(u))))];
+    const prevItems = extractItems;
+    if (!good.length) {
+      if (keep) { extractItems = []; if (extractNote) extractNote.style.display = 'none'; renderExtractGrid(); }
+      else tavo.utils.toast(t(scan ? 'runtime.scanNone' : 'runtime.extractNone'));
+      return { total: 0, added: 0, removed: keep ? prevItems.length : 0 };
+    }
+    const urls = good.slice(0, EXTRACT_MAX);
+    if (good.length > urls.length) tavo.utils.toast(t('runtime.extractCapped', { shown: urls.length, total: good.length }));
+    const saved = await savedSourceSet();
+    const prev = keep ? new Map(prevItems.map(it => [it.url, it])) : null;
+    const next = urls.map(u => {
+      const old = prev && prev.get(u);
+      const already = saved.has(srcKey(u));
+      return { url: u, picked: !already && (old ? old.picked : true), broken: false, already };
+    });
+    const nextUrls = new Set(urls);
+    const added = prev ? next.filter(it => !prev.has(it.url)).length : next.length;
+    const removed = prev ? [...prev.keys()].filter(u => !nextUrls.has(u)).length : 0;
+    const same = !!prev && !added && !removed && next.every(it => prev.get(it.url).already === it.already);
+    if (extractNote) { extractNote.textContent = (meta && meta.note) || ''; extractNote.style.display = (meta && meta.note) ? '' : 'none'; }
+    if (extractRescanRow) extractRescanRow.style.display = scan ? 'grid' : 'none';
+    if (!same) {                                   // an unchanged rescan keeps the grid (and its loaded images) as is
+      const top = keep && extractGrid ? extractGrid.scrollTop : 0;
+      extractItems = next;
+      renderExtractGrid();
+      if (keep && extractGrid) extractGrid.scrollTop = top;
+    }
+    // showModal() portals this to document.body, so it renders fine without forcing the main
+    // panel open — Extract results behaves like a standalone tool launched from the input menu.
+    if (!keep && !extractModal.classList.contains('show')) showModal(extractModal);
+    return { total: next.length, added, removed };
+  }
+
   window.addEventListener('emon-iv-extract-results', (e) => {
     const raw = e?.detail?.urls;
     if (!Array.isArray(raw) || !raw.length) return;
-    // Only public web addresses, and at most EXTRACT_MAX tiles: a huge or hostile paste must never make the
-    // phone open thousands of connections (or connect to other devices on your network).
-    const good = [...new Set(raw.filter(u => typeof u === 'string' && isPublicHttpUrl(u)))];
-    if (!good.length) { tavo.utils.toast(t('runtime.extractNone')); return; }
-    const urls = good.slice(0, EXTRACT_MAX);
-    if (good.length > urls.length) tavo.utils.toast(t('runtime.extractCapped', { shown: urls.length, total: good.length }));
-    extractItems = urls.map(u => ({ url: u, picked: true, broken: false }));
-    renderExtractGrid();
-    // showModal() portals this to document.body, so it renders fine without forcing the main
-    // panel open — Extract results behaves like a standalone tool launched from the input menu.
-    showModal(extractModal);
+    showExtractPicker(raw, null).catch(err => console.error('[Image Preview] extract picker', err));
   });
+
+  // ---- Scan this chat for images ----
+  // Reads (never changes) the open chat's character card(s), persona, lorebooks and messages, runs the same
+  // bounded link finder as "Extract images from text" over each piece, and shows what it found in the picker
+  // above. It runs only when someone taps the button (or the sidebar entry), never on its own, and it sends
+  // nothing anywhere: the only network traffic afterwards is the picker loading the thumbnails you can see.
+  //
+  // findImageUrls() below is the same finder that entry.js uses (kept identical; a test compares them).
+  function imgSrcFromTag(tag) {
+    const n = tag.length;
+    const isWs = (c) => c === 32 || c === 9 || c === 10 || c === 13 || c === 12;
+    let i = 0;
+    while (i < n) {
+      while (i < n && (isWs(tag.charCodeAt(i)) || tag[i] === '/')) i++;
+      let j = i;
+      while (j < n && !isWs(tag.charCodeAt(j)) && tag[j] !== '=' && tag[j] !== '/') j++;
+      const name = tag.slice(i, j).toLowerCase();
+      i = j;
+      while (i < n && isWs(tag.charCodeAt(i))) i++;
+      let val = null;
+      if (tag[i] === '=') {
+        i++;
+        while (i < n && isWs(tag.charCodeAt(i))) i++;
+        const q = tag[i];
+        if (q === '"' || q === "'") {
+          const end = tag.indexOf(q, i + 1);
+          if (end === -1) { val = tag.slice(i + 1); i = n; } else { val = tag.slice(i + 1, end); i = end + 1; }
+        } else {
+          let k = i;
+          while (k < n && !isWs(tag.charCodeAt(k))) k++;
+          val = tag.slice(i, k); i = k;
+        }
+      }
+      if (name === 'src' && val !== null) return val;
+      if (i === j && j < n && name === '') i++;
+    }
+    return null;
+  }
+  const FIND_MAX_TEXT = 300000;
+  const FIND_MAX_URLS = 1000;
+  // A bare link can swallow the bracket or punctuation right after it (e.g. the ")" closing a Markdown image
+  // "![x](https://…/a.jpg?w=1)"), which listed the same picture twice. Trim those; one linear pass, no regex.
+  function trimLinkEnd(u) {
+    let end = u.length, open = 0, close = 0;
+    for (let i = 0; i < end; i++) { const c = u.charCodeAt(i); if (c === 40) open++; else if (c === 41) close++; }
+    while (end > 0) {
+      const c = u.charCodeAt(end - 1);
+      if (c === 41) { if (open >= close) break; close--; }                                         // ")" with no "(" before it
+      else if (c !== 93 && c !== 125 && c !== 44 && c !== 46 && c !== 59 && c !== 33) break;      // ] } , . ; !
+      end--;
+    }
+    return end === u.length ? u : u.slice(0, end);
+  }
+  function findImageUrls(text) {
+    const src = String(text || '').slice(0, FIND_MAX_TEXT);
+    const urls = [];
+    const seen = new Set();
+    const add = (raw) => {
+      if (!raw || urls.length >= FIND_MAX_URLS) return;
+      const u = raw.trim().replace(/&amp;/g, '&');
+      if (!u || u.length > 2048 || seen.has(u)) return;
+      seen.add(u);
+      urls.push(u);
+    };
+    const lower = src.toLowerCase();
+    let pos = 0, nextGt = -2;
+    while (urls.length < FIND_MAX_URLS) {
+      const i = lower.indexOf('<img', pos);
+      if (i === -1) break;
+      const c = src.charCodeAt(i + 4);
+      if (!(c === 32 || c === 9 || c === 10 || c === 13 || c === 12 || c === 47 || c === 62)) { pos = i + 4; continue; }
+      if (nextGt < i + 4) nextGt = src.indexOf('>', i + 4);
+      if (nextGt === -1) break;
+      if (nextGt - i > 4000) { pos = i + 4; continue; }
+      add(imgSrcFromTag(src.slice(i + 4, nextGt)));
+      pos = nextGt + 1;
+    }
+    let m;
+    const mdRe = /!\[[^\]]{0,300}\]\(([^)\s]{1,2048})\)/g;
+    while ((m = mdRe.exec(src))) add(m[1]);
+    const bareRe = /https?:\/\/[^\s"'<>]{1,1500}?\.(?:png|jpe?g|gif|webp|avif|bmp)(?:\?[^\s"'<>]{0,1500})?/gi;
+    while ((m = bareRe.exec(src))) add(trimLinkEnd(m[0]));
+    return urls;
+  }
+
+  const SCAN_MAX_MESSAGES = 5000;        // newest first; older ones are skipped beyond this
+  const SCAN_MAX_TEXT_TOTAL = 6000000;   // overall text budget for one scan
+  const SCAN_CARD_FIELDS = ['description', 'personality', 'scenario', 'firstMes', 'mesExample', 'creatorNotes', 'systemPrompt', 'postHistoryInstructions'];
+  let scanBusy = false;
+  let rescanFlashTimer = 0;
+
+  function setScanBusy(on) {
+    scanBusy = on;
+    if (on) clearTimeout(rescanFlashTimer);
+    for (const b of [scanChatBtn, extractRescanBtn]) {
+      if (!b) continue;
+      b.disabled = on;
+      b.textContent = on ? t('runtime.scanning') : t(b === scanChatBtn ? 'runtime.scanChat' : 'runtime.scanRescan');
+    }
+  }
+
+  // After a rescan the Rescan button briefly says what happened and a toast repeats it, so a tap never
+  // looks like nothing happened (even when there is nothing new).
+  function reportRescan(text) {
+    if (!text) return;
+    tavo.utils.toast(text);
+    if (!extractRescanBtn) return;
+    clearTimeout(rescanFlashTimer);
+    extractRescanBtn.textContent = text;
+    rescanFlashTimer = setTimeout(() => { if (!scanBusy) extractRescanBtn.textContent = t('runtime.scanRescan'); }, 2800);
+  }
+
+  async function scanChatForImages(isRescan = false) {
+    if (scanBusy) return;
+    const startedAt = Date.now();
+    let outcome = '';                                   // what to tell the person after a rescan
+    const say = (text) => { if (isRescan) outcome = text; else tavo.utils.toast(text); };
+    setScanBusy(true);
+    try {
+      let chat = null;
+      try { chat = await tavo.chat.current(); } catch {}
+      if (!chat || chat.id == null) { say(t('runtime.scanNoChat')); return; }
+
+      const found = new Map();                     // url -> group; insertion order is the display order
+      let budget = SCAN_MAX_TEXT_TOTAL, pieces = 0, truncated = false;
+      const take = async (group, text) => {
+        if (typeof text !== 'string' || !text) return;
+        if (budget <= 0) { truncated = true; return; }
+        const piece = text.length > FIND_MAX_TEXT ? text.slice(0, FIND_MAX_TEXT) : text;
+        budget -= piece.length;
+        for (const u of findImageUrls(piece)) if (!found.has(u) && found.size < FIND_MAX_URLS) found.set(u, group);
+        if (++pieces % 40 === 0) await new Promise(r => setTimeout(r, 0));   // let the screen breathe on huge chats
+      };
+
+      // 1) character card(s) in this chat
+      for (const c of (Array.isArray(chat.characters) ? chat.characters : [])) {
+        let ch = null;
+        try { ch = c && c.id != null ? await tavo.character.get(c.id) : null; } catch {}
+        if (!ch) continue;
+        for (const f of SCAN_CARD_FIELDS) await take('card', ch[f]);
+        for (const f of ['alternateGreetings', 'groupOnlyGreetings']) if (Array.isArray(ch[f])) for (const g of ch[f].slice(0, 200)) await take('card', g);
+      }
+      await take('card', chat.overrideScenario);
+
+      // 2) the persona
+      if (chat.persona && chat.persona.id != null) {
+        try { const per = await tavo.persona.get(chat.persona.id); if (per) await take('card', per.description); } catch {}
+      }
+
+      // 3) lorebooks attached to the chat (enabled entries only)
+      for (const lb of (Array.isArray(chat.lorebooks) ? chat.lorebooks.slice(0, 20) : [])) {
+        let book = null;
+        try { book = lb && lb.id != null ? await tavo.lorebook.get(lb.id) : null; } catch {}
+        const entries = book && Array.isArray(book.entries) ? book.entries.slice(0, 1000) : [];
+        for (const en of entries) if (en && en.enabled !== false) await take('lore', en.content);
+      }
+
+      // 4) messages, newest first
+      let msgs = [];
+      try { const all = await tavo.message.find([]); if (Array.isArray(all)) msgs = all; } catch {}
+      let looked = 0;
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        if (looked >= SCAN_MAX_MESSAGES) { truncated = true; break; }
+        looked++;
+        await take('msgs', msgs[i] && msgs[i].content);
+      }
+
+      // The person may have switched chats while this ran: results belong to the chat that was scanned.
+      let now = null;
+      try { now = await tavo.chat.current(); } catch {}
+      if (!now || now.id !== chat.id) { say(t('runtime.scanChatChanged')); return; }
+
+      // Only public, non-tracker links are kept; counts are for what is actually shown.
+      const kept = [...found].filter(([u]) => isPublicHttpUrl(u) && !isAdHost(u));
+      if (!kept.length) {
+        if (isRescan) await showExtractPicker([], { scan: true, keep: true });   // nothing left: don't leave a stale list up
+        say(t('runtime.scanNone'));
+        return;
+      }
+      const counts = { card: 0, lore: 0, msgs: 0 };
+      for (const [, g] of kept) counts[g]++;
+      let note = t('runtime.scanSummary', { total: kept.length, card: counts.card, lore: counts.lore, msgs: counts.msgs });
+      if (truncated) note += t('runtime.scanPartial');
+      const res = await showExtractPicker(kept.map(([u]) => u), { scan: true, note, keep: isRescan });
+      if (isRescan) {
+        outcome = res.added ? t('runtime.scanNewFound', { n: res.added, total: res.total })
+          : res.removed ? t('runtime.scanUpdated', { total: res.total })
+          : t('runtime.scanNoNew', { total: res.total });
+      }
+    } catch (err) {
+      console.error('[Image Preview] scan', err);
+      say(t('runtime.scanFailed'));
+    } finally {
+      if (isRescan) { const wait = 500 - (Date.now() - startedAt); if (wait > 0) await sleep(wait); }   // long enough to notice
+      setScanBusy(false);
+      if (isRescan) reportRescan(outcome);
+    }
+  }
+
+  if (scanChatBtn) scanChatBtn.onclick = () => scanChatForImages(false);
+  if (extractRescanBtn) extractRescanBtn.onclick = () => scanChatForImages(true);
+  window.addEventListener('emon-iv-scan-chat', () => scanChatForImages());
 
   // ---- Recycle Bin picker (opened from the chat's right sidebar — see entry.js) ----
   const recycleModal = document.getElementById('emon-iv-recycle-modal');
