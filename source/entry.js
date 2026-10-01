@@ -40,6 +40,19 @@ function imgSrcFromTag(tag) {
 
 const MAX_TEXT = 300000;
 const MAX_URLS = 1000;
+// A bare link can swallow the bracket or punctuation right after it (e.g. the ")" closing a Markdown image
+// "![x](https://…/a.jpg?w=1)"), which listed the same picture twice. Trim those; one linear pass, no regex.
+function trimLinkEnd(u) {
+  let end = u.length, open = 0, close = 0;
+  for (let i = 0; i < end; i++) { const c = u.charCodeAt(i); if (c === 40) open++; else if (c === 41) close++; }
+  while (end > 0) {
+    const c = u.charCodeAt(end - 1);
+    if (c === 41) { if (open >= close) break; close--; }                                         // ")" with no "(" before it
+    else if (c !== 93 && c !== 125 && c !== 44 && c !== 46 && c !== 59 && c !== 33) break;      // ] } , . ; !
+    end--;
+  }
+  return end === u.length ? u : u.slice(0, end);
+}
 function extractImageUrls(text) {
   const src = String(text || '').slice(0, MAX_TEXT);
   const urls = [];
@@ -67,11 +80,12 @@ function extractImageUrls(text) {
     pos = nextGt + 1;
   }
 
+  let m;
   const mdRe = /!\[[^\]]{0,300}\]\(([^)\s]{1,2048})\)/g;
   while ((m = mdRe.exec(src))) add(m[1]);
 
   const bareRe = /https?:\/\/[^\s"'<>]{1,1500}?\.(?:png|jpe?g|gif|webp|avif|bmp)(?:\?[^\s"'<>]{0,1500})?/gi;
-  while ((m = bareRe.exec(src))) add(m[0]);
+  while ((m = bareRe.exec(src))) add(trimLinkEnd(m[0]));
 
   return urls;
 }
@@ -110,4 +124,10 @@ tavo.plugin.onSidebarAction('reset-fab-position', async () => {
 // doesn't need the floating panel open) from the chat's right sidebar.
 tavo.plugin.onSidebarAction('open-recycle-bin', async () => {
   try { window.dispatchEvent(new CustomEvent('emon-iv-open-recycle')); } catch {}
+});
+
+// Scans the open chat (character card, persona, lorebooks and messages) for image links. The scan and its
+// picker live in panel.html; this just asks it to start, the same hand-off the Recycle Bin uses.
+tavo.plugin.onSidebarAction('scan-chat', async () => {
+  try { window.dispatchEvent(new CustomEvent('emon-iv-scan-chat')); } catch {}
 });
