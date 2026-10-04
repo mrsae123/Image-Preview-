@@ -4,14 +4,14 @@
   "name": {
     "$t": "plugin.name"
   },
-  "version": "2.23.0",
+  "version": "2.25.1",
   "entry": "entry.js",
   "author": "Emon",
   "description": {
     "$t": "plugin.description"
   },
   "releaseNotes": {
-    "$t": "releaseNotes.2_23_0"
+    "$t": "releaseNotes.2_25_1"
   },
   "localization": {
     "defaultLocale": "en",
@@ -53,6 +53,12 @@
         "id": "scan-chat",
         "label": {
           "$t": "actions.scanChat"
+        }
+      },
+      {
+        "id": "character-page",
+        "label": {
+          "$t": "actions.characterPage"
         }
       }
     ],

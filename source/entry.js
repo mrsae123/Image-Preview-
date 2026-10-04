@@ -59,7 +59,8 @@ function extractImageUrls(text) {
   const seen = new Set();
   const add = (raw) => {
     if (!raw || urls.length >= MAX_URLS) return;
-    const u = raw.trim().replace(/&amp;/g, '&');
+    let u = raw.trim().replace(/&amp;/g, '&');
+    if (u.startsWith('//')) u = 'https:' + u;                        // protocol-relative link, common in copied page source
     if (!u || u.length > 2048 || seen.has(u)) return;
     seen.add(u);
     urls.push(u);
@@ -101,10 +102,9 @@ tavo.plugin.onInputAction('extract-images', async () => {
 
   // Hand the found links to the mounted /chat/body/end fragment (panel.html), which shows them
   // as a results gallery and handles pinning — entry.js only finds the links.
-  try { window.dispatchEvent(new CustomEvent('emon-iv-extract-results', { detail: { urls } })); } catch {}
-
-  // The pasted blob has done its job; clear it so it doesn't get sent as a chat message by mistake.
-  try { tavo.input.clear(); } catch {}
+  // clearInput: the panel empties the input box itself, but only once the picker has really opened. Clearing it here
+  // used to wipe a typed message even when every link turned out unusable, or when the Terms were not agreed to yet.
+  try { window.dispatchEvent(new CustomEvent('emon-iv-extract-results-v2', { detail: { urls, clearInput: true } })); } catch {}
 });
 
 tavo.plugin.onSidebarAction('reset-fab-position', async () => {
@@ -113,7 +113,7 @@ tavo.plugin.onSidebarAction('reset-fab-position', async () => {
 
   // If Image Preview's panel is currently mounted on this chat page, snap the button back
   // right away instead of waiting for the next chat open.
-  try { window.dispatchEvent(new CustomEvent('emon-iv-fab-reset')); } catch {}
+  try { window.dispatchEvent(new CustomEvent('emon-iv-fab-reset-v2')); } catch {}
 
   // Confirm the action fired and finished — this is a one-shot action, not a toggle,
   // so there is nothing left "on" to turn back off.
@@ -123,11 +123,17 @@ tavo.plugin.onSidebarAction('reset-fab-position', async () => {
 // Opens the Recycle Bin picker (built and rendered inside panel.html, portaled to the page so it
 // doesn't need the floating panel open) from the chat's right sidebar.
 tavo.plugin.onSidebarAction('open-recycle-bin', async () => {
-  try { window.dispatchEvent(new CustomEvent('emon-iv-open-recycle')); } catch {}
+  try { window.dispatchEvent(new CustomEvent('emon-iv-open-recycle-v2')); } catch {}
 });
 
 // Scans the open chat (character card, persona, lorebooks and messages) for image links. The scan and its
 // picker live in panel.html; this just asks it to start, the same hand-off the Recycle Bin uses.
 tavo.plugin.onSidebarAction('scan-chat', async () => {
-  try { window.dispatchEvent(new CustomEvent('emon-iv-scan-chat')); } catch {}
+  try { window.dispatchEvent(new CustomEvent('emon-iv-scan-chat-v2')); } catch {}
+});
+
+// Opens the Character page: the open chat's character card (notes, description, personality, scenario) as one scrollable page
+// with its pictures. The page is drawn by panel.html; this just asks it to open.
+tavo.plugin.onSidebarAction('character-page', async () => {
+  try { window.dispatchEvent(new CustomEvent('emon-iv-character-page-v2')); } catch {}
 });
