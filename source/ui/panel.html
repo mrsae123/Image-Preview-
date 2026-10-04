@@ -120,7 +120,7 @@
 .emon-iv-pinned .sizebadge.show{opacity:1}
 .emon-iv-pinned .zoom{font-size:11px}
 .emon-iv-pinned .dragtitle{cursor:text}
-.emon-iv-modal{all:initial;position:fixed;inset:0;z-index:2147483005;display:none;align-items:center;justify-content:center;background:#000000a0;padding:20px;box-sizing:border-box;font-family:var(--emon-iv-font,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);color:#fff} .emon-iv-modal,.emon-iv-modal *{box-sizing:border-box}
+.emon-iv-modal{all:initial;position:fixed;inset:0;z-index:2147483005;display:none;align-items:center;justify-content:center;background:#000000a0;padding:calc(var(--emon-iv-top,76px) + 8px) 14px calc(var(--emon-iv-bottom,0px) + 14px);box-sizing:border-box;font-family:var(--emon-iv-font,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif);color:#fff} .emon-iv-modal,.emon-iv-modal *{box-sizing:border-box}
 .emon-iv-modal.show,.emon-iv-modal.closing{display:flex}
 .emon-iv-modal.show{animation:emonIvFadeIn .3s ease both}
 .emon-iv-modal.show .emon-iv-modal-card{animation:emonIvPopIn .4s cubic-bezier(.2,.9,.3,1.25) both}
@@ -134,7 +134,7 @@
 /* Opening: an old-TV power-on flicker - a flat line at the middle, then it opens up. */
 @keyframes emonIvCrtOpen{0%{transform:scaleY(.006) scaleX(.4);opacity:.2}25%{transform:scaleY(.03) scaleX(.94);opacity:.9}55%{transform:scaleY(.42) scaleX(1);opacity:1}100%{transform:scaleY(1) scaleX(1);opacity:1}}
 @media (prefers-reduced-motion: reduce){.emon-iv-modal.show,.emon-iv-modal.show .emon-iv-modal-card,.emon-iv-modal.closing,.emon-iv-modal.closing .emon-iv-modal-card{animation:none}.emon-iv-modal.closing{display:none}}
-.emon-iv-modal-card{background:var(--emon-iv-bg,#0e131dfa);background-size:cover;background-position:center;border:1px solid #ffffff20;border-radius:16px;padding:16px;width:min(340px,100%);max-height:80vh;overflow-y:auto;overflow-anchor:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;box-sizing:border-box}
+.emon-iv-modal-card{background:var(--emon-iv-bg,#0e131dfa);background-size:cover;background-position:center;border:1px solid #ffffff20;border-radius:16px;padding:16px;width:min(340px,100%);max-height:min(80vh,100%);overflow-y:auto;overflow-anchor:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;box-sizing:border-box}
 .emon-iv-modal-head{display:flex;justify-content:flex-end}
 .emon-iv-info-title{font-size:14px;font-weight:750;margin-bottom:10px;word-break:break-word}
 .emon-iv-info-row{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:6px 0;border-top:1px solid #ffffff12}
@@ -343,6 +343,49 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active { transform: none; }
 }
 
+
+/* Terms of Use */
+.emon-iv-terms-lead{font-size:12.5px;line-height:1.5;opacity:.85;margin:0 0 10px}
+.emon-iv-terms-list{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:7px}
+.emon-iv-terms-list li{font-size:12.5px;line-height:1.5;opacity:.92;background:#ffffff0a;border:1px solid #ffffff10;border-radius:11px;padding:8px 10px}
+.emon-iv-terms-link{display:block;width:100%;border:1px solid #ffffff18;background:#ffffff0c;color:#fff;border-radius:10px;padding:9px;font-size:12.5px;margin:0 0 8px}
+.emon-iv-terms-full{margin:2px 0 8px;padding-top:8px;border-top:1px solid #ffffff14}
+.emon-iv-terms-full[hidden]{display:none}
+.emon-iv-terms-date{font-size:11px;opacity:.5;margin-top:4px}
+.emon-iv-terms-check{display:flex;gap:10px;align-items:flex-start;margin:10px 0 0;font-size:12.5px;line-height:1.45;cursor:pointer}
+.emon-iv-terms-check input{width:22px;height:22px;flex:none;margin:0;accent-color:#8b5cf6}
+.emon-iv-terms .emon-iv-modal-row button:disabled{opacity:.4;pointer-events:none}
+.emon-iv-terms.readonly .emon-iv-terms-check,.emon-iv-terms.readonly #emon-iv-terms-later{display:none}
+.emon-iv-about-links{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.emon-iv-about-links button{border:1px solid #ffffff18;background:#ffffff0c;color:#fff;border-radius:10px;padding:8px 12px;font-size:12.5px}
+/* Character page */
+.emon-iv-page-card{width:min(520px,100%);max-height:min(88vh,100%);display:flex;flex-direction:column;padding:14px}
+.emon-iv-page-card>*{flex-shrink:0}
+.emon-iv-page-chars{display:flex;gap:6px;overflow-x:auto;padding:2px 1px 8px}
+.emon-iv-page-chars:empty{display:none}
+.emon-iv-page-chars button{flex:none;border:1px solid #ffffff18;background:#ffffff0c;color:#fff;border-radius:999px;padding:6px 12px;font-size:12px}
+.emon-iv-page-chars button.on{background:#8b5cf6;border-color:#8b5cf6}
+.emon-iv-page-body{flex:1 1 auto;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:2px 2px 10px}
+.emon-iv-pg-head{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.emon-iv-pg-head img{width:52px;height:52px;border-radius:14px;object-fit:cover;flex:none;background:#ffffff10}
+.emon-iv-pg-name{font-size:16px;font-weight:800;line-height:1.25}
+.emon-iv-pg-by{font-size:11.5px;opacity:.6}
+.emon-iv-pg-sec{margin:0 0 14px;padding:12px;border-radius:14px;background:#ffffff0a;border:1px solid #ffffff10}
+.emon-iv-pg-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.55;margin:0 0 8px}
+.emon-iv-pg-txt{font-size:13.5px;line-height:1.62;overflow-wrap:anywhere;word-break:break-word}
+.emon-iv-pg-txt.plain{white-space:pre-wrap}
+.emon-iv-pg-txt p{margin:0 0 .75em}
+.emon-iv-pg-txt h3,.emon-iv-pg-txt h4,.emon-iv-pg-txt h5{margin:.9em 0 .4em;line-height:1.3}
+.emon-iv-pg-txt h3{font-size:1.15em}.emon-iv-pg-txt h4{font-size:1.05em}.emon-iv-pg-txt h5{font-size:1em}
+.emon-iv-pg-txt ul,.emon-iv-pg-txt ol{margin:0 0 .75em;padding-left:1.4em}
+.emon-iv-pg-txt blockquote{margin:0 0 .75em;padding:2px 0 2px 10px;border-left:3px solid #ffffff30;opacity:.9}
+.emon-iv-pg-txt hr{border:0;border-top:1px solid #ffffff25;margin:14px 0}
+.emon-iv-pg-txt code{background:#ffffff14;border-radius:5px;padding:0 4px;font-size:.95em}
+.emon-iv-pg-txt pre{white-space:pre-wrap;background:#ffffff0d;border-radius:10px;padding:8px;font-size:12px}
+.emon-iv-pg-img{display:block;max-width:100%;height:auto;margin:10px auto;border-radius:12px;background:#ffffff0c;cursor:zoom-in}
+.emon-iv-pg-note{font-size:11.5px;opacity:.55;margin:8px 0 0}
+.emon-iv-pg-empty{font-size:13px;opacity:.7;padding:18px 4px;text-align:center}
+.emon-iv-saved-more{display:flex;align-items:center;justify-content:center;text-align:center;font-size:12.5px;font-weight:700;background:#8b5cf61f;border-color:#8b5cf655;min-height:96px}
 </style>
 
 <div id="emon-iv-root">
@@ -452,6 +495,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       <button id="emon-iv-import" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.importImage">Import from device</button>
       <button id="emon-iv-scan-chat" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.scanChat">Scan this chat for images</button>
       <div class="emon-iv-help" data-i18n="runtime.scanChatHint">Looks through this chat's character card, persona, lorebooks and messages for image and GIF links. Nothing leaves your device while it scans.</div>
+      <button id="emon-iv-page-btn" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.pageBtn">Character page</button>
       <div id="emon-iv-status" class="emon-iv-status"></div>
       <div id="emon-iv-preview" class="emon-iv-preview">
         <img id="emon-iv-preview-img" alt="" />
@@ -482,14 +526,60 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
         <div class="emon-iv-modal-head"><button id="emon-iv-help-close" class="emon-iv-close" style="width:30px;height:30px;font-size:14px">×</button></div>
         <div class="emon-iv-info-title" data-i18n="runtime.helpTitle">How Image Preview works</div>
         <div class="emon-iv-help-body">
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS1T">Preview &amp; pin images</b><p data-i18n="runtime.helpS1B">Paste an image link or a webpage link, then tap Preview. Pin on chat keeps it floating over the chat so you can look at it while you type. Drag to move, pinch or use +/- to resize. The pin's toolbar also has reset, rotate, flip, fullscreen and remove; tap ︿ to fold the toolbar away. Clear all next to "Pinned on chat" unpins everything at once — it only unpins them, nothing is deleted.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpExtractT">Extract images from text</b><p data-i18n="runtime.helpExtractB">Got a big pasted character card or post full of pictures? Paste the whole thing into the chat input, then tap "Extract images from text" in the + menu — it quietly ignores all the text and hands you just the images and GIFs to look through. Everything starts checked; tap any tile you don't want to leave it out, then Save selected (or just Save all) tucks them into Saved Previews. Want a few of them floating on the chat too? Head to Saved Previews afterward and use Select.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS2T">Save &amp; manage images</b><p data-i18n="runtime.helpS2B">Save preview keeps a copy for this chat. Pinning does too, automatically, whether you pin from the main preview or from here — so a pin is never a one-off; the copy stays even after you unpin it. Tap Select above the saved grid to pick a few and Pin selected — handy right after Extract images from text, or anytime you just fancy a couple back on the chat. Tap any saved image normally to open Fullscreen, Pin, Save to device, Copy link, Rename, Info and its Delete button. Rename only changes the label; the image itself is never touched. That Delete button — and Clear all too — don't erase the image right away either; see Recycle Bin below.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpRecycleT">Recycle Bin</b><p data-i18n="runtime.helpRecycleB">Nothing's gone the moment you delete it. Deleted saved images rest in the Recycle Bin first — 7 or 30 days, whichever you've picked under Settings — so a stray tap on Clear all is never the end of the world. Open it anytime from "Open Recycle Bin" in the chat's right sidebar, tick whatever you want, then Restore (it lands right back in the chat it came from) or Delete forever if you're sure. Anything you never touch quietly clears itself out once its own time is up.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpThemeT">Make it yours</b><p data-i18n="runtime.helpThemeB">See the little monkey munching a banana next to the title? Poke him — he gets grumpy, then opens the look options: a wallpaper from your phone (or an image link), how dark it is, a nature-inspired panel background like Forest or Aurora, the panel font, and your floating button's icon and color. Everything applies right away, and "Back to defaults" undoes your changes.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS1T">Preview &amp; pin images</b><p data-i18n="runtime.helpS1B">Paste an image link or a webpage link, then tap Preview. Pin on chat keeps it floating over the chat so you can look at it while you type. Drag to move, pinch or use +/- to resize. The pin&#39;s toolbar also has reset, rotate, flip, fullscreen and remove; tap ︿ to fold the toolbar away. Clear all next to &quot;Pinned on chat&quot; unpins everything at once — it only unpins them, nothing is deleted. If the floating button ends up stuck off-screen, use &quot;Reset floating button position&quot; in the chat&#39;s right sidebar (Plugin · Image Preview) to bring it back. You can pin up to 30 images at once; remove one to pin another. Only images, GIFs and web pages are ever fetched.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpExtractT">Extract images from text</b><p data-i18n="runtime.helpExtractB">Got a big pasted character card or post full of pictures? Paste the whole thing into the chat input, then tap &quot;Extract images from text&quot; in the + menu — it quietly ignores all the text and hands you just the images and GIFs to look through. Everything starts checked; tap any tile you don&#39;t want to leave it out, then Save selected (or just Save all) tucks them into Saved Previews. Want a few of them floating on the chat too? Head to Saved Previews afterward and use Select. You can also skip the pasting: tap &quot;Scan this chat for images&quot; in the panel (or in the right sidebar) and it searches the whole chat for you — the character card, persona, lorebooks and every message, newest first. Tap Rescan chat any time after the chat changes and it tells you what&#39;s new. Images you&#39;ve already saved are marked Saved and skipped. Scanning only reads the chat on your device; the pictures themselves load from their original links. Links to videos, music, archives, apps or other files are ignored.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpPageT">Character page</b><p data-i18n="runtime.helpPageB">Open it from the panel, or from &quot;Character page&quot; in the chat&#39;s right sidebar (Plugin · Image Preview). It reads the open chat&#39;s card (creator notes, description, personality and scenario) and shows it as one scrollable page, with the pictures and GIFs where the card put them, a bit like a bot&#39;s intro page. Tap a picture to see it bigger. In a group chat, tap a name at the top to switch characters. Bright text colours are kept; backgrounds are not. It is read on your device, and the pictures load from their original links only when you open the page. Opening it from the panel closes the panel; tap the floating button to bring the panel back.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS2T">Save &amp; manage images</b><p data-i18n="runtime.helpS2B">Save preview keeps a copy for this chat, and every pinned image is saved automatically too. Tap Select above the saved grid to pick a few and Pin selected — handy right after Extract images from text, or anytime you just fancy a couple back on the chat. Tap any saved image normally for Fullscreen, Pin, Save to device, Copy link, Rename, Info and Delete. Rename only changes the label; the image itself is never touched. Deleting one — or using Clear all — doesn&#39;t erase it right away either; see Recycle Bin below. The saved grid shows 200 images at a time; tap Show more at its end for the rest.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpRecycleT">Recycle Bin</b><p data-i18n="runtime.helpRecycleB">Nothing&#39;s gone the moment you delete it. Deleted saved images rest in the Recycle Bin first — 7 or 30 days, whichever you&#39;ve picked under Settings — so a stray tap on Clear all is never the end of the world. Open it anytime from &quot;Open Recycle Bin&quot; in the chat&#39;s right sidebar, tick whatever you want, then Restore (it lands in the chat you have open) or Delete forever if you&#39;re sure. Anything you never touch quietly clears itself out once its own time is up.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpThemeT">Make it yours</b><p data-i18n="runtime.helpThemeB">See the little monkey munching a banana next to the title? Poke him — he gets grumpy, then opens the look options: a wallpaper from your phone (or an image link), how dark it is, a nature-inspired panel background like Forest or Aurora, the panel font, and your floating button&#39;s icon and color. Everything applies right away, and &quot;Back to defaults&quot; undoes your changes.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS3T">Quick Lookup ⚓</b><p data-i18n="runtime.helpS3B">The ⚓ hangs on a rope and sways by itself. Pull it down to open Translate, Meaning and Web Search. To close, tap the ⚓ or pull it down again. A tap on the closed anchor only gives the rope a tug.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS4T">Game Corner</b><p data-i18n="runtime.helpS4B">Tap 🎮 for a Jump Game, Snake and Memory Bomb, or add your own game. Drag the top bar to move the window and the corner to resize it. The ⚙ button inside a game holds your player name and that game's own settings and resets.</p></div>
-          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS5T">Your privacy</b><p data-i18n="runtime.helpS5B">Saved images and pins belong only to this chat — the one exception is the Recycle Bin, which holds deleted images across every chat until they're restored or their time runs out. Built-in games are fully offline. Games you add yourself run in an isolated box and cannot read your chats or Tavo data. Privacy Mode blocks every lookup request.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS4T">Game Corner</b><p data-i18n="runtime.helpS4B">Tap 🎮 for a Jump Game, Snake and Memory Bomb, or add your own game. Drag the top bar to move the window and the corner to resize it. The ⚙ button inside a game holds your player name and that game&#39;s own settings and resets.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS5T">Your privacy</b><p data-i18n="runtime.helpS5B">Saved images and pins belong only to this chat — the one exception is the Recycle Bin, which holds deleted images across every chat until they&#39;re restored or their time runs out. Built-in games are fully offline. Games you add yourself run in an isolated box and cannot read your chats or Tavo data. Privacy Mode blocks every lookup request. Nothing is collected or sent to the author. Only images, GIFs and web pages are downloaded; links to videos, apps, archives and other files are refused before anything is fetched. You can read the Terms of Use again below.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpTipsT">If something won&#39;t close or open</b><p data-i18n="runtime.helpTipsB">Every box closes with its × at the top, by tapping outside it, or with Close at the bottom (Help and Character page). If the floating button is off-screen, use &quot;Reset floating button position&quot; in the chat&#39;s right sidebar. If a pin says the limit is reached, remove one first. If a link won&#39;t preview, it may not be an image, GIF or web page, or the site may block outside apps.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.aboutT">About &amp; support</b><p data-i18n="runtime.aboutB">Image Preview is a free plugin made by Emon. Questions, bugs or ideas? Come say hi.</p><div class="emon-iv-about-links"><button id="emon-iv-about-terms" type="button" data-i18n="runtime.aboutTerms">Terms of Use</button><button id="emon-iv-about-discord" type="button" data-i18n="runtime.aboutDiscord">Discord</button></div></div>
+        </div>
+        <div class="emon-iv-modal-row"><button id="emon-iv-help-close2" type="button" data-i18n="runtime.close">Close</button></div>
+      </div>
+    </div>
+
+    <div id="emon-iv-page" class="emon-iv-modal" role="dialog" aria-modal="true" aria-labelledby="emon-iv-page-title">
+      <div class="emon-iv-modal-card emon-iv-page-card">
+        <div class="emon-iv-modal-head"><button id="emon-iv-page-close" class="emon-iv-close" style="width:30px;height:30px;font-size:14px">×</button></div>
+        <div class="emon-iv-sheet-heading" id="emon-iv-page-title" data-i18n="runtime.pageTitle">Character page</div>
+        <div id="emon-iv-page-chars" class="emon-iv-page-chars"></div>
+        <div id="emon-iv-page-body" class="emon-iv-page-body"></div>
+        <div class="emon-iv-modal-row"><button id="emon-iv-page-close2" type="button" data-i18n="runtime.close">Close</button></div>
+      </div>
+    </div>
+
+    <div id="emon-iv-terms" class="emon-iv-modal emon-iv-terms" role="dialog" aria-modal="true" aria-labelledby="emon-iv-terms-title">
+      <div class="emon-iv-modal-card emon-iv-sheet-card">
+        <div class="emon-iv-info-title" id="emon-iv-terms-title" data-i18n="runtime.termsTitle">Welcome to Image Preview 👋</div>
+        <p class="emon-iv-terms-lead" data-i18n="runtime.termsLead">A quick agreement before you start — short, friendly, and in plain words.</p>
+        <ul class="emon-iv-terms-list">
+          <li data-i18n="runtime.termsP1">🎨 Free, and made by one person, Emon, for everyone to enjoy.</li>
+          <li data-i18n="runtime.termsP2">🧭 What you preview, save, pin, look up or play is your choice. Please use it kindly, lawfully, and by Tavo's rules.</li>
+          <li data-i18n="runtime.termsP3">🔒 Nothing is collected or sent to me. Your images, pins and settings stay on your phone. It goes online only when you ask it to.</li>
+          <li data-i18n="runtime.termsP4">🛠️ Shared as-is. I do my best to keep it safe and smooth, but I can't promise it's perfect, so you use it at your own responsibility.</li>
+        </ul>
+        <button id="emon-iv-terms-more" class="emon-iv-terms-link" type="button" aria-expanded="false" aria-controls="emon-iv-terms-full">Read the full terms</button>
+        <div id="emon-iv-terms-full" class="emon-iv-terms-full" hidden>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.termsF1T">Who this is from</b><p data-i18n="runtime.termsF1B">Image Preview is an independent, free plugin made and looked after by Emon (silent000). It is not made, owned or endorsed by Tavo.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.termsF2T">Your agreement</b><p data-i18n="runtime.termsF2B">When you tick the box and tap “Agree &amp; continue”, you confirm that you've read these terms and Tavo's Terms of Service, understood them, and accept them of your own free will. Prefer not to? Tap “Not now” — Image Preview just stays closed.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.termsF3T">Your choices, your responsibility</b><p data-i18n="runtime.termsF3B">You decide which links, images, text and games you use and what you do with them, so they are your responsibility — including having the right to use and save what you load. Images belong to their owners; Image Preview doesn't host, upload or share anything.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.termsF4T">Be kind, follow the rules</b><p data-i18n="runtime.termsF4B">Please follow the law where you live, Tavo's Terms, and the rules of the websites you load from. Don't use Image Preview to harm anyone, to break anyone's rights, or to scrape, overload or disrupt a website. These terms never replace those other rules.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.termsF5T">Your privacy</b><p data-i18n="runtime.termsF5B">I don't collect, track or send your data anywhere: no accounts, ads or analytics. Everything stays on your device inside Tavo. It connects to the internet only when you ask it to — opening an image or page link, or Quick Lookup (Privacy Mode turns lookups off).</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.termsF6T">Games you add</b><p data-i18n="runtime.termsF6B">Built-in games run fully offline. A game you add yourself runs in an isolated box, but adding it is your choice and your responsibility, so only add ones you trust.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.termsF7T">As-is, and limits</b><p data-i18n="runtime.termsF7B">Image Preview comes “as is”, with no promises: it can have bugs, and it may change or stop working when Tavo updates. As far as the law allows, I'm not responsible for lost or changed files, device or app problems, or anything that happens from how you use it. Nothing here limits any right the law says can't be limited.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.termsF8T">Age</b><p data-i18n="runtime.termsF8B">Please be old enough to agree to this where you live, or have a parent or guardian's OK.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.termsF9T">Changes and contact</b><p data-i18n="runtime.termsF9B">If these terms change in an important way, you'll be asked to agree again. Questions? Find me on Discord (❔ Help → About &amp; support).</p></div>
+          <div class="emon-iv-terms-date" data-i18n="runtime.termsUpdated">Last updated October 3, 2026 · Terms version 1</div>
+        </div>
+        <button id="emon-iv-terms-tavo" class="emon-iv-terms-link" type="button" data-i18n="runtime.termsTavoLink">Read Tavo's Terms of Service</button>
+        <label class="emon-iv-terms-check"><input id="emon-iv-terms-ok" type="checkbox"><span data-i18n="runtime.termsCheck">I've read these terms and Tavo's Terms of Service, and I agree.</span></label>
+        <div class="emon-iv-modal-row">
+          <button id="emon-iv-terms-later" type="button" data-i18n="runtime.termsLater">Not now</button>
+          <button id="emon-iv-terms-agree" class="pri" type="button" disabled>Agree &amp; continue</button>
         </div>
       </div>
     </div>
@@ -727,6 +817,22 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   if (!root || root.dataset.ready === '1') return;
   root.dataset.ready = '1';
 
+  // If this fragment gets mounted again in the same window (chat switch, plugin reload), the previous copy's window
+  // listeners and Tavo subscriptions are released first, so nothing runs twice.
+  try { window.__emonIvLife && window.__emonIvLife.abort(); } catch {}
+  const life = new AbortController();
+  window.__emonIvLife = life;
+  const winOn = (type, fn, opts) => window.addEventListener(type, fn, { ...((opts && typeof opts === 'object') ? opts : { capture: !!opts }), signal: life.signal });
+  // Messages between entry.js and this panel. This version's entry.js sends "<name>-v2"; the older plain names are still understood,
+  // and in the capture phase, so an older copy of the panel that is still alive in the page (after an update without restarting
+  // Tavo) never gets to react to them before the Terms are agreed to.
+  const bus = (name, fn) => {
+    winOn(name + '-v2', fn);
+    winOn(name, (e) => { try { e.stopImmediatePropagation(); } catch {} fn(e); }, { capture: true });
+  };
+  const offOnAbort = (off) => { if (typeof off === 'function') life.signal.addEventListener('abort', () => { try { off(); } catch {} }, { once: true }); };
+  life.signal.addEventListener('abort', () => { try { document.querySelectorAll('[data-emon-pin]').forEach(n => n.remove()); } catch {} }, { once: true });
+
   const fab = document.getElementById('emon-iv-fab');
   const panel = document.getElementById('emon-iv-panel');
   const pouchFx = document.getElementById('emon-iv-pouch-fx');
@@ -901,6 +1007,8 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   const cfg = () => tavo.plugin.config.all();
   let currentPreview = null;
   let pins = [];
+  const MAX_PINS = 30;        // pinned images on screen at once (remove one to pin another)
+  let pinsOverflow = [];      // saved pins beyond the limit (from older versions): kept safe in storage, not drawn
   let pinSeq = 0;
 
   function t(key, params) {
@@ -922,9 +1030,14 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   }
 
   function renderText() {
-    root.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
-    root.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
-    root.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+    // pop-ups that are open right now live on <body> (outside root), so they are refreshed too
+    [root, ..._portaled].forEach(scope => {
+      scope.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+      scope.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
+      scope.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); if (el.hasAttribute('aria-label')) el.setAttribute('aria-label', el.title); });
+    });
+    refreshTermsUI();
+    relabelPins();
     if(lookupMode==='search') refreshSearchKeyUI();
     refreshPrivacyUI();
     renderPinsList();
@@ -977,10 +1090,11 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     tavo.utils.openUrl(new URL(s).href);
   }
 
+  const MAX_DATA_URL = 8000000;   // a pasted data: image bigger than this is refused (it would be copied into saved pins)
   function normalizeUrl(raw) {
     const s = String(raw || '').trim();
     if (!s) return null;
-    if (/^data:image\//i.test(s)) return s;
+    if (/^data:image\//i.test(s)) return s.length <= MAX_DATA_URL ? s : null;
     if (s.length > 4096) return null;
     try {
       const u = new URL(s);
@@ -989,6 +1103,157 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     } catch {
       return null;
     }
+  }
+
+  // ---- Terms of Use ----
+  // A short, friendly agreement the person ticks once before anything opens (the button, Extract images, Scan chat,
+  // Recycle Bin). The answer stays on this phone only (global scope) together with the terms version: raise
+  // TERMS_VERSION when the terms change in an important way and everyone is asked again.
+  const TERMS_VAR = 'emonImageViewerTerms';
+  const TERMS_VERSION = 1;
+  const TAVO_TERMS_URL = 'https://docs.tavoai.dev/en/terms-of-service/';
+  const SUPPORT_DISCORD_URL = 'https://discord.gg/pHJffeGrsP';
+  const termsEl = document.getElementById('emon-iv-terms');
+  const termsOkEl = document.getElementById('emon-iv-terms-ok');
+  const termsAgreeBtn = document.getElementById('emon-iv-terms-agree');
+  const termsLaterBtn = document.getElementById('emon-iv-terms-later');
+  const termsMoreBtn = document.getElementById('emon-iv-terms-more');
+  const termsFullEl = document.getElementById('emon-iv-terms-full');
+  const termsTavoBtn = document.getElementById('emon-iv-terms-tavo');
+  let termsPending = null, termsReadOnly = false;
+  function termsAgreed() {
+    try { const v = tavo.get(TERMS_VAR, 'global'); return !!(v && typeof v === 'object' && Number(v.v) >= TERMS_VERSION); } catch { return false; }
+  }
+  function refreshTermsUI() {
+    try {
+      termsMoreBtn.textContent = t(termsFullEl.hidden ? 'runtime.termsMore' : 'runtime.termsLess');
+      termsAgreeBtn.textContent = t(termsReadOnly ? 'runtime.termsClose' : 'runtime.termsAgree');
+    } catch {}
+  }
+  function showTerms(readOnly) {
+    termsReadOnly = !!readOnly;
+    termsEl.classList.toggle('readonly', termsReadOnly);
+    termsOkEl.checked = termsReadOnly;
+    termsAgreeBtn.disabled = !termsReadOnly;
+    termsFullEl.hidden = true;
+    termsMoreBtn.setAttribute('aria-expanded', 'false');
+    refreshTermsUI();
+    showModal(termsEl);
+  }
+  // Runs `next` straight away once the terms are agreed to; until then it shows them, and runs `next` only after "Agree".
+  function requireTerms(next) {
+    if (termsAgreed()) { if (next) next(); return true; }
+    termsPending = next || null;
+    showTerms(false);
+    return false;
+  }
+  function agreeTerms() {
+    if (termsReadOnly) { hideModal(termsEl); return; }
+    if (!termsOkEl.checked) return;
+    try { tavo.set(TERMS_VAR, { v: TERMS_VERSION, at: new Date().toISOString() }, 'global'); } catch {}
+    if (!termsAgreed()) { tavo.utils.toast(t('runtime.error')); return; }   // it could not be remembered: don't pretend it was
+    const next = termsPending; termsPending = null;
+    hideModal(termsEl);
+    tavo.utils.toast(t('runtime.termsThanks'));
+    startApp();
+    if (next) setTimeout(next, 150);
+  }
+  function declineTerms() {
+    const wasReadOnly = termsReadOnly;
+    termsPending = null;
+    hideModal(termsEl);
+    if (!wasReadOnly) tavo.utils.toast(t('runtime.termsDeclined'));
+  }
+  // The plugin's own start-up work (restoring pins, tidying temp files, emptying an expired Recycle Bin) waits for the agreement too.
+  let _started = false;
+  function startApp() {
+    if (_started || !termsAgreed()) return false;
+    _started = true;
+    cleanTempPages(); purgeExpiredRecycleBin(); restorePins();
+    return true;
+  }
+  termsOkEl.onchange = () => { if (!termsReadOnly) termsAgreeBtn.disabled = !termsOkEl.checked; };
+  termsAgreeBtn.onclick = agreeTerms;
+  termsLaterBtn.onclick = declineTerms;
+  termsMoreBtn.onclick = () => { termsFullEl.hidden = !termsFullEl.hidden; termsMoreBtn.setAttribute('aria-expanded', termsFullEl.hidden ? 'false' : 'true'); refreshTermsUI(); };
+  termsTavoBtn.onclick = () => openSafe(TAVO_TERMS_URL);
+  bindBackdropClose(termsEl, declineTerms);
+  const aboutTermsBtn = document.getElementById('emon-iv-about-terms');
+  const aboutDiscordBtn = document.getElementById('emon-iv-about-discord');
+  if (aboutTermsBtn) aboutTermsBtn.onclick = () => showTerms(true);
+  if (aboutDiscordBtn) aboutDiscordBtn.onclick = () => openSafe(SUPPORT_DISCORD_URL);
+
+  // ---- What may be downloaded: images, GIFs and web pages, nothing else ----
+  // Videos, music, archives, apps, documents, fonts, model files and other files are refused before anything is fetched.
+  // A link's file ending is checked first; when it has none, the server is asked for its headers only (the body is never read).
+  const BLOCKED_EXT = new Set(('mp4 m4v mkv webm mov avi wmv flv f4v mpg mpeg mpe 3gp 3g2 ts m2ts mts ogv vob rm rmvb asf divx ' +
+    'mp3 wav flac ogg oga opus m4a aac wma aiff mid midi amr ' +
+    'zip rar 7z tar gz tgz bz2 xz zst lz lzma cab iso img dmg vhd vmdk pkg ' +
+    'apk xapk apks aab ipa exe msi msix bat cmd scr dll dylib bin jar war deb rpm appimage ps1 vbs ' +
+    'pdf doc docx xls xlsx ppt pptx odt ods odp rtf epub mobi azw3 djvu cbz cbr csv tsv json xml sql db sqlite ' +
+    'torrent ttf otf woff woff2 eot psd eps indd xcf blend fbx obj stl 3mf ' +
+    'tpg thm charx safetensors gguf ggml ckpt pth onnx pkl npz h5 pb tflite').split(' '));
+  const PAGE_MAX_BYTES = 6 * 1024 * 1024, IMAGE_MAX_BYTES = 50 * 1024 * 1024, TMP_MAX_BYTES = 25 * 1024 * 1024;
+  function fileExtOf(u) {
+    try {
+      let last = new URL(String(u)).pathname.split('/').pop() || '';
+      try { last = decodeURIComponent(last); } catch {}
+      const m = /\.([a-z0-9]{1,14})$/i.exec(last);
+      return m ? m[1].toLowerCase() : '';
+    } catch { return ''; }
+  }
+  const isBlockedFileType = (u) => BLOCKED_EXT.has(fileExtOf(u));
+  const isFetchableUrl = (u) => isPublicHttpUrl(u) && !isBlockedFileType(u);
+  const blockedErr = (key) => Object.assign(new Error(key), { msgKey: key });
+  // Headers only: ask what a link is without downloading it. { kind: image | page | big | blocked | unknown } or null when the
+  // server doesn't let us look (then nothing is assumed). The body is cancelled right away and never read.
+  async function peekType(url, ms = 6000) {
+    if (typeof fetch !== 'function') return null;
+    const ac = (typeof AbortController === 'function') ? new AbortController() : null;
+    const timer = setTimeout(() => { try { ac && ac.abort(); } catch {} }, ms);
+    try {
+      const r = await fetch(url, { method: 'GET', mode: 'cors', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: ac ? ac.signal : undefined });
+      let redirectedAway = false;
+      try { redirectedAway = !!(r.redirected && r.url && !isPublicHttpUrl(r.url)); } catch {}
+      const head = (n) => { try { return (r.headers && r.headers.get && r.headers.get(n)) || ''; } catch { return ''; } };
+      const type = String(head('content-type')).split(';')[0].trim().toLowerCase();
+      const len = Number(head('content-length')) || 0;
+      try { ac && ac.abort(); } catch {}                                        // headers are all we wanted: stop the body right here
+      try { const c = r.body && r.body.cancel && r.body.cancel(); c && c.catch && c.catch(() => {}); } catch {}
+      if (redirectedAway) return { kind: 'blocked' };
+      if (!type || type === 'application/octet-stream' || type === 'binary/octet-stream') return { kind: 'unknown', len };
+      if (type.startsWith('image/')) return { kind: len > IMAGE_MAX_BYTES ? 'big' : 'image', len };
+      if (type === 'text/html' || type === 'application/xhtml+xml') return { kind: len > PAGE_MAX_BYTES ? 'big' : 'page', len };
+      return { kind: 'blocked', type };
+    } catch { return null; }
+    finally { clearTimeout(timer); }
+  }
+  // The same link is not asked about twice, and a batch asks about its next links a few at a time while it works.
+  const _peekCache = new Map();
+  function peekCached(url) {
+    let p = _peekCache.get(url);
+    if (!p) { p = peekType(url); _peekCache.set(url, p); setTimeout(() => _peekCache.delete(url), 90000); }
+    return p;
+  }
+  function prefetchPeeks(urls, width = 6) {
+    const todo = [...new Set(urls)].filter(u => /^https?:/i.test(u || '') && !isBlockedFileType(u) && !_peekCache.has(u)).slice(0, 300);
+    let i = 0;
+    const worker = async () => { while (i < todo.length) await peekCached(todo[i++]); };
+    for (let k = 0; k < Math.min(width, todo.length); k++) worker();
+  }
+  async function fileSizeOf(path) {
+    try {
+      let cursor;
+      for (let pageNo = 0; pageNo < 50; pageNo++) {
+        const opts = { scope: 'chat', limit: 200 }; if (cursor) opts.cursor = cursor;
+        const page = await tavo.file.list(opts);
+        const hit = ((page && page.files) || []).find(f => f.path === path);
+        if (hit) return Number(hit.size) || 0;
+        if (!page || !page.nextCursor) break;
+        cursor = page.nextCursor;
+      }
+    } catch {}
+    return -1;
   }
 
   function looksLikeImage(url) {
@@ -1048,7 +1313,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     const add = (value, source, extra) => {
       const abs = absUrl(baseUrl, decodeHtml(String(value || '').trim()));
       if(!abs || !(/^https?:/i.test(abs) || /^data:image\//i.test(abs))) return;
-      if(/^https?:/i.test(abs) && (isAdHost(abs) || !isPublicHttpUrl(abs))) return;
+      if(/^https?:/i.test(abs) && (isAdHost(abs) || !isFetchableUrl(abs))) return;
       if(source === 'content' && isAdPath(abs)) return;
       if(seen.has(abs)) return;
       seen.add(abs);
@@ -1169,7 +1434,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       const map = getSourceMap();
       map[path] = String(url).slice(0, 500);
       const keys = Object.keys(map);
-      if (keys.length > 300) delete map[keys[0]]; // keep the map from growing forever
+      if (keys.length > 1000) delete map[keys[0]]; // keep the map from growing forever
       tavo.set('emonImageViewerSourceMap', map, 'chat');
     } catch {}
   }
@@ -1204,13 +1469,28 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   // tavo.file.save(url) has no timeout of its own, so one stalled server could freeze every save
   // (Extract's Save buttons stay locked until the app restarts). Give up on a download after 45s.
   const DOWNLOAD_TIMEOUT_MS = 45000;
+  const PAGE_TIMEOUT_MS = 30000;      // a web page that never answers must not leave "Loading…" up forever
+  let previewSeq = 0;                 // only the newest Preview tap may show its result
   function withTimeout(promise, ms) {
     let timer;
     const guard = new Promise((_, rej) => { timer = setTimeout(() => rej(Object.assign(new Error('timeout'), { code: 'timeout' })), ms); });
     return Promise.race([promise, guard]).finally(() => clearTimeout(timer));
   }
-  async function persistRemote(url, prefix='emon-preview', requireListed=false) {
+  // Two taps (or Save + Pin) on the same address while the first download is still running used to start two downloads
+  // and keep two copies. The same address already in flight now shares that one download.
+  const _persistInflight = new Map();
+  function persistRemote(url, prefix='emon-preview', requireListed=false) {
+    if (!/^https?:/i.test(url || '')) return persistRemoteNow(url, prefix, requireListed);
+    const key = srcKey(url);
+    const running = _persistInflight.get(key);
+    if (running) return running;
+    const p = persistRemoteNow(url, prefix, requireListed).finally(() => { if (_persistInflight.get(key) === p) _persistInflight.delete(key); });
+    _persistInflight.set(key, p);
+    return p;
+  }
+  async function persistRemoteNow(url, prefix='emon-preview', requireListed=false) {
     if (/^https?:/i.test(url) && !isPublicHttpUrl(url)) throw new Error('blocked address');
+    if (/^https?:/i.test(url) && isBlockedFileType(url)) throw blockedErr('runtime.notImageFile');
     const existing = await findExistingBySource(url, requireListed);
     if (existing) return existing;
     let ext = null;
@@ -1226,12 +1506,34 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     }
     const safe = prefix.replace(/[^a-z0-9_-]/gi,'-').slice(0,32);
     const stem = `${safe}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
-    if(ext) { const p = await withTimeout(tavo.file.save(`${stem}.${ext}`, url, {scope:'chat'}), DOWNLOAD_TIMEOUT_MS); if (/^https?:/i.test(url)) recordSource(p, url); return p; }
-    // No extension in the URL: save it, look at the first bytes, and keep it under its real type (GIFs stay GIFs).
+    if(ext) {
+      // a link that ends like an image is checked too: headers first (when the site lets us look), so a "photo.jpg" that is really a
+      // video, or gigantic, is refused before it is downloaded
+      const pk = /^https?:/i.test(url) ? await peekCached(url) : null;
+      if (pk && pk.kind === 'blocked') throw blockedErr('runtime.notImageFile');
+      if (pk && pk.kind === 'big') throw blockedErr('runtime.fileTooBig');
+      const dl = tavo.file.save(`${stem}.${ext}`, url, {scope:'chat'});
+      let p;
+      try { p = await withTimeout(dl, DOWNLOAD_TIMEOUT_MS); }
+      catch (err) { dl.then(late => tavo.file.delete(late, {scope:'chat'})).catch(()=>{}); throw err; }   // gave up waiting: if it lands later, don't leave a stray copy
+      if (/^https?:/i.test(url) && !(pk && pk.kind === 'image')) {   // size could not be checked in advance: an oversize result is deleted again
+        const sz = await fileSizeOf(p);
+        if (sz > IMAGE_MAX_BYTES) { await tavo.file.delete(p, {scope:'chat'}).catch(()=>{}); throw blockedErr('runtime.fileTooBig'); }
+      }
+      if (/^https?:/i.test(url)) recordSource(p, url);
+      return p;
+    }
+    // No extension in the URL: first ask the server what it is (headers only); only an image is downloaded.
+    const peek = await peekCached(url);
+    if (peek && (peek.kind === 'blocked' || peek.kind === 'page')) throw blockedErr('runtime.notImageFile');
+    if (peek && peek.kind === 'big') throw blockedErr('runtime.fileTooBig');
+    // Then save it, look at the first bytes, and keep it under its real type (GIFs stay GIFs).
     const dl = tavo.file.save(`${stem}.tmp`, url, {scope:'chat'});
     let tmp;
     try { tmp = await withTimeout(dl, DOWNLOAD_TIMEOUT_MS); }
     catch (err) { dl.then(late => tavo.file.delete(late, {scope:'chat'})).catch(()=>{}); throw err; }   // if it lands later, don't leave it behind
+    const tsz = await fileSizeOf(tmp);
+    if (tsz > TMP_MAX_BYTES) { await tavo.file.delete(tmp, {scope:'chat'}).catch(()=>{}); throw blockedErr('runtime.fileTooBig'); }   // too big to look at safely: discarded
     let real = 'jpg', b64 = null;
     try{
       b64 = await tavo.file.load(tmp, {scope:'chat', encoding:'base64'});
@@ -1264,9 +1566,12 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   async function loadPreview(raw) {
     const url = normalizeUrl(raw);
     if (!url) { setStatus(t(isBlockedWebTarget(raw) ? 'runtime.urlBlocked' : 'runtime.invalidUrl')); return; }
+    const seq = ++previewSeq;
+    if (isBlockedFileType(url)) { previewEl.classList.remove('show'); setStatus(t('runtime.notImageFile')); return; }   // videos, archives, apps… are never fetched
     setStatus(t('runtime.loading'));
     previewEl.classList.remove('show');
     const show = (cand, tried, titleHint) => {
+      if (seq !== previewSeq) return;
       currentPreview = {src: cand.url, original: url, source: cand.source, title: titleHint || titleFromUrl(url)};
       try{ previewImg.referrerPolicy = 'no-referrer'; }catch{}
       previewImg.src = cand.url;
@@ -1284,21 +1589,44 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       if (looksLikeImage(url) || /^data:image\//i.test(url)) {
         const direct = [url];
         if (/^http:/i.test(url)) direct.push(url.replace(/^http:/i, 'https:'));
+        if (/^https?:/i.test(url)) {   // even a link that ends like an image is asked about first: a video or a gigantic file is never pulled into the page
+          const pk0 = await peekCached(url);
+          if (seq !== previewSeq) return;
+          if (pk0 && (pk0.kind === 'blocked' || pk0.kind === 'big')) { setStatus(t(pk0.kind === 'big' ? 'runtime.fileTooBig' : 'runtime.notImageFile')); return; }
+        }
         for (const u of direct) {
           if (await probeImage(u)) { show({url:u, source:'direct'}, 1); return; }
         }
         if (/^data:/i.test(url)) throw new Error('bad data image');
       }
-      // 2. A web page: collect every image it points to and use the first one that really loads.
-      const pageFile = await tavo.file.save(`emon-page-${Date.now()}.html`, url, {scope:'chat'});
-      let candidates = [], notAPage = false;
+      // 2. Not an image link by its ending: ask the server what it is (headers only) before anything is downloaded.
+      const peek = await peekCached(url);
+      if (seq !== previewSeq) return;
+      if (peek && (peek.kind === 'blocked' || peek.kind === 'big')) { setStatus(t(peek.kind === 'big' ? 'runtime.fileTooBig' : 'runtime.notImageFile')); return; }
+      if (peek && peek.kind === 'image') {
+        if (await probeImage(url)) { show({url, source:'direct'}, 1); return; }
+        throw new Error('image could not be shown');
+      }
+      // 3. A web page: collect every image it points to and use the first one that really loads.
+      const pageDl = tavo.file.save(`emon-page-${Date.now()}.html`, url, {scope:'chat'});
+      let pageFile;
+      try { pageFile = await withTimeout(pageDl, PAGE_TIMEOUT_MS); }
+      catch (err) { pageDl.then(late => tavo.file.delete(late, {scope:'chat'})).catch(()=>{}); throw err; }
+      if (seq !== previewSeq) { tavo.file.delete(pageFile, {scope:'chat'}).catch(()=>{}); return; }
+      let candidates = [], notAPage = false, tooBig = false;
       try {
-        const html = await tavo.file.load(pageFile, {encoding:'utf8'});
-        if (isHtmlish(html)) candidates = extractPageImages(html, url);
-        else notAPage = true;
+        // a big download is never read into memory: a web page is a few hundred KB, not megabytes
+        const size = await fileSizeOf(pageFile);
+        if (size > PAGE_MAX_BYTES) tooBig = true;
+        else {
+          const html = await tavo.file.load(pageFile, {encoding:'utf8'});
+          if (isHtmlish(html)) candidates = extractPageImages(html, url);
+          else notAPage = true;
+        }
       } finally {
         await tavo.file.delete(pageFile, {scope:'chat'}).catch(()=>{});
       }
+      if (tooBig) { setStatus(t('runtime.fileTooBig')); return; }
       if (notAPage) {
         // not a web page: it may be an image link without a file extension (e.g. .../photo?id=7)
         if (await probeImage(url)) { show({url, source:'direct'}, 1); return; }
@@ -1306,7 +1634,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       }
       let tried = 0;
       for (const c of candidates) {
-        if (Date.now() > deadline) break;
+        if (Date.now() > deadline || seq !== previewSeq) break;
         tried++;
         if (tried > 1) setStatus(t('runtime.tryingAlt', {n: tried}));
         const r = await probeImage(c.url);
@@ -1320,6 +1648,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       throw new Error('no usable image');
     } catch (e) {
       console.error('[Image Preview]', e);
+      if (seq !== previewSeq) return;
       setStatus(t('runtime.failed'));
       tavo.utils.toast(t('runtime.error'));
     }
@@ -1345,7 +1674,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       try { savedEl.scrollTo({left:0, behavior:'smooth'}); } catch {}
     } catch (e) {
       console.error('[Image Preview] save preview', e);
-      const msg = (e && e.message === 'gone') ? t('runtime.originalGone') : t('runtime.error');
+      const msg = (e && e.msgKey) ? t(e.msgKey) : (e && e.message === 'gone') ? t('runtime.originalGone') : t('runtime.error');
       setStatus(t('runtime.failed'));
       tavo.utils.toast(msg);
     }
@@ -1393,7 +1722,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
               .map(e => ({ ...e, deletedAt: Number.isFinite(Number(e.deletedAt)) ? Number(e.deletedAt) : Date.now() }));
     } catch { return []; }
   }
-  function setRecycleBin(list) { try { tavo.set('emonImageViewerRecycleBin', list, 'global'); } catch {} }
+  function setRecycleBin(list) { try { tavo.set('emonImageViewerRecycleBin', list, 'global'); return true; } catch { return false; } }
   function recycleRetentionDays() { const v = Number(cfg().recycleBinRetention); return (v === 7 || v === 30) ? v : 30; }
   function recycleExpiryAt(entry) { return entry.deletedAt + recycleRetentionDays() * 86400000; }
 
@@ -1426,17 +1755,22 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
         chatName: chat?.name || t('runtime.unknownChat'),
         sourceUrl: getSourceMap()[f.path] || null,
       };
+      // Write the bin entry first and check that it really landed, THEN remove the original: a failed write can no
+      // longer leave a picture that is in neither place.
+      const bin = getRecycleBin();   // read fresh right before writing
+      bin.push(entry);
+      let wrote = setRecycleBin(bin);
+      if (wrote) { try { wrote = getRecycleBin().some(x => x.id === entry.id); } catch { wrote = false; } }
+      if (!wrote) { await tavo.file.delete(recyclePath, { scope: 'global' }).catch(() => {}); return false; }
       let delOk = true;
       try { await tavo.file.delete(f.path, { scope: 'chat' }); } catch { delOk = false; }
       if (delOk) { try { delOk = !(await tavo.file.exists(f.path, { scope: 'chat' })); } catch {} }
       if (!delOk) {
-        // original could not be removed: undo the recycle copy so nothing is duplicated or falsely reported
+        // original could not be removed: undo the bin entry and the recycle copy so nothing is duplicated or falsely reported
+        setRecycleBin(getRecycleBin().filter(x => x.id !== entry.id));
         await tavo.file.delete(recyclePath, { scope: 'global' }).catch(() => {});
         return false;
       }
-      const bin = getRecycleBin();   // read fresh right before writing
-      bin.push(entry);
-      setRecycleBin(bin);
       forgetSource(f.path); forgetDisplayName(f.path);
       return true;
     } catch (e) { console.error('[Image Preview] recycle bin move', e); return false; }
@@ -1507,7 +1841,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       const map = getDeviceMap();
       delete map[key]; map[key] = path;                        // newest last
       const keys = Object.keys(map);
-      if (keys.length > 300) delete map[keys[0]];              // keep the map from growing forever
+      if (keys.length > 1000) delete map[keys[0]];              // keep the map from growing forever
       tavo.set(DEVICE_MAP_VAR, map, 'chat');
     } catch {}
   }
@@ -1915,6 +2249,8 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     el.addEventListener('click',e=>{ if(suppressClick || handledPointerTap || e.detail>0){e.preventDefault();e.stopPropagation();return;} onOpen?.(); });
   }
   if (helpCloseBtn) helpCloseBtn.onclick = () => hideModal(helpEl);
+  const helpClose2Btn = document.getElementById('emon-iv-help-close2');
+  if (helpClose2Btn) helpClose2Btn.onclick = () => hideModal(helpEl);
   bindBackdropClose(helpEl, () => hideModal(helpEl));
   bindTapSway(helpBtn, ()=>showModal(helpEl));
   bindTapSway(gameBtn, ()=>openGame());
@@ -2161,6 +2497,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 
   async function pinPreview(preview, offsetIndex = 0, refreshSaved = true) {
     if (!preview?.src) return;
+    if (pins.length >= MAX_PINS) { tavo.utils.toast(t('runtime.pinLimit', { n: MAX_PINS })); return false; }
     try {
       let src = preview.src;
       let createdNewFile = false;
@@ -2182,7 +2519,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       const item = {
         id: ++pinSeq,
         src,
-        original: preview.original || preview.src,
+        original: /^data:/i.test(preview.original || preview.src || '') ? '' : (preview.original || preview.src),
         title: preview.title || t('runtime.image'),
         ...pos,
         width: size,
@@ -2200,14 +2537,14 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       setStatus(t('runtime.pinnedNow'));
     } catch (e) {
       console.error(e);
-      tavo.utils.toast((e && e.message === 'gone') ? t('runtime.originalGone') : t('runtime.error'));
+      tavo.utils.toast((e && e.msgKey) ? t(e.msgKey) : (e && e.message === 'gone') ? t('runtime.originalGone') : t('runtime.error'));
     }
   }
 
   function savePins() {
     if (!cfg().rememberPins) return;
     try {
-      tavo.set('emonImageViewerPins', pins.map(p => ({...p})),'chat');
+      tavo.set('emonImageViewerPins', [...pins.map(p => ({...p})), ...pinsOverflow],'chat');
     } catch {}
   }
 
@@ -2229,12 +2566,24 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     const ok = typeof confirm === 'function' ? confirm(t('runtime.confirmClearPins')) : true;
     if (!ok) return;
     pins.slice().forEach(p => removePin(p.id, false));
+    pinsOverflow = [];
     savePins(); renderPinsList();
     tavo.utils.toast(t('runtime.pinsCleared'));
   }
 
+  // Pins that did not fit under the limit wait in storage; each freed slot brings the next one back.
+  function fillFreeSlots() {
+    let changed = false;
+    while (pins.length < MAX_PINS && pinsOverflow.length) {
+      const o = pinsOverflow.shift();
+      const p = { ...o, id: ++pinSeq, barCollapsed: typeof o.barCollapsed === 'boolean' ? o.barCollapsed : true };
+      keepPinReachable(p); pins.push(p); renderPin(p); changed = true;
+    }
+    if (changed) savePins();
+  }
   function renderPinsList() {
     if (!pinnedList) return;
+    fillFreeSlots();
     if (pinsClearBtn) pinsClearBtn.style.display = pins.length ? '' : 'none';
     pinnedList.innerHTML = '';
     if (!pins.length) {
@@ -2261,6 +2610,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       row.querySelector('[data-action="remove"]').onclick = e => { e.stopPropagation(); removePin(p.id); };
       pinnedList.appendChild(row);
     }
+    if (pinsOverflow.length) pinnedList.insertAdjacentHTML('beforeend', `<div class="emon-iv-empty">${esc(t('runtime.pinsWaitingNote', { n: pinsOverflow.length }))}</div>`);
   }
 
   function setScale(p, value) {
@@ -2419,12 +2769,23 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     el.addEventListener('pointercancel', endPointer);
   }
 
+  // A character's avatar is normally a path inside the app. A web address is allowed only if it passes the same public-image rules
+  // as every other picture here; anything else (other schemes, private addresses) is not loaded.
+  function safeAvatarSrc(v) {
+    const s = String(v || '').trim();
+    if (!s) return '';
+    try { if (s.startsWith(location.origin + '/')) return s; } catch {}                      // the app's own address
+    if (/^https?:\/\//i.test(s)) return (isFetchableUrl(s) && !isAdHost(s)) ? s : '';
+    if (/^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith('//') || s.includes('\\')) return '';
+    return s;
+  }
   function renderProfiles() {
     tavo.chat.current().then(chat=>{
       profilesEl.innerHTML='';
       const chars=chat?.characters || [];
       if(!chars.length){profilesEl.innerHTML=`<div class="emon-iv-empty">${esc(t('runtime.noProfiles'))}</div>`;return;}
-      for(const ch of chars){
+      for(const ch0 of chars){
+        const ch={...ch0,avatar:safeAvatarSrc(ch0&&ch0.avatar)};
         const card=document.createElement('button');card.className='emon-iv-card';
         card.innerHTML=`<img src="${esc(ch.avatar||'')}" alt="" loading="lazy" decoding="async"><div class="name">${esc(ch.name||t('runtime.profile'))}</div>`;
         card.onclick=()=>{
@@ -2471,7 +2832,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       const link=String(lookVal('wallpaperUrl')||'').trim();
       let bgVal=PANEL_BGS[lookVal('panelBackground')]||'';
       if(devicePath) bgVal=`${shade},url(${devicePath})`;                                    // picked from the phone wins
-      else if(/^https?:\/\/[^\s"'()<>\\]+$/i.test(link) && isPublicHttpUrl(link)) bgVal=`${shade},url(${link})`;      // then a pasted link
+      else if(/^https?:\/\/[^\s"'()<>\\]+$/i.test(link) && isFetchableUrl(link)) bgVal=`${shade},url(${link})`;      // then a pasted link
       if(bgVal) rootEl.style.setProperty('--emon-iv-bg',bgVal); else rootEl.style.removeProperty('--emon-iv-bg');
       if(wallRemoveBtn) wallRemoveBtn.disabled=!devicePath;
       applyFabLook();
@@ -2547,7 +2908,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   if(lookDim) lookDim.oninput=()=>setLookVal('wallpaperDim',Number(lookDim.value));
   if(lookLink) lookLink.onchange=()=>{
     const v=lookLink.value.trim();
-    if(v && (!/^https?:\/\/[^\s"'()<>\\]+$/i.test(v) || !isPublicHttpUrl(v))){ tavo.utils.toast(t('runtime.lookLinkBad')); return; }
+    if(v && (!/^https?:\/\/[^\s"'()<>\\]+$/i.test(v) || !isFetchableUrl(v))){ tavo.utils.toast(t('runtime.lookLinkBad')); return; }
     setLookVal('wallpaperUrl',v);
   };
   const lookResetBtn=document.getElementById('emon-iv-look-reset');
@@ -2641,9 +3002,14 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       extractSaveAllBtn.textContent = t('runtime.saveExtractAll').replace('{n}', String(usable));
       extractSaveAllBtn.disabled = usable === 0;
     }
+    if (extractSaving) {   // a save is still running (even if the picker was closed and reopened): show where it is, keep the buttons locked
+      if (extractProgress && extractSubtitle) extractSubtitle.textContent = t('runtime.savingProgress', extractProgress);
+      if (extractSaveSelectedBtn) extractSaveSelectedBtn.disabled = true;
+      if (extractSaveAllBtn) extractSaveAllBtn.disabled = true;
+    }
   }
 
-  let extractSaving = false;
+  let extractSaving = false, extractProgress = null;
   function extractResultText(saved, skipped, failed) {
     if (!saved && skipped && !failed) return t('runtime.resNothingNew', { n: skipped });
     const parts = [];
@@ -2658,8 +3024,11 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     if (extractSaveSelectedBtn) extractSaveSelectedBtn.disabled = true;
     if (extractSaveAllBtn) extractSaveAllBtn.disabled = true;
     try {
-      let saved = 0, skipped = 0, failed = 0;
+      let saved = 0, skipped = 0, failed = 0, idx = 0;
+      prefetchPeeks(list.map(it => it.url));
       for (const it of list) {
+        extractProgress = { i: ++idx, n: list.length };
+        if (extractSubtitle) extractSubtitle.textContent = t('runtime.savingProgress', extractProgress);
         try {
           // Already in Saved Previews (maybe saved a moment ago from somewhere else)? Leave it alone.
           if (await findExistingBySource(it.url, true)) { skipped++; continue; }
@@ -2672,7 +3041,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       const msg = extractResultText(saved, skipped, failed);
       if (msg) tavo.utils.toast(msg);
     } finally {
-      extractSaving = false;
+      extractSaving = false; extractProgress = null;
     }
   }
 
@@ -2714,12 +3083,13 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   // { scan:true, note, keep } for "Scan this chat for images" (adds the summary line and the Rescan button).
   // `keep` marks a rescan: the person's tile choices carry over, and the result says what changed.
   async function showExtractPicker(raw, meta) {
+    if (!termsAgreed()) { requireTerms(() => showExtractPicker(raw, meta)); return null; }
     const scan = !!(meta && meta.scan);
     const keep = !!(meta && meta.keep);
     // Only public web addresses (and, for a chat scan, no ad/tracker hosts), and at most EXTRACT_MAX tiles: a
     // huge or hostile paste or card must never make the phone open thousands of connections, or connect to
     // other devices on your network.
-    const good = [...new Set(raw.filter(u => typeof u === 'string' && isPublicHttpUrl(u) && !(scan && isAdHost(u))))];
+    const good = [...new Set(raw.filter(u => typeof u === 'string' && isFetchableUrl(u) && !(scan && isAdHost(u))))];
     const prevItems = extractItems;
     if (!good.length) {
       if (keep) { extractItems = []; if (extractNote) extractNote.style.display = 'none'; renderExtractGrid(); }
@@ -2753,10 +3123,16 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     return { total: next.length, added, removed };
   }
 
-  window.addEventListener('emon-iv-extract-results', (e) => {
+  bus('emon-iv-extract-results', (e) => {
     const raw = e?.detail?.urls;
     if (!Array.isArray(raw) || !raw.length) return;
-    showExtractPicker(raw, null).catch(err => console.error('[Image Preview] extract picker', err));
+    const clearInput = !!(e && e.detail && e.detail.clearInput);
+    requireTerms(() => {
+      showExtractPicker(raw, null).then(res => {
+        // the pasted text is cleared only once the picker really opened, so a link we can't use never costs a typed message
+        if (clearInput && res && res.total > 0) { try { tavo.input.clear(); } catch {} }
+      }).catch(err => console.error('[Image Preview] extract picker', err));
+    });
   });
 
   // ---- Scan this chat for images ----
@@ -2817,7 +3193,8 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     const seen = new Set();
     const add = (raw) => {
       if (!raw || urls.length >= FIND_MAX_URLS) return;
-      const u = raw.trim().replace(/&amp;/g, '&');
+      let u = raw.trim().replace(/&amp;/g, '&');
+      if (u.startsWith('//')) u = 'https:' + u;                       // protocol-relative link, common in copied page source
       if (!u || u.length > 2048 || seen.has(u)) return;
       seen.add(u);
       urls.push(u);
@@ -2871,6 +3248,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   }
 
   async function scanChatForImages(isRescan = false) {
+    if (!termsAgreed()) { requireTerms(() => scanChatForImages(isRescan)); return; }   // the chat is not read before the Terms are agreed to
     if (scanBusy) return;
     const startedAt = Date.now();
     let outcome = '';                                   // what to tell the person after a rescan
@@ -2882,14 +3260,15 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       if (!chat || chat.id == null) { say(t('runtime.scanNoChat')); return; }
 
       const found = new Map();                     // url -> group; insertion order is the display order
-      let budget = SCAN_MAX_TEXT_TOTAL, pieces = 0, truncated = false;
+      let budget = SCAN_MAX_TEXT_TOTAL, pieces = 0, truncated = false, sinceYield = 0;
       const take = async (group, text) => {
         if (typeof text !== 'string' || !text) return;
         if (budget <= 0) { truncated = true; return; }
         const piece = text.length > FIND_MAX_TEXT ? text.slice(0, FIND_MAX_TEXT) : text;
         budget -= piece.length;
         for (const u of findImageUrls(piece)) if (!found.has(u) && found.size < FIND_MAX_URLS) found.set(u, group);
-        if (++pieces % 40 === 0) await new Promise(r => setTimeout(r, 0));   // let the screen breathe on huge chats
+        sinceYield += piece.length;
+        if (++pieces % 40 === 0 || sinceYield > 120000) { sinceYield = 0; await new Promise(r => setTimeout(r, 0)); }   // let the screen breathe on huge chats
       };
 
       // 1) character card(s) in this chat
@@ -2931,7 +3310,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       if (!now || now.id !== chat.id) { say(t('runtime.scanChatChanged')); return; }
 
       // Only public, non-tracker links are kept; counts are for what is actually shown.
-      const kept = [...found].filter(([u]) => isPublicHttpUrl(u) && !isAdHost(u));
+      const kept = [...found].filter(([u]) => isFetchableUrl(u) && !isAdHost(u));
       if (!kept.length) {
         if (isRescan) await showExtractPicker([], { scan: true, keep: true });   // nothing left: don't leave a stale list up
         say(t('runtime.scanNone'));
@@ -2959,7 +3338,8 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 
   if (scanChatBtn) scanChatBtn.onclick = () => scanChatForImages(false);
   if (extractRescanBtn) extractRescanBtn.onclick = () => scanChatForImages(true);
-  window.addEventListener('emon-iv-scan-chat', () => scanChatForImages());
+  bus('emon-iv-scan-chat', () => requireTerms(() => scanChatForImages()));
+  bus('emon-iv-character-page', () => requireTerms(() => openCharacterPage()));
 
   // ---- Recycle Bin picker (opened from the chat's right sidebar — see entry.js) ----
   const recycleModal = document.getElementById('emon-iv-recycle-modal');
@@ -3021,6 +3401,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   }
 
   async function openRecycleBin() {
+    if (!termsAgreed()) { requireTerms(() => openRecycleBin()); return; }   // the bin does not even open before the Terms are agreed to
     await purgeExpiredRecycleBin();
     recycleEntries = getRecycleBin().slice().sort((a,b) => b.deletedAt - a.deletedAt);
     renderRecycleGrid();
@@ -3058,9 +3439,220 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   };
   if (recycleCloseBtn) recycleCloseBtn.onclick = () => hideModal(recycleModal);
   bindBackdropClose(recycleModal, () => hideModal(recycleModal));
-  window.addEventListener('emon-iv-open-recycle', () => { openRecycleBin(); });
+  bus('emon-iv-open-recycle', () => requireTerms(() => { openRecycleBin(); }));
 
-  purgeExpiredRecycleBin();
+
+  // ---- Character page ----
+  // The open chat's character card as one scrollable page, like Janitor's intro: picture, text, picture, text… Creator notes,
+  // description, personality and scenario are read from the card on this phone and drawn here with their pictures and GIFs in
+  // place. Text is only ever turned into plain elements (a short allow-list of tags, bright text colours, safe picture links),
+  // never inserted as HTML, so a card can't run anything or load anything private.
+  const pageEl = document.getElementById('emon-iv-page');
+  const pageBody = document.getElementById('emon-iv-page-body');
+  const pageChars = document.getElementById('emon-iv-page-chars');
+  const pageCloseBtn = document.getElementById('emon-iv-page-close');
+  const pageBtn = document.getElementById('emon-iv-page-btn');
+  const PG_MAX_TEXT = 300000, PG_MAX_IMAGES = 100, PG_MAX_NODES = 12000, PG_MAX_DEPTH = 40;
+  const PG_SKIP = new Set(['script','style','iframe','object','embed','noscript','template','svg','math','link','meta','base','form','button','input','textarea','select','option','audio','video','source','track','canvas','head','title','frame','frameset','applet','dialog']);
+  const PG_BLOCK = { p:'p', div:'div', section:'div', article:'div', center:'div', header:'div', footer:'div', main:'div', aside:'div', nav:'div', figure:'div', figcaption:'div', blockquote:'blockquote', pre:'pre', h1:'h3', h2:'h3', h3:'h4', h4:'h4', h5:'h5', h6:'h5', ul:'ul', ol:'ol', li:'li', table:'div', tbody:'div', thead:'div', tfoot:'div', tr:'div', dl:'div', dd:'div', details:'div' };
+  const PG_INLINE = { strong:'strong', b:'strong', em:'em', i:'em', cite:'em', u:'u', s:'s', strike:'s', del:'s', code:'code', kbd:'code', samp:'code', span:'span', font:'span', small:'small', sub:'sub', sup:'sup', mark:'span', a:'span', abbr:'span', q:'span', td:'span', th:'span', dt:'strong', summary:'strong', label:'span' };
+  let pageSeq = 0, pageCharId = null;
+
+  // Only bright colours are kept (a very dark one would vanish on the dark page), and only as plain numbers.
+  function pgColor(v) {
+    const s = String(v || '');
+    const mm = /(?:^|;)\s*color\s*:\s*([^;]+)/i.exec(s);
+    const val = (mm ? mm[1] : s).trim();
+    let r, g, b, x;
+    if ((x = /^rgba?\(\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})/i.exec(val))) { r = +x[1]; g = +x[2]; b = +x[3]; }
+    else if ((x = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(val))) {
+      let h = x[1]; if (h.length === 3) h = h.split('').map(c => c + c).join('');
+      r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16);
+    } else return '';
+    if (![r, g, b].every(n => n >= 0 && n <= 255)) return '';
+    return ((0.2126 * r + 0.7152 * g + 0.0722 * b) / 255) >= 0.4 ? `rgb(${r},${g},${b})` : '';
+  }
+  function pgMacros(s, names) {
+    return String(s)
+      .replace(/\{\{\s*char\s*\}\}|<\s*(?:bot|char)\s*>/gi, () => names.char)
+      .replace(/\{\{\s*user\s*\}\}|<\s*user\s*>/gi, () => names.user);
+  }
+  function pgImage(out, raw, ctx) {
+    let u = String(raw || '').trim().replace(/&amp;/g, '&');
+    if (u.startsWith('//')) u = 'https:' + u;
+    const isData = /^data:image\/(?:png|jpe?g|gif|webp|avif|bmp);base64,[A-Za-z0-9+\/=]+$/i.test(u) && u.length <= PG_MAX_TEXT;   // embedded pictures (not SVG)
+    if (!isData) {
+      if (!/^https?:\/\//i.test(u) || u.length > 2048) return;
+      if (!isFetchableUrl(u) || isAdHost(u)) return;
+    }
+    if (ctx.images >= PG_MAX_IMAGES) { ctx.moreImages = true; return; }
+    ctx.images++; ctx.nodes++;
+    const im = document.createElement('img');
+    im.className = 'emon-iv-pg-img'; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+    try { im.referrerPolicy = 'no-referrer'; } catch {}
+    im.addEventListener('error', () => { im.style.display = 'none'; });
+    im.addEventListener('click', () => { try { tavo.utils.preview(im); } catch {} });
+    im.src = u;
+    out.appendChild(im);
+  }
+  // **bold**, *italic*, `code` and ![](picture) inside plain text
+  function pgInline(parent, text, ctx) {
+    const re = /!\[[^\]\n]{0,200}\]\(\s*((?:https?:)?\/\/[^\s)]{1,2048}|data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+\/=]{1,300000})(?:\s+"[^"\n]*")?\s*\)|\*\*([^*\n]+?)\*\*|(?<![*\w])\*(?!\s)([^*\n]+?)(?<!\s)\*(?![*\w])|`([^`\n]{1,300})`/g;
+    let last = 0, m;
+    while ((m = re.exec(text))) {
+      if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
+      if (m[1]) pgImage(parent, m[1], ctx);
+      else { const e = document.createElement(m[2] ? 'strong' : m[3] ? 'em' : 'code'); e.textContent = m[2] || m[3] || m[4]; parent.appendChild(e); ctx.nodes++; }
+      last = re.lastIndex;
+    }
+    if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+  }
+  // A card made of tens of thousands of tags, or tags nested hundreds deep, is not a real card (and can make a parser crawl): it is shown
+  // as plain words instead. Tags that close themselves (p, li, td…) are not counted as nesting.
+  function pgTooComplex(s) {
+    const SELF = /^(?:br|hr|img|input|meta|link|area|base|col|embed|source|track|wbr|p|li|dd|dt|tr|td|th|option|optgroup|colgroup|rt|rp)$/i;
+    const re = /<(\/?)([a-z][a-z0-9]*)\b[^>]*?(\/?)>/gi;
+    let depth = 0, tags = 0, m;
+    while ((m = re.exec(s))) {
+      if (++tags > 60000) return true;
+      if (m[1]) { if (depth > 0) depth--; }
+      else if (!m[3] && !SELF.test(m[2]) && ++depth > 200) return true;
+    }
+    return false;
+  }
+  function pgRender(src, names, ctx) {
+    const raw = String(src || '');
+    if (raw.length > PG_MAX_TEXT) ctx.cut = true;
+    let text = pgMacros(raw.slice(0, PG_MAX_TEXT), names);
+    if (pgTooComplex(text)) { text = text.replace(/<[^>]*>/g, ' '); ctx.cut = true; }
+    const isHtml = /<\s*(?:p|div|br|h[1-6]|ul|ol|li|center|blockquote|hr)\b/i.test(text);
+    if (!isHtml) text = text.replace(/\n[ \t]*(?:\n[ \t]*){2,}/g, '\n\n').replace(/^\s+|\s+$/g, '');   // long runs of blank lines become one gap
+    const doc = new DOMParser().parseFromString(text, 'text/html');       // inert: nothing in it runs or loads
+    const frag = document.createDocumentFragment();
+    const addText = (out, v) => {
+      if (isHtml) {
+        const s = v.replace(/[\t\r\n ]+/g, ' ');
+        if (!s.trim()) { const prev = out.lastChild; if (prev && (prev.nodeType === 3 || (prev.nodeType === 1 && PG_INLINE[prev.tagName.toLowerCase()]))) out.appendChild(document.createTextNode(' ')); return; }
+        pgInline(out, out.lastChild ? s : s.replace(/^ /, ''), ctx);
+        return;
+      }
+      // plain / Markdown-style text: keep the line breaks, turn "# Title" and "---" into a heading and a rule
+      const lines = v.split('\n');
+      lines.forEach((ln, i) => {
+        const h = /^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/.exec(ln);
+        if (h) { const e = document.createElement(h[1].length <= 2 ? 'h3' : h[1].length === 3 ? 'h4' : 'h5'); pgInline(e, h[2], ctx); out.appendChild(e); ctx.nodes++; return; }
+        if (/^\s{0,3}([-*_])(?:\s*\1){2,}\s*$/.test(ln)) { out.appendChild(document.createElement('hr')); ctx.nodes++; return; }
+        pgInline(out, i < lines.length - 1 ? ln + '\n' : ln, ctx);
+      });
+    };
+    const walk = (node, out, depth) => {
+      for (let n = node.firstChild; n; n = n.nextSibling) {
+        if (ctx.nodes > PG_MAX_NODES) { ctx.cut = true; return; }
+        if (n.nodeType === 3) { addText(out, n.nodeValue || ''); continue; }
+        if (n.nodeType !== 1) continue;
+        const tag = n.tagName.toLowerCase();
+        if (PG_SKIP.has(tag)) continue;
+        if (tag === 'br') { out.appendChild(document.createElement('br')); ctx.nodes++; continue; }
+        if (tag === 'hr') { out.appendChild(document.createElement('hr')); ctx.nodes++; continue; }
+        if (tag === 'img') { pgImage(out, n.getAttribute('src') || n.getAttribute('data-src') || '', ctx); continue; }
+        const blockTag = PG_BLOCK[tag], inlineTag = PG_INLINE[tag];
+        if (depth >= PG_MAX_DEPTH || (!blockTag && !inlineTag)) { walk(n, out, depth + 1); continue; }   // unknown or too deep: keep the words, drop the tag
+        const el = document.createElement(blockTag || inlineTag); ctx.nodes++;
+        const col = pgColor(tag === 'font' ? n.getAttribute('color') : n.getAttribute('style'));
+        if (col) el.style.color = col;
+        walk(n, el, depth + 1);
+        // empty paragraphs (cards use runs of them for spacing) would stack into huge gaps: they are left out
+        if (blockTag && !el.textContent.trim() && !el.querySelector('img,hr')) continue;
+        out.appendChild(el);
+      }
+    };
+    walk(doc.body || doc.documentElement, frag, 0);
+    if (!isHtml) {
+      frag.normalize();   // neighbouring text pieces become one, so newline runs left by skipped pictures can be squeezed
+      // a line break right next to a picture would only add an empty gap (pictures already have their own space)
+      for (let n = frag.firstChild; n; ) {
+        const next = n.nextSibling;
+        if (n.nodeType === 3) {
+          const prevImg = !!(n.previousSibling && n.previousSibling.nodeType === 1 && n.previousSibling.tagName === 'IMG');
+          const nextImg = !!(next && next.nodeType === 1 && next.tagName === 'IMG');
+          let v = n.nodeValue.replace(/\n{3,}/g, '\n\n');
+          if (prevImg) v = v.replace(/^[ \t]*\n+/, '');
+          if (nextImg) v = v.replace(/\n+[ \t]*$/, '');
+          if (!v.trim() && (prevImg || nextImg)) frag.removeChild(n); else if (v !== n.nodeValue) n.nodeValue = v;
+        }
+        n = next;
+      }
+    }
+    return { frag, plain: !isHtml };
+  }
+  function pgEmpty(key) { return `<div class="emon-iv-pg-empty">${esc(t(key))}</div>`; }
+  function pgChips(list, activeId) {
+    pageChars.innerHTML = '';
+    if (list.length < 2) return;
+    for (const c of list) {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = String(c.name || '…').slice(0, 40);
+      if (String(c.id) === String(activeId)) b.className = 'on';
+      b.onclick = () => openCharacterPage(c.id);
+      pageChars.appendChild(b);
+    }
+  }
+  async function openCharacterPage(wantId) {
+    if (!termsAgreed()) { requireTerms(() => openCharacterPage(wantId)); return; }
+    const seq = ++pageSeq;
+    if (panel.classList.contains('open')) setPanelOpen(false);   // the main panel steps aside while the Character page is open
+    showModal(pageEl);
+    try {
+      const chat = await tavo.chat.current();
+      if (seq !== pageSeq) return;
+      const list = Array.isArray(chat && chat.characters) ? chat.characters.filter(c => c && c.id != null) : [];
+      if (!list.length) { pageChars.innerHTML = ''; pageBody.innerHTML = pgEmpty('runtime.pageNoChar'); return; }
+      const has = (v) => v != null && list.some(c => String(c.id) === String(v));
+      const id = has(wantId) ? wantId : has(pageCharId) ? pageCharId : list[0].id;
+      pageCharId = id;
+      pgChips(list, id);
+      const ch = await tavo.character.get(Number(id));
+      if (seq !== pageSeq) return;
+      pageBody.innerHTML = '';
+      if (!ch) { pageBody.innerHTML = pgEmpty('runtime.pageFail'); return; }
+      const names = {
+        char: esc(String(ch.nickname || ch.name || '').slice(0, 80)),
+        user: esc(String((chat && chat.persona && chat.persona.name) || t('runtime.pageYou')).slice(0, 80)),
+      };
+      const frag = document.createDocumentFragment();
+      const head = document.createElement('div'); head.className = 'emon-iv-pg-head';
+      if (safeAvatarSrc(ch.avatar)) { const av = document.createElement('img'); av.alt = ''; av.loading = 'lazy'; av.src = safeAvatarSrc(ch.avatar); av.addEventListener('error', () => { av.style.display = 'none'; }); head.appendChild(av); }
+      const meta = document.createElement('div');
+      const nm = document.createElement('div'); nm.className = 'emon-iv-pg-name'; nm.textContent = String(ch.name || ''); meta.appendChild(nm);
+      if (ch.creator) { const by = document.createElement('div'); by.className = 'emon-iv-pg-by'; by.textContent = t('runtime.pageBy', { name: String(ch.creator).slice(0, 60) }); meta.appendChild(by); }
+      head.appendChild(meta); frag.appendChild(head);
+      const ctx = { nodes: 0, images: 0, moreImages: false, cut: false };
+      let any = false;
+      for (const [k1, k2, key] of [['creatorNotes', 'creator_notes', 'runtime.pageSecNotes'], ['description', '', 'runtime.pageSecDesc'], ['personality', '', 'runtime.pageSecPers'], ['scenario', '', 'runtime.pageSecScen']]) {
+        const val = (typeof ch[k1] === 'string' && ch[k1]) ? ch[k1] : (k2 && typeof ch[k2] === 'string' ? ch[k2] : '');
+        if (!val.trim()) continue;
+        const sec = document.createElement('div'); sec.className = 'emon-iv-pg-sec';
+        const lab = document.createElement('div'); lab.className = 'emon-iv-pg-label'; lab.setAttribute('data-i18n', key); lab.textContent = t(key); sec.appendChild(lab);
+        const box = document.createElement('div'); box.className = 'emon-iv-pg-txt';
+        const r = pgRender(val, names, ctx); if (r.plain) box.classList.add('plain'); box.appendChild(r.frag);
+        sec.appendChild(box); frag.appendChild(sec); any = true;
+      }
+      if (!any) { const e = document.createElement('div'); e.className = 'emon-iv-pg-empty'; e.setAttribute('data-i18n', 'runtime.pageEmpty'); e.textContent = t('runtime.pageEmpty'); frag.appendChild(e); }
+      for (const [flag, key] of [[ctx.moreImages, 'runtime.pageMoreImg'], [ctx.cut, 'runtime.pageCut']]) {
+        if (!flag) continue;
+        const n = document.createElement('div'); n.className = 'emon-iv-pg-note'; n.setAttribute('data-i18n', key); n.textContent = t(key); frag.appendChild(n);
+      }
+      pageBody.appendChild(frag);
+      pageBody.scrollTop = 0;
+    } catch (e) {
+      console.error('[Image Preview] character page', e);
+      if (seq === pageSeq) pageBody.innerHTML = pgEmpty('runtime.pageFail');
+    }
+  }
+  if (pageBtn) pageBtn.onclick = () => openCharacterPage();
+  if (pageCloseBtn) pageCloseBtn.onclick = () => hideModal(pageEl);
+  const pageClose2Btn = document.getElementById('emon-iv-page-close2');
+  if (pageClose2Btn) pageClose2Btn.onclick = () => hideModal(pageEl);
+  bindBackdropClose(pageEl, () => hideModal(pageEl));
 
   const sheetEl = document.getElementById('emon-iv-sheet');
   const sheetThumb = document.getElementById('emon-iv-sheet-thumb');
@@ -3106,6 +3698,35 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   });
 
   let savedLoadSeq = 0;
+  // The shelf draws 200 saved previews at a time; "Show more" adds the next batch, so nothing is out of reach.
+  const SAVED_PAGE = 200;
+  let savedShown = SAVED_PAGE;
+  function makeSavedCard(f) {
+    const card=document.createElement('button'); card.type='button'; card.className='emon-iv-card emon-iv-saved-card';
+    const displayName = getSavedDisplayName(f);
+    card.innerHTML=`<img src="${esc(f.path)}" alt="" loading="lazy" decoding="async"><span class="saved-name">${esc(displayName)}</span>`;
+    if (savedSelectMode && savedSelectedPaths.has(f.path)) card.classList.add('picked');
+    card.onclick=()=>{
+      if (savedSelectMode) { toggleSavedSelect(f.path, card); return; }
+      openCardSheet(f);
+    };
+    return card;
+  }
+  function renderSavedCards(files) {
+    savedEl.querySelectorAll('.emon-iv-saved-more').forEach(n => n.remove());
+    const have = savedEl.querySelectorAll('.emon-iv-saved-card').length;
+    const upto = Math.min(files.length, savedShown);
+    const frag = document.createDocumentFragment();
+    for (let i = have; i < upto; i++) frag.appendChild(makeSavedCard(files[i]));
+    savedEl.appendChild(frag);
+    if (files.length > upto) {
+      const more = document.createElement('button'); more.type = 'button'; more.className = 'emon-iv-card emon-iv-saved-more';
+      more.textContent = t('runtime.savedMore', { n: files.length - upto });
+      more.onclick = () => { savedShown += SAVED_PAGE; renderSavedCards(savedFilesCache); updateSavedSelectBar(); };
+      savedEl.appendChild(more);
+    }
+  }
+
   async function loadSavedPreviews() {
     const seq = ++savedLoadSeq;
     try{
@@ -3119,17 +3740,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
       savedFilesCache = files;
       syncSavedEmptyState(files.length > 0);
       if(!files.length){savedEl.innerHTML=`<div class="emon-iv-empty">${esc(t('runtime.noSaved'))}</div>`;updateSavedSelectBar();return;}
-      for(const f of files.slice(0,40)){
-        const card=document.createElement('button'); card.type='button'; card.className='emon-iv-card emon-iv-saved-card';
-        const displayName = getSavedDisplayName(f);
-        card.innerHTML=`<img src="${esc(f.path)}" alt="" loading="lazy" decoding="async"><span class="saved-name">${esc(displayName)}</span>`;
-        if (savedSelectMode && savedSelectedPaths.has(f.path)) card.classList.add('picked');
-        card.onclick=()=>{
-          if (savedSelectMode) { toggleSavedSelect(f.path, card); return; }
-          openCardSheet(f);
-        };
-        savedEl.appendChild(card);
-      }
+      renderSavedCards(files);
       updateSavedSelectBar();
     }catch(e){console.error('[Image Preview] saved list',e);savedEl.innerHTML=`<div class="emon-iv-empty">${esc(t('runtime.error'))}</div>`;}
   }
@@ -3178,11 +3789,15 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     savedActionBusy = true; updateSavedSelectBar();
     try {
       let i = 0;
+      const before = pins.length;
       for (const f of chosen) {
+        if (pins.length >= MAX_PINS) break;
         await pinPreview({ src: f.path, original: f.path, title: getSavedDisplayName(f) }, i++, false);
       }
+      const added = pins.length - before;
       setSavedSelectMode(false);
-      tavo.utils.toast(t('runtime.pinnedFromSaved').replace('{n}', String(chosen.length)));
+      if (added < chosen.length && pins.length >= MAX_PINS) tavo.utils.toast(t('runtime.pinLimitSome', { done: added, total: chosen.length, n: MAX_PINS }));
+      else tavo.utils.toast(t('runtime.pinnedFromSaved').replace('{n}', String(added)));
     } finally { savedActionBusy = false; }
   };
   if (savedDeleteSelectedBtn) savedDeleteSelectedBtn.onclick = async () => {
@@ -3204,15 +3819,45 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     } finally { savedActionBusy = false; }
   };
 
+  // A restored pin must never come back somewhere it can't be grabbed (under the top bar, or off the side after a
+  // different screen size): its corner is brought back into the visible, tappable area.
+  function keepPinReachable(p){
+    const ins=safeInsets();
+    const x=Number(p.x), y=Number(p.y), w=Number(p.width)||Number(cfg().defaultImageSize||220);
+    const dp=defaultPinPos(w);
+    p.x=Number.isFinite(x)?Math.max(72-w,Math.min(innerWidth-72,x)):dp.x;
+    p.y=Number.isFinite(y)?Math.max(ins.top,Math.min(innerHeight-ins.bottom-72,y)):dp.y;
+  }
+  // Pin toolbars are built when a pin is created, so their button labels are refreshed in place when the language changes.
+  function relabelPins(){
+    const L={minus:'runtime.zoomOut',plus:'runtime.zoomIn',reset:'runtime.reset',rotate:'runtime.rotateBtn',flip:'runtime.flipBtn',full:'runtime.fullscreen',remove:'runtime.remove'};
+    document.querySelectorAll('.emon-iv-pinned').forEach(el=>{
+      const p=pins.find(x=>String(x.id)===String(el.getAttribute('data-emon-pin')));
+      for(const act in L){ const b=el.querySelector('[data-act="'+act+'"]'); if(b) b.setAttribute('aria-label',t(L[act])); }
+      const tg=el.querySelector('[data-act="barToggle"]');
+      if(tg){ const k=(p&&p.barCollapsed===false)?'runtime.pinBarHide':'runtime.pinBarShow'; tg.title=t(k); tg.setAttribute('aria-label',t(k)); }
+    });
+  }
   function restorePins() {
-    if(!cfg().rememberPins)return;
-    try{
-      const raw=tavo.get('emonImageViewerPins','chat');
-      if(Array.isArray(raw)){
-        pins=raw.map(x=>({...x,id:++pinSeq,barCollapsed:typeof x.barCollapsed==='boolean'?x.barCollapsed:true})).filter(x=>x.src);
-        pins.forEach(renderPin);
-      }
-    }catch{}
+    // pins already on screen belong to a previous copy of this panel (chat switch, plugin reload): drop them first
+    document.querySelectorAll('[data-emon-pin]').forEach(n=>n.remove());
+    pins=[]; pinsOverflow=[];
+    if(cfg().rememberPins){
+      try{
+        const raw=tavo.get('emonImageViewerPins','chat');
+        if(Array.isArray(raw)){
+          const all=raw.filter(x=>x&&typeof x==='object'&&typeof x.src==='string'&&x.src)
+                  .map(x=>({...x,id:++pinSeq,barCollapsed:typeof x.barCollapsed==='boolean'?x.barCollapsed:true}));
+          pins=all.slice(0,MAX_PINS);
+          pinsOverflow=all.slice(MAX_PINS).map(({id,...rest})=>rest);   // beyond the limit: kept safe, not drawn
+          pins.forEach(keepPinReachable);
+          pins.forEach(renderPin);
+          if(pinsOverflow.length) setTimeout(()=>{ try{ tavo.utils.toast(t('runtime.pinsWaiting',{n:pinsOverflow.length})); }catch{} },700);
+        }
+      }catch{}
+    }
+    // renderText() ran before the pins were restored, so the list said "No pinned images yet" while pins were on screen
+    renderPinsList();
   }
 
   // Floating button drag/open
@@ -3256,6 +3901,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     }catch{}
   }
   function setPanelOpen(on){
+    if(on && !termsAgreed()){ requireTerms(()=>setPanelOpen(true)); return; }   // the panel itself never opens before the Terms are agreed to
     clearTimeout(_panelTimer);
     if(on){ panel.classList.remove('closing'); panel.classList.add('open'); return; }
     if(!panel.classList.contains('open')) return;
@@ -3266,7 +3912,10 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     _panelTimer = setTimeout(()=>panel.classList.remove('closing'), 360);
   }
   const fabEnd=()=>{
-    if(!fabDragging){ setPanelOpen(!panel.classList.contains('open')); }
+    if(!fabDragging){
+      if(panel.classList.contains('open')) setPanelOpen(false);
+      else requireTerms(()=>setPanelOpen(true));      // the first tap asks for the quick agreement; nothing opens before it
+    }
     else { const r=fab.getBoundingClientRect(); try{tavo.set('emonImageViewerFabPosition',{x:r.left,y:r.top},'global');}catch{} }
     fabDragging=false;
   };
@@ -3277,7 +3926,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   fab.addEventListener('pointercancel',()=>{fabDragging=false});
   // Fired by the plugin's "Reset FAB position" sidebar action (see entry.js). Clearing the inline
   // overrides lets the default CSS corner position (see #emon-iv-fab) take over immediately.
-  window.addEventListener('emon-iv-fab-reset',()=>{
+  bus('emon-iv-fab-reset',()=>{
     try{
       fab.style.left='';fab.style.top='';fab.style.right='';fab.style.bottom='';
       fab.classList.remove('dragging');
@@ -3293,8 +3942,10 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   closeBtn.onclick=()=>setPanelOpen(false);
   previewBtn.onclick=()=>loadPreview(urlEl.value);
   urlEl.addEventListener('keydown',e=>{if(e.key==='Enter')loadPreview(urlEl.value)});
-  pinBtn.onclick=()=>pinPreview(currentPreview);
-  saveBtn.onclick=()=>savePreview(currentPreview);
+  // a second tap while the first is still working is ignored (it used to save or pin the same image twice)
+  const tapOnce=fn=>{let busy=false;return async()=>{if(busy)return;busy=true;try{await fn();}finally{busy=false;}};};
+  pinBtn.onclick=tapOnce(()=>pinPreview(currentPreview));
+  saveBtn.onclick=tapOnce(()=>savePreview(currentPreview));
   importBtn.onclick=importLocalImage;
   refreshSavedBtn.onclick=loadSavedPreviews;
   clearSavedBtn.onclick=clearSavedFiles;
@@ -3782,13 +4433,13 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     gameCanvas.addEventListener('pointercancel', gamePointerUp);
     gameCanvas.addEventListener('pointerleave', gamePointerUp);
   }
-  window.addEventListener('keydown', e=>{
+  winOn('keydown', e=>{
     if(gameEl && gameEl.classList.contains('open') && gameMode==='jump' && !gameEl.classList.contains('libopen') && !/^(INPUT|TEXTAREA)$/.test((e.target&&e.target.tagName)||'') && (e.code==='Space'||e.key===' ')){
       e.preventDefault();
       if(!e.repeat) gamePointerDown();
     }
   });
-  window.addEventListener('keyup', e=>{
+  winOn('keyup', e=>{
     if(gameMode==='jump' && (e.code==='Space'||e.key===' ')) gamePointerUp();
   });
   if(gamePicker){
@@ -3807,7 +4458,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     refreshGamePicker();
     tavo.utils.toast(t('runtime.gameCustomCleared'));
   };
-  window.addEventListener('resize', ()=>{
+  winOn('resize', ()=>{
     if(!gameEl || !gameEl.classList.contains('open')) return;
     const ins=safeInsets();
     const rect = gameEl.getBoundingClientRect();
@@ -4813,7 +5464,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     if(gameSetEl && gameSetEl.classList.contains('show')) renderSettingsPanel();
   }
 
-  window.addEventListener('message', e=>{
+  winOn('message', e=>{
     if(!gameFrame || gameMode!=='custom' || e.source !== gameFrame.contentWindow) return;
     const d = e.data;
     if(!d || d.emonGame !== 1) return;
@@ -5147,7 +5798,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
   setLookupMode('translate');
 
   const c=cfg();
-  if(!c.enabled){fab.style.display='none';panel.style.display='none';return;}
+  if(!c.enabled){fab.style.display='none';panel.style.display='none';renderText();offOnAbort(tavo.plugin.i18n.onChange(renderText));return;}
   const bs=Math.max(28,Math.min(64,Number(c.buttonSize||54)));
   const bo=Math.max(0,Math.min(1,Number(c.buttonOpacity ?? 1)));
   fab.style.width=bs+'px';fab.style.height=bs+'px';fab.style.fontSize=Math.max(14,bs*.46)+'px';fab.style.setProperty('--emon-fab-opacity',String(bo));
@@ -5165,23 +5816,37 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
     }
   }catch{}
 
-  cleanTempPages();
+  // Keep the floating button on screen when the phone rotates or the toolbars change the free space (both axes:
+  // it used to be corrected vertically only, so after a rotation it could end up off the side).
+  // Pop-ups start below the app's top bar (and above the system bar), so a pop-up's × is never hidden under it.
+  const applyModalInsets=()=>{
+    let top=0,bottom=0;
+    try{ const i=tavo.ui&&typeof tavo.ui.getInsets==='function'?tavo.ui.getInsets():null; if(i){ top=Number(i.topBar)||0; bottom=Number(i.bottomSafe)||0; } }catch{}
+    const st=document.documentElement.style;
+    st.setProperty('--emon-iv-top',(top>0?top:76)+'px');      // 76px until the app has told us its real top bar
+    st.setProperty('--emon-iv-bottom',bottom+'px');
+  };
+  applyModalInsets();
+  const clampFab=()=>{
+    applyModalInsets();
+    if(!(fab.style.left && fab.style.top)) return;
+    const ins=safeInsets();
+    const w=fab.offsetWidth||bs, hh=fab.offsetHeight||bs;
+    const left=parseFloat(fab.style.left)||0, top=parseFloat(fab.style.top)||0;
+    fab.style.left=Math.max(4,Math.min(innerWidth-w-4,left))+'px';
+    fab.style.top=Math.max(ins.top,Math.min(innerHeight-hh-ins.bottom,top))+'px';
+  };
+  winOn('resize',clampFab);
   try{
-    if (tavo.ui && typeof tavo.ui.onInsetsChanged === 'function') {
-      tavo.ui.onInsetsChanged(()=>{
-        if(fab.style.left && fab.style.top){
-          const ins=safeInsets();
-          const top=parseFloat(fab.style.top)||0;
-          fab.style.top=Math.max(ins.top,Math.min(innerHeight-fab.offsetHeight-ins.bottom,top))+'px';
-        }
-      });
-    }
+    if (tavo.ui && typeof tavo.ui.onInsetsChanged === 'function') offOnAbort(tavo.ui.onInsetsChanged(clampFab));
   }catch{}
   renderText();
   refreshGameUI();
   renderProfiles();
-  restorePins();
+  document.querySelectorAll('[data-emon-pin]').forEach(n=>n.remove());   // pins an older copy of this panel left on screen
+  document.querySelectorAll('body > .emon-iv-modal').forEach(n=>n.remove());
+  if(!startApp()) renderPinsList();
   loadSavedPreviews();
-  tavo.plugin.i18n.onChange(()=>{renderText();renderProfiles();loadSavedPreviews();refreshGameUI()});
+  offOnAbort(tavo.plugin.i18n.onChange(()=>{renderText();renderProfiles();loadSavedPreviews();refreshGameUI()}));
 })();
 </script>
