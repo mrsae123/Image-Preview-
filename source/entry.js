@@ -85,10 +85,26 @@ function extractImageUrls(text) {
   const mdRe = /!\[[^\]]{0,300}\]\(([^)\s]{1,2048})\)/g;
   while ((m = mdRe.exec(src))) add(m[1]);
 
-  const bareRe = /https?:\/\/[^\s"'<>]{1,1500}?\.(?:png|jpe?g|gif|webp|avif|bmp)(?:\?[^\s"'<>]{0,1500})?/gi;
-  while ((m = bareRe.exec(src))) add(trimLinkEnd(m[0]));
+  // Some hosts keep the file type in the middle of the address (DataCat: ".../ID.webp/<long id>"): that last part belongs to it too,
+  // and a shortened copy of an address that is already in the list is never added as a picture of its own.
+  const bareRe = /https?:\/\/[^\s"'<>]{1,1500}?\.(?:png|jpe?g|gif|webp|avif|bmp)(?:\/[A-Za-z0-9_-]{16,128})?(?:\?[^\s"'<>]{0,1500})?/gi;
+  while ((m = bareRe.exec(src))) {
+    const b = trimLinkEnd(m[0]);
+    if (urls.some(u => u.length > b.length && u.startsWith(b))) continue;
+    add(b);
+  }
 
   return urls;
+}
+
+// Sends one message to the panel (panel.html's script). The panel marks it as handled; when nobody does (the page is still loading, or
+// the panel's page is gone) the person is told, instead of a tap that silently does nothing.
+function sendToPanel(name, detail) {
+  try {
+    const handled = !window.dispatchEvent(new CustomEvent(name, { detail, cancelable: true }));   // false from dispatchEvent = a listener called preventDefault()
+    if (!handled) { try { tavo.utils.toast(tavo.plugin.i18n.t('runtime.panelNotReady')); } catch {} }
+    return handled;
+  } catch { return false; }
 }
 
 tavo.plugin.onInputAction('extract-images', async () => {
@@ -104,7 +120,7 @@ tavo.plugin.onInputAction('extract-images', async () => {
   // as a results gallery and handles pinning — entry.js only finds the links.
   // clearInput: the panel empties the input box itself, but only once the picker has really opened. Clearing it here
   // used to wipe a typed message even when every link turned out unusable, or when the Terms were not agreed to yet.
-  try { window.dispatchEvent(new CustomEvent('emon-iv-extract-results-v2', { detail: { urls, clearInput: true } })); } catch {}
+  sendToPanel('emon-iv-extract-results-v2', { urls, clearInput: true });
 });
 
 tavo.plugin.onSidebarAction('reset-fab-position', async () => {
@@ -123,17 +139,32 @@ tavo.plugin.onSidebarAction('reset-fab-position', async () => {
 // Opens the Recycle Bin picker (built and rendered inside panel.html, portaled to the page so it
 // doesn't need the floating panel open) from the chat's right sidebar.
 tavo.plugin.onSidebarAction('open-recycle-bin', async () => {
-  try { window.dispatchEvent(new CustomEvent('emon-iv-open-recycle-v2')); } catch {}
+  sendToPanel('emon-iv-open-recycle-v2');
 });
 
 // Scans the open chat (character card, persona, lorebooks and messages) for image links. The scan and its
 // picker live in panel.html; this just asks it to start, the same hand-off the Recycle Bin uses.
 tavo.plugin.onSidebarAction('scan-chat', async () => {
-  try { window.dispatchEvent(new CustomEvent('emon-iv-scan-chat-v2')); } catch {}
+  sendToPanel('emon-iv-scan-chat-v2');
 });
 
 // Opens the Character page: the open chat's character card (notes, description, personality, scenario) as one scrollable page
 // with its pictures. The page is drawn by panel.html; this just asks it to open.
 tavo.plugin.onSidebarAction('character-page', async () => {
-  try { window.dispatchEvent(new CustomEvent('emon-iv-character-page-v2')); } catch {}
+  sendToPanel('emon-iv-character-page-v2');
+});
+
+// Page view: reads a web page's pictures and words inside Tavo (drawn by panel.html). From the + menu it takes the first link in the
+// input box; from the sidebar it opens the recent-pages screen.
+tavo.plugin.onInputAction('preview-link', async () => {
+  let url = '';
+  try {
+    const text = String((await tavo.input.get()) || '');
+    const m = /https?:\/\/[^\s<>"')\]]{4,2000}/i.exec(text);
+    if (m) url = m[0].replace(/[.,;:!?]+$/, '');
+  } catch {}
+  sendToPanel('emon-iv-web-open-v2', { url });
+});
+tavo.plugin.onSidebarAction('web-preview', async () => {
+  sendToPanel('emon-iv-web-open-v2', { url: '' });
 });

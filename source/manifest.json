@@ -4,14 +4,14 @@
   "name": {
     "$t": "plugin.name"
   },
-  "version": "2.25.1",
+  "version": "2.26.1",
   "entry": "entry.js",
   "author": "Emon",
   "description": {
     "$t": "plugin.description"
   },
   "releaseNotes": {
-    "$t": "releaseNotes.2_25_1"
+    "$t": "releaseNotes.2_26_1"
   },
   "localization": {
     "defaultLocale": "en",
@@ -33,6 +33,12 @@
         "id": "extract-images",
         "label": {
           "$t": "actions.extractImages"
+        }
+      },
+      {
+        "id": "preview-link",
+        "label": {
+          "$t": "actions.previewLink"
         }
       }
     ],
@@ -59,6 +65,12 @@
         "id": "character-page",
         "label": {
           "$t": "actions.characterPage"
+        }
+      },
+      {
+        "id": "web-preview",
+        "label": {
+          "$t": "actions.webPreview"
         }
       }
     ],
