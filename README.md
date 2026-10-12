@@ -2,7 +2,7 @@
 
 A free, open-source, community-minded plugin for **Tavo**.
 
-Image Preview lets you preview and pin images over your chat, read a character card as one scrollable page with its pictures, quickly look up text, and play a few small games while waiting for a reply — all while keeping your data on your own device.
+Image Preview lets you preview and pin images over your chat, read a character card as one scrollable page with its pictures, look at a web page's pictures and words without leaving Tavo, quickly look up text, and play a few small games while waiting for a reply — all while keeping your data on your own device.
 
 ## Features
 
@@ -19,7 +19,7 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - Saving or pinning the same picture twice reuses the same file — no duplicates. Save selected, Save all and Import from device also skip anything that's already in Saved Previews.
   - Import images directly from your device.
   - **Extract images from text**: paste a wall of text or HTML into the chat input and tap "Extract images from text" in the input's + menu. It pulls out every image/GIF link, ignores the rest, and shows them as a picker (Select all / Select none, tap tiles to include or leave out). Save selected or Save all puts the new ones in Saved Previews (anything already saved is marked **Saved** and skipped).
-  - **Scan this chat for images**: tap it in the panel (or in the chat's right sidebar) and it searches the whole chat for you: the character card, persona, lorebooks and every message, newest first. Everything it finds opens in the same picker as Extract, with a summary of where the links came from and a **Rescan** button for after the chat changes. Rescan always tells you what it found (nothing new, how many are new, or that it failed) and keeps the tiles you left out. No pasting needed.
+  - **Scan this chat for images**: tap it in the panel (or in the chat's right sidebar) and it searches the chat for you: the character card, persona, lorebooks and the newest 5,000 messages, newest first. Everything it finds opens in the same picker as Extract (promo banners and one-pixel trackers are left out; a green bar lets you show them), with a summary of where the links came from and a **Rescan** button for after the chat changes. Pictures load a few at a time and retry on their own; tap a failed one to try again. Rescan always tells you what it found (nothing new, how many are new, or that it failed) and keeps the tiles you left out. No pasting needed.
   - **Saved Previews Select mode**: tap Select, pick any saved images, then Pin selected to put them on the chat, or Delete selected to send them to the Recycle Bin.
   - **Saved Previews** shows 200 images at a time; tap **Show more** at the end for the next batch, so nothing is out of reach.
   - **Recycle Bin**: deleting a saved image (or using Clear all) moves it to a global Recycle Bin instead of erasing it. Restore puts it into the chat you have open right now (it never switches chats); anything left alone clears itself out after 7 or 30 days. Each image's own countdown starts when it's deleted.
@@ -27,13 +27,23 @@ Image Preview lets you preview and pin images over your chat, read a character c
 
 - 📖 **Character Page**
   - Tap **Character page** in the panel (or in the chat's right sidebar) to read the open chat's character card as one scrollable page: creator notes, description, personality and scenario, with the pictures and GIFs right where the card put them — a bit like a bot's intro page.
-  - Works with the rich text that Janitor-style cards use, and with Markdown or plain text. `{{user}}` and `{{char}}` are filled in, bright text colours are kept and backgrounds are not. Long runs of blank lines are squeezed.
+  - Works with the rich text that Janitor-style cards use, and with Markdown or plain text. `{{user}}` and `{{char}}` are filled in. Centered text, text sizes, bold, italic, underline and bright text colours are kept; backgrounds are not. Long runs of blank lines are squeezed.
+  - Links show as small pills that open **Page view** (below).
+  - **Clean view** leaves out promo banners, Discord/Patreon-style links, profile-link “creators”, one-pixel trackers and scraper stamps such as “[retrieved by …]”. A green bar shows how many items were hidden; tap **Show all** to see everything (links are never clickable there).
+  - Pictures load only when you scroll close to them, stay hidden until fully loaded, and then fade in, so the page jumps much less.
   - Tap a picture to see it bigger. In a group chat, tap a name at the top to switch characters.
   - Opening it from the panel closes the panel, so only the page is on screen. Close it with ×, with Close at the bottom, or by tapping outside it.
   - It reads the card on your device only when you open it, and never changes it. See *Privacy & Security* below.
 
+- 🌐 **Page view**
+  - Look at a web page's pictures and words without leaving Tavo. Open it by tapping a link pill on the Character page, by pasting a link into the panel's link field and tapping 🌐 Page view, from the input's + menu (**Preview a link**), from the chat's right sidebar (**Page view**), or by tapping Preview on a web-search result.
+  - Tap a picture to see it full screen; tick the circle in its corner to select it, then **Save pictures** keeps them in Saved Previews. Recent pages are remembered.
+  - Nothing on the page runs, and ads, trackers and banners are never loaded.
+  - If a page only shows its pictures with JavaScript, Page view says so. A free Tavily key can read those pages for you.
+
 - 🔎 **Quick Lookup**
   - Translate text, look up word meanings, or search the web, without leaving the plugin panel.
+  - Search can use an optional Brave key and/or a free Tavily key (no card needed). Tap Brave or Tavily to choose which one goes first; if it fails, the other is tried, then a free fallback.
   - Opened by a ⚓ anchor that hangs on a rope and sways on its own. Pull it down to open; tap it or pull it down again to close.
 
 - 🎮 **Game Corner**
@@ -72,6 +82,7 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - **Open Recycle Bin** — opens the Recycle Bin to restore or permanently delete saved images.
   - **Scan chat for images** — the same chat scan as in the panel, one tap away.
   - **Character page** — opens the open chat's character card as one scrollable page.
+  - **Page view** — opens Page view, where you can paste a link to see a web page's pictures and words.
 
 - 📜 **Terms of Use**
   - The first time you open Image Preview you tick a box to agree to a short, friendly Terms of Use (it also points to Tavo's own Terms of Service). Until you agree, nothing opens, scans or restores. "Not now" simply keeps everything closed.
@@ -81,13 +92,14 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - Everything stays on your device by default. No accounts, no analytics, no tracking, no ads, and none planned.
   - Saved images and pins belong only to their chat. The one exception is the Recycle Bin, which holds deleted images across every chat until they're restored or their time runs out.
   - Import from device remembers each file's name and size, inside that chat only, so the same file isn't saved twice.
-  - Links are checked: only public `http(s)` links are ever opened or downloaded. `localhost`, your home network (like `192.168.x.x`), `*.local` names and non-web links such as `javascript:` or `intent:` are refused.
-  - **Only images, GIFs and web pages are downloaded.** Links to videos, music, archives, apps, documents or model files are refused before anything is fetched. For other links the plugin first asks the link's own server for its headers only (never the body; no cookies, no Referer) and refuses anything that isn't an image or a web page, or that is too big (images over 50 MB, web pages over 6 MB). Some servers hide this; then an oversized web page is thrown away unread and an oversized image is deleted as soon as it arrives. Downloads give up after 45 seconds (web page previews after 30).
-  - Quick Lookup sends only the text you type (up to 1,000 characters) and only when you tap "Look up". It goes over HTTPS to Google Translate, Lingva, MyMemory, dictionaryapi.dev, Wiktionary, Wikipedia, DuckDuckGo or Brave Search. Privacy Mode blocks all of it. An optional Brave key is sent only to Brave, as a header.
+  - Links are checked: only public `http(s)` links are ever opened or downloaded. `localhost`, your home network (like `192.168.x.x`), `*.local` names, names that spell out a private address (like `192-168-1-1.sslip.io`) and non-web links such as `javascript:` or `intent:` are refused. The check reads the address as written; it can't see where a public name really points or where a redirect leads (see [`SECURITY.md`](SECURITY.md)).
+  - **Only images, GIFs and web pages are downloaded.** Links to videos, music, archives, apps, documents or model files are refused before anything is fetched. For other links the plugin first asks the link's own server for its headers only (never the body; no cookies, no Referer) and refuses anything that isn't an image or a web page, or that is too big (images over 50 MB, web pages over 6 MB). Some servers hide this; then an oversized web page is thrown away unread and an oversized image is deleted as soon as it arrives. Every saved image is also checked once it has arrived: it must really be a picture (its first bytes are read, or the web engine has to accept it as one), otherwise it is deleted at once, even if the server claimed it was an image. Downloads give up after 45 seconds (web page previews after 30).
+  - Quick Lookup sends only the text you type (up to 1,000 characters) and only when you tap "Look up". It goes over HTTPS to Google Translate, Lingva, MyMemory, dictionaryapi.dev, Wiktionary, Wikipedia, DuckDuckGo, Brave Search or Tavily. Privacy Mode blocks all of it. An optional Brave or Tavily key is sent only to its own service, as a header. When you ask Tavily to read a page, that page's link is sent to Tavily too.
   - Built-in games are fully offline. Games you add run in a sandbox **with no network access**, so they can't phone home, load outside code or reveal your IP, and they can't read your chats or Tavo data. Still, only add games from sources you trust.
   - "Extract images from text" reads at most the first 300,000 characters, shows at most 200 links and ignores private-network links.
   - "Scan this chat for images" only runs when you tap it. It reads (never changes) the open chat's character card, persona, lorebooks and messages on your device, sends nothing anywhere, and keeps to the same limits and link rules. Plugin permissions: `file`, `network`, `variable`, `input` and `message`.
   - The Character page reads the open chat's card on your device only when you open it, changes nothing and sends nothing anywhere. Its text is drawn as plain elements — no scripts, no styles, no clickable links — and its pictures follow the same public-link rules and load only when you open the page (embedded pictures work too, but not SVG). The site hosting a picture sees your IP address, never a Referer.
+  - Page view downloads the page you ask for to a temporary file, reads it as inert text (nothing on it runs or loads: no scripts, styles, frames, ads or trackers), shows its words and pictures, and deletes the temporary file. It follows the same public-link rules and size limits. The site hosting the page and its pictures sees your IP address.
   - When an image loads from the web, the site hosting it sees your IP address (that can't be avoided), but never a Referer.
   - Found a problem? See [`SECURITY.md`](SECURITY.md).
 
@@ -108,16 +120,18 @@ Updating from an older version? Close Tavo completely and open it again once, so
 
 ## Current Version
 
-**v2.25.1**
+**v2.26.1**
 
-Highlights:
+Highlights (v2.25.2, v2.25.3 and v2.26.0 were test builds that were never released; everything in them is included):
 
-- New: **Character page** — read the open chat's character card (creator notes, description, personality, scenario) as one scrollable page, with its pictures and GIFs where the card put them, like a bot's intro page.
-- New: a short, friendly **Terms of Use**, agreed to once with a tick box before anything opens. Read it again in ❔ Help → About & support.
-- New: up to **30 pinned images** at once (remove one to pin another), and Saved Previews now shows **200 at a time** with a Show more tile.
-- Safer downloads: only images, GIFs and web pages are ever fetched. Videos, apps, archives and other files are refused first, and oversized images and pages are skipped.
-- Fixed: the PINNED ON CHAT list now shows your pins after you reopen a chat; tapping Save or Pin twice no longer makes duplicates; pop-ups start below the top bar so their × can always be reached; Extract no longer clears your typed text when it can't use a link; the Recycle Bin can no longer lose a picture if a write fails.
-- The ❔ Help guide and the plugin description were rewritten, in English and Bengali.
+- New: **Page view** — look at a web page's pictures and words without leaving Tavo. Tap a link pill on the Character page, paste a link, use + → Preview a link, or tap Preview on a search result, then save its pictures to Saved Previews. Nothing on the page runs, and ads, trackers and banners are never loaded.
+- New: **Clean view** — the Character page and Found images leave out promo banners, Discord/Patreon-style links, profile-link “creators” and scraper stamps such as “[retrieved by …]”. A green bar lets you show everything again.
+- New: **Tavily** as a web-search engine next to Brave (free plan, no card), with a clear order and a fallback. It can also read pages that only show their pictures with JavaScript.
+- Better: the **Character page** keeps centered text, text sizes, bold, italic and underline, and its pictures load only as you scroll close to them and fade in, so it jumps much less.
+- Fixed: DataCat-style picture links in Found images were cut short, so pictures showed twice and half never loaded. Pictures now load a few at a time, retry on their own, and a failed one can be tapped to try again.
+- Security: crafted text (a card, lorebook, message or page made of thousands of unfinished tags or a huge run of blank space) can no longer freeze Tavo; links that spell out a private address are refused; and every download is checked again once it arrives, so anything that isn't really a picture is deleted at once.
+- Steadier: the menu says so when the panel isn't ready instead of doing nothing, a new copy of the panel can no longer be left without working buttons, and scanning a very long chat reads only its newest 5,000 messages.
+- The ❔ Help guide explains all of this, in English and Bengali.
 
 See [`CHANGELOG.md`](CHANGELOG.md) or the [Releases](https://github.com/mrsae123/Image-Preview-/releases) page for the full history.
 
