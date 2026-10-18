@@ -142,6 +142,12 @@ tavo.plugin.onSidebarAction('open-recycle-bin', async () => {
   sendToPanel('emon-iv-open-recycle-v2');
 });
 
+// Opens the Storage manager (what Image Preview keeps on the phone, with safe clean-up). Built and rendered inside
+// panel.html like the Recycle Bin; this is the same hand-off.
+tavo.plugin.onSidebarAction('open-storage', async () => {
+  sendToPanel('emon-iv-open-storage-v2');
+});
+
 // Scans the open chat (character card, persona, lorebooks and messages) for image links. The scan and its
 // picker live in panel.html; this just asks it to start, the same hand-off the Recycle Bin uses.
 tavo.plugin.onSidebarAction('scan-chat', async () => {

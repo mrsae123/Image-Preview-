@@ -4,14 +4,14 @@
   "name": {
     "$t": "plugin.name"
   },
-  "version": "2.26.1",
+  "version": "2.26.3",
   "entry": "entry.js",
   "author": "Emon",
   "description": {
     "$t": "plugin.description"
   },
   "releaseNotes": {
-    "$t": "releaseNotes.2_26_1"
+    "$t": "releaseNotes.2_26_3"
   },
   "localization": {
     "defaultLocale": "en",
@@ -53,6 +53,12 @@
         "id": "open-recycle-bin",
         "label": {
           "$t": "actions.openRecycleBin"
+        }
+      },
+      {
+        "id": "open-storage",
+        "label": {
+          "$t": "actions.openStorage"
         }
       },
       {
