@@ -374,7 +374,7 @@
   function startApp() {
     if (_started || !termsAgreed()) return false;
     _started = true;
-    cleanTempPages(); purgeExpiredRecycleBin(); restorePins();
+    cleanTempFiles(); purgeExpiredRecycleBin(); restorePins();
     return true;
   }
   termsOkEl.onchange = () => { if (!termsReadOnly) termsAgreeBtn.disabled = !termsOkEl.checked; };
@@ -840,7 +840,7 @@
         throw new Error('image could not be shown');
       }
       // 3. A web page: collect every image it points to and use the first one that really loads.
-      const pageDl = tavo.file.save(`emon-page-${Date.now()}.html`, url, {scope:'chat'});
+      const pageDl = tavo.file.save(tempPageName(), url, {scope:'chat'});
       let pageFile;
       try { pageFile = await withTimeout(pageDl, PAGE_TIMEOUT_MS); }
       catch (err) { pageDl.then(late => tavo.file.delete(late, {scope:'chat'})).catch(()=>{}); throw err; }
@@ -926,12 +926,14 @@
   }
 
   let clearBusy = false;
-  async function clearSavedFiles() {
-    if (clearBusy) return;
+  async function clearSavedFiles(opts) {
+    if (clearBusy) return null;
     clearBusy = true;
     try {
-      const ok = typeof confirm === 'function' ? confirm(t('runtime.confirmClear')) : true;
-      if (!ok) return;
+      if (!(opts && opts.confirmed === true)) {            // the Storage manager has already shown its own summary and asked
+        const ok = typeof confirm === 'function' ? confirm(t('runtime.confirmClear')) : true;
+        if (!ok) return null;
+      }
       const files = await listChatFilesMatching(f => SAVED_RE.test(f.name) && /^image\//i.test(f.mimeType || ''));
       const paths = new Set(files.map(f => f.path));
       const okPaths = new Set();
@@ -939,7 +941,8 @@
       pins.filter(p => okPaths.has(p.src) || okPaths.has(String(p.src).replace(/^files\/chat\//,''))).forEach(p => removePin(p.id, false));
       savePins(); renderPinsList(); await loadSavedPreviews();
       tavo.utils.toast(t('runtime.clearedToBin'));
-    } catch (e) { console.error('[Image Preview] clear saved', e); tavo.utils.toast(t('runtime.error')); }
+      return { moved: okPaths.size, failed: files.length - okPaths.size };
+    } catch (e) { console.error('[Image Preview] clear saved', e); tavo.utils.toast(t('runtime.error')); return null; }
     finally { clearBusy = false; }
   }
 
@@ -1444,11 +1447,55 @@
     return out;
   }
 
-  async function cleanTempPages() {
+  // ---- Temporary files ----
+  // A temporary file lives for seconds: a web page being read, or a download whose real type is not known yet. If the app is
+  // closed in that moment the file stays behind. Every temporary name this plugin makes is listed here, in ONE place, so the
+  // clean-up and the Storage Manager agree on what "temporary" means:
+  //   emon-page-<time>.html               a web page being read (Preview link, written by builds before 2.26.2)
+  //   emon-page-<time>-<random>.html      a web page being read (Preview link and Page view)
+  //   emon-(preview|pin|device)-<time>-<random>.tmp   a download not yet identified as a picture
+  //   emon-device-<time>-<random>.<ext>   a copy made for "Save to device", removed after the share sheet
+  // A name that is not on this list is never touched. A listed file is removed only when it is provably old: both the time in
+  // its name and its last-modified time must be at least TEMP_STALE_MS in the past, so a download that is still running (the
+  // plugin gives up on one after 30-45 seconds) or one belonging to another open copy of the panel is left alone.
+  const TEMP_STALE_MS = 10 * 60 * 1000;
+  const TEMP_NAME_RES = [
+    /^emon-page-(\d{10,16})(?:-\d{1,7})?\.html$/i,
+    /^emon-(?:preview|pin|device)-(\d{10,16})-[a-z0-9]{0,8}\.tmp$/i,
+    /^emon-device-(\d{10,16})-[a-z0-9]{0,8}\.[a-z0-9]{2,5}$/i,
+  ];
+  const tempPageName = () => `emon-page-${Date.now()}-${Math.floor(Math.random() * 1e6)}.html`;
+  // How old is a file? The time written into its name and its last-modified time must BOTH be old before it counts as 'stale'.
+  // 'recent' = may still be in use; 'unknown' = no trustworthy time exists (kept: nothing is ever deleted on a guess).
+  function ageState(stamp, modifiedAt, now = Date.now()) {
+    const limit = now + 5 * 60 * 1000;
+    const touched = Date.parse(modifiedAt);
+    if (Number.isFinite(touched) && touched > limit) return 'unknown';                       // a last-modified time in the future cannot be trusted
+    const times = [stamp, touched].filter(n => Number.isFinite(n) && n > 0 && n <= limit);   // neither can a name-time that lies in the future
+    if (!times.length) return 'unknown';
+    if (Number.isFinite(touched) && touched > now - TEMP_STALE_MS) return 'recent';          // touched lately, whatever the name says
+    return now - Math.max(...times) >= TEMP_STALE_MS ? 'stale' : 'recent';
+  }
+  // null = not one of ours; otherwise 'stale' (safe to remove), 'recent' or 'unknown' (both kept).
+  function classifyTemp(f, now = Date.now()) {
+    const name = String((f && (f.name || f.path)) || '').split('/').pop();
+    for (const re of TEMP_NAME_RES) { const m = re.exec(name); if (m) return ageState(Number(m[1]), f && f.modifiedAt, now); }
+    return null;
+  }
+  // Removes the stale temporary files of THIS chat. Returns what happened; never throws.
+  async function cleanTempFiles() {
+    const res = { found: 0, removed: 0, failed: 0, kept: 0, bytes: 0 };
     try {
-      const files = await listChatFilesMatching(f => /^emon-page-\d+\.html$/i.test(f.name));
-      for (const f of files) await tavo.file.delete(f.path, {scope:'chat'});
+      const now = Date.now();
+      const files = await listChatFilesMatching(f => classifyTemp(f, now) !== null);
+      for (const f of files) {
+        res.found++;
+        if (classifyTemp(f, now) !== 'stale') { res.kept++; continue; }
+        try { await tavo.file.delete(f.path, { scope: 'chat' }); res.removed++; res.bytes += Number(f.size) || 0; }
+        catch { res.failed++; }
+      }
     } catch {}
+    return res;
   }
 
   // ---------- Image Info modal (shared by the live preview, pinned images, and saved previews) ----------
@@ -1637,15 +1684,18 @@
   }
   async function saveToDevice(preview) {
     if (!preview?.src) return;
+    let path = preview.src;
     try {
-      let path = preview.src;
       if (!/^files\//i.test(path)) path = await persistRemote(path, 'emon-device');
       // tavo.file.export just hands the file to Tavo's own "Save to downloads / Share" sheet — it does not
       // mean the user actually finished (or even saw) that choice yet. Claiming "Image exported" here would be
       // announcing success before it's true, and that sheet is already its own feedback, so no toast on success.
       await tavo.file.export(path);
-      if (/(^|\/)emon-device-/i.test(path)) { forgetSource(path); await tavo.file.delete(path, {scope:'chat'}).catch(()=>{}); }
     } catch { tavo.utils.toast(t('runtime.error')); }
+    finally {
+      // The temporary copy is removed even when the share sheet failed (before 2.26.2 a failed export left it behind for good).
+      if (/(^|\/)emon-device-/i.test(path)) { forgetSource(path); await tavo.file.delete(path, {scope:'chat'}).catch(()=>{}); }
+    }
   }
 
   // ---------- Renaming a pin: one shared modal, not a tiny inline edit. Blur never saves by itself,
@@ -1805,14 +1855,18 @@
 
   // Unpins everything at once. This only removes the on-chat pins — it does not touch the
   // underlying saved files, so nothing in the Saved images shelf is lost.
-  function clearAllPins() {
-    if (!pins.length) return;
-    const ok = typeof confirm === 'function' ? confirm(t('runtime.confirmClearPins')) : true;
-    if (!ok) return;
+  function clearAllPins(opts) {
+    if (!pins.length) return 0;
+    if (!(opts && opts.confirmed === true)) {
+      const ok = typeof confirm === 'function' ? confirm(t('runtime.confirmClearPins')) : true;
+      if (!ok) return 0;
+    }
+    const removedCount = pins.length + pinsOverflow.length;
     pins.slice().forEach(p => removePin(p.id, false));
     pinsOverflow = [];
     savePins(); renderPinsList();
     tavo.utils.toast(t('runtime.pinsCleared'));
+    return removedCount;
   }
 
   // Pins that did not fit under the limit wait in storage; each freed slot brings the next one back.
@@ -2057,9 +2111,20 @@
   let wallBusy=false;
   function getWallPath(){ try{ const v=tavo.get(WALL_VAR,'global'); return (typeof v==='string' && /^files\/global\/[\w.-]+$/.test(v)) ? v : ''; }catch{ return ''; } }
   function getLookOverrides(){ try{ const v=tavo.get(LOOK_VAR,'global'); return (v && typeof v==='object') ? v : {}; }catch{ return {}; } }
-  const LOOK_DEFAULTS={panelFont:'system',panelBackground:'default',wallpaperUrl:'',wallpaperDim:0.6,fabIcon:'leaf',fabTheme:'forest'};
+  const LOOK_DEFAULTS={panelFont:'system',panelBackground:'default',wallpaperUrl:'',wallpaperDim:0.6,fabIcon:'leaf',fabTheme:'forest',textScale:1,bgMotion:'static'};
   function lookVal(key){ const o=getLookOverrides(); return (o[key]!==undefined && o[key]!==null) ? o[key] : LOOK_DEFAULTS[key]; }
   function setLookVal(key,val){ try{ tavo.set(LOOK_VAR,{...getLookOverrides(),[key]:val},'global'); }catch{} applyPanelLook(); }
+  // ---- Text size and background motion (2.26.2) ----
+  const TEXT_SCALE_MIN=0.85, TEXT_SCALE_MAX=1.3;
+  // A stored value that is missing, text or absurd falls back into the sensible range (and to 100%).
+  function clampTextScale(v){ const n=Number(v); return Number.isFinite(n) ? Math.round(Math.max(TEXT_SCALE_MIN,Math.min(TEXT_SCALE_MAX,n))*20)/20 : 1; }
+  const MOTION_MODES=['static','subtle','enhanced','off'];
+  const motionMQ=(typeof window.matchMedia==='function') ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  function motionChoice(){ const m=String(lookVal('bgMotion')||'static'); return MOTION_MODES.includes(m) ? m : 'static'; }
+  // What really runs. The phone's "reduce motion" setting always beats Subtle and Enhanced, and is deliberately not offered as a switch.
+  function effectiveMotion(){ const m=motionChoice(); return (motionMQ && motionMQ.matches && (m==='subtle'||m==='enhanced')) ? 'static' : m; }
+  function applyMotion(){ try{ root.setAttribute('data-motion',effectiveMotion()); }catch{} }
+  if(motionMQ){ try{ motionMQ.addEventListener('change',()=>{ if(!root.isConnected) return; applyMotion(); syncMotionNote(); },{signal:life.signal}); }catch{} }
   function applyFabLook(){
     const th=FAB_THEMES[lookVal('fabTheme')]||FAB_THEMES.forest;
     fab.style.setProperty('--emon-fab-a',th[0]); fab.style.setProperty('--emon-fab-b',th[1]);
@@ -2079,6 +2144,9 @@
       else if(/^https?:\/\/[^\s"'()<>\\]+$/i.test(link) && isFetchableUrl(link)) bgVal=`${shade},url(${link})`;      // then a pasted link
       if(bgVal) rootEl.style.setProperty('--emon-iv-bg',bgVal); else rootEl.style.removeProperty('--emon-iv-bg');
       if(wallRemoveBtn) wallRemoveBtn.disabled=!devicePath;
+      const ts=clampTextScale(lookVal('textScale'));
+      if(ts===1) rootEl.style.removeProperty('--emon-iv-ts'); else rootEl.style.setProperty('--emon-iv-ts',String(ts));
+      applyMotion();
       applyFabLook();
     }catch{}
   }
@@ -2133,6 +2201,7 @@
   const lookLink=byId('emon-iv-look-link');
   const lookDim=byId('emon-iv-look-dim');
   const lookSelects={
+    bgMotion:[byId('emon-iv-look-motion'),[['static','settings.motionStatic'],['subtle','settings.motionSubtle'],['enhanced','settings.motionEnhanced'],['off','settings.motionOff']]],
     panelBackground:[byId('emon-iv-look-bg'),[['default','settings.bgDefault'],['forest','settings.bgForest'],['ocean','settings.bgOcean'],['sunset','settings.bgSunset'],['rose','settings.bgRose'],['midnight','settings.bgMidnight'],['aurora','settings.bgAurora']]],
     panelFont:[byId('emon-iv-look-font'),[['system','settings.fontSystem'],['serif','settings.fontSerif'],['rounded','settings.fontRounded'],['mono','settings.fontMono'],['handwriting','settings.fontHandwriting']]],
     fabIcon:[byId('emon-iv-look-fabicon'),[['leaf','settings.fabIconLeaf'],['classic','settings.fabIconClassic'],['moon','settings.fabIconMoon'],['star','settings.fabIconStar'],['blossom','settings.fabIconBlossom'],['butterfly','settings.fabIconButterfly'],['wave','settings.fabIconWave'],['orb','settings.fabIconOrb']]],
@@ -2146,10 +2215,23 @@
     }
     if(lookLink) lookLink.value=String(lookVal('wallpaperUrl')||'');
     if(lookDim) lookDim.value=String(lookVal('wallpaperDim') ?? 0.6);
+    syncTextScaleUI(); syncMotionNote();
     applyPanelLook();
   }
   for(const [key,[sel]] of Object.entries(lookSelects)){ if(sel) sel.onchange=()=>setLookVal(key,sel.value); }
   if(lookDim) lookDim.oninput=()=>setLookVal('wallpaperDim',Number(lookDim.value));
+  // Text size: dragging only changes the preview line (so the controls do not jump under the finger); letting go keeps the size.
+  const lookTextRange=byId('emon-iv-look-textscale'), lookTextVal=byId('emon-iv-look-textval'), lookTextPrev=byId('emon-iv-look-textprev'), lookTextReset=byId('emon-iv-look-textreset');
+  const showTextScale=(v)=>{ const pct=Math.round(v*100)+'%'; if(lookTextVal) lookTextVal.textContent=pct; if(lookTextPrev) lookTextPrev.style.setProperty('--emon-iv-ts',String(v)); if(lookTextRange) lookTextRange.setAttribute('aria-valuetext',pct); };
+  function syncTextScaleUI(){ const v=clampTextScale(lookVal('textScale')); if(lookTextRange) lookTextRange.value=String(v); showTextScale(v); if(lookTextReset) lookTextReset.disabled=(v===1); }
+  if(lookTextRange){
+    lookTextRange.oninput=()=>showTextScale(clampTextScale(lookTextRange.value));
+    lookTextRange.onchange=()=>{ setLookVal('textScale',clampTextScale(lookTextRange.value)); syncTextScaleUI(); };
+  }
+  if(lookTextReset) lookTextReset.onclick=()=>{ setLookVal('textScale',1); syncTextScaleUI(); };
+  function syncMotionNote(){ const n=byId('emon-iv-look-motionnote'); if(!n) return; n.textContent=t((motionMQ&&motionMQ.matches)?'runtime.motionReduced':'runtime.motionHint'); }
+  const lookStorageBtn=byId('emon-iv-look-storage');
+  if(lookStorageBtn) lookStorageBtn.onclick=()=>requireTerms(()=>{ openStorage(); });
   if(lookLink) lookLink.onchange=()=>{
     const v=lookLink.value.trim();
     if(v && (!/^https?:\/\/[^\s"'()<>\\]+$/i.test(v) || !isFetchableUrl(v))){ tavo.utils.toast(t('runtime.lookLinkBad')); return; }
@@ -2745,6 +2827,344 @@
   bindBackdropClose(recycleModal, () => hideModal(recycleModal));
   bus('emon-iv-open-recycle', () => requireTerms(() => { openRecycleBin(); }));
 
+  // ======================= Storage manager (2.26.2) =======================
+  // Shows, in plain language, what Image Preview keeps on this phone, and cleans it up safely.
+  // OWNERSHIP RULE: this code only ever reads (a) the variable names written out in this section and (b) files whose NAME matches a
+  // pattern this plugin itself creates. Every other variable or file belongs to Tavo or to something else and is never counted,
+  // shown or deleted. (tavo.file.list can only list a whole scope, so other files meet the name test and are dropped at once, unseen.)
+  // The manager shows counts and sizes only - never picture names, addresses or search words - and a deletion always works from
+  // names re-checked at the moment it runs, never from a path that is merely stored somewhere.
+  const stModal = byId('emon-iv-storage-modal');
+  const stBodyEl = byId('emon-iv-st-body');
+  const stTitleEl = byId('emon-iv-st-title');
+  const stSubEl = byId('emon-iv-st-sub');
+  const stBackBtn = byId('emon-iv-st-back');
+  const stCloseBtn = byId('emon-iv-st-close');
+  const ST_BIN_RE = /^emon-recycled-(\d{10,16})-[a-z0-9]{0,8}\.[a-z0-9]{2,5}$/i;
+  const ST_WALL_RE = /^emon-iv-wallpaper-\d{10,16}\.jpg$/i;
+  const ST_PAGES_RE = /^emon-iv-pages\.json$/i;
+  const ST_GAME_RE = /^emon-game-g[a-z0-9]{3,24}\.html$/i;
+  // a function, because those constants are declared further down this file
+  const stGameVars = () => [GAMES_VAR, GAME_DATA_VAR, GAME_BESTS_VAR, GAME_ACTIVE_VAR, 'emonImageViewerGameBest', 'emonImageViewerGameEmoji', 'emonImageViewerGameName',
+    'emonImageViewerGameRelaxed', 'emonImageViewerGameRun', 'emonImageViewerGameSettingsOpen', 'emonImageViewerGameWinRect'];
+  const stBase = (n) => String(n || '').split('/').pop();
+  const stCountText = (n) => t(n === 1 ? 'runtime.stCountOne' : 'runtime.stCount', { n });
+  const stChatBucket = (f) => {
+    if (classifyTemp(f) !== null) return 'temp';
+    return (isSavedName(f && (f.name || f.path)) && /^image\//i.test((f && f.mimeType) || '')) ? 'saved' : '';
+  };
+  const stGlobalBucket = (f) => {
+    const n = stBase(f && (f.name || f.path));
+    return ST_BIN_RE.test(n) ? 'bin' : ST_WALL_RE.test(n) ? 'wall' : ST_PAGES_RE.test(n) ? 'pages' : ST_GAME_RE.test(n) ? 'games' : '';
+  };
+  // Every text key the manager shows, written out in full so the localisation audit can check each one.
+  const ST_META = {
+    saved: { icon: '🖼️', tone: 'yours' }, pins: { icon: '📌', tone: 'yours' }, bin: { icon: '🗑️', tone: 'recoverable' }, temp: { icon: '🧹', tone: 'disposable' },
+    pages: { icon: '🌐', tone: 'disposable' }, lookup: { icon: '🔎', tone: 'disposable' }, keys: { icon: '🔑', tone: 'private' }, look: { icon: '🎨', tone: 'settings' },
+    games: { icon: '🎮', tone: 'yours' },
+  };
+  const ST_TONE = { yours: 'runtime.stToneYours', recoverable: 'runtime.stToneRecoverable', disposable: 'runtime.stToneDisposable', private: 'runtime.stTonePrivate', settings: 'runtime.stToneSettings' };
+  const ST_TXT = {
+    saved: { name:'runtime.stSavedName', desc:'runtime.stSavedDesc', what:'runtime.stSavedWhat', why:'runtime.stSavedWhy', del:'runtime.stSavedDel', again:'runtime.stSavedAgain', affects:'runtime.stSavedAffects', hint:'runtime.stSavedHint' },
+    pins: { name:'runtime.stPinsName', desc:'runtime.stPinsDesc', what:'runtime.stPinsWhat', why:'runtime.stPinsWhy', del:'runtime.stPinsDel', again:'runtime.stPinsAgain', affects:'runtime.stPinsAffects' },
+    bin: { name:'runtime.stBinName', desc:'runtime.stBinDesc', what:'runtime.stBinWhat', why:'runtime.stBinWhy', del:'runtime.stBinDel', again:'runtime.stBinAgain', affects:'runtime.stBinAffects' },
+    temp: { name:'runtime.stTempName', desc:'runtime.stTempDesc', what:'runtime.stTempWhat', why:'runtime.stTempWhy', del:'runtime.stTempDel', again:'runtime.stTempAgain', affects:'runtime.stTempAffects' },
+    pages: { name:'runtime.stPagesName', desc:'runtime.stPagesDesc', what:'runtime.stPagesWhat', why:'runtime.stPagesWhy', del:'runtime.stPagesDel', again:'runtime.stPagesAgain', affects:'runtime.stPagesAffects', hint:'runtime.stPagesHint' },
+    lookup: { name:'runtime.stLookupName', desc:'runtime.stLookupDesc', what:'runtime.stLookupWhat', why:'runtime.stLookupWhy', del:'runtime.stLookupDel', again:'runtime.stLookupAgain', affects:'runtime.stLookupAffects' },
+    keys: { name:'runtime.stKeysName', desc:'runtime.stKeysDesc', what:'runtime.stKeysWhat', why:'runtime.stKeysWhy', del:'runtime.stKeysDel', again:'runtime.stKeysAgain', affects:'runtime.stKeysAffects' },
+    look: { name:'runtime.stLookName', desc:'runtime.stLookDesc', what:'runtime.stLookWhat', why:'runtime.stLookWhy', del:'runtime.stLookDel', again:'runtime.stLookAgain', affects:'runtime.stLookAffects' },
+    games: { name:'runtime.stGamesName', desc:'runtime.stGamesDesc', what:'runtime.stGamesWhat', why:'runtime.stGamesWhy', del:'runtime.stGamesDel', again:'runtime.stGamesAgain', affects:'runtime.stGamesAffects' },
+  };
+  const stState = { view: 'overview', cat: '', act: '', inv: null, note: '', busy: false, error: false };
+  let stGen = 0;            // bumped whenever the manager opens or closes, so a slow scan from an earlier opening is ignored
+
+  function stNode(tag, props, ...kids) {
+    const el = document.createElement(tag);
+    if (props) for (const k of Object.keys(props)) {
+      const v = props[k];
+      if (v == null || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = String(v);
+      else if (k === 'onclick') el.onclick = v;
+      else if (k === 'onchange') el.onchange = v;
+      else el.setAttribute(k, v === true ? '' : String(v));
+    }
+    for (const c of kids.flat()) { if (c == null || c === false) continue; el.append(typeof c === 'object' ? c : document.createTextNode(String(c))); }
+    return el;
+  }
+  // Approximate size of one stored variable (its saved text). Missing, unreadable or non-JSON values count as 0.
+  function stVarBytes(key, scope) {
+    try { const v = scope ? tavo.get(key, scope) : tavo.get(key); return v == null ? 0 : Math.min(JSON.stringify(v).length, 1e9); } catch { return 0; }
+  }
+  const stHas = (key, scope) => { try { const v = scope ? tavo.get(key, scope) : tavo.get(key); return v != null && v !== '' && !(Array.isArray(v) && !v.length); } catch { return false; } };
+  // One bounded pass over a scope's files. Only files the name test accepts are kept (as small records of our own).
+  async function stScan(scope, bucketOf) {
+    const out = [], res = { files: out, complete: true };
+    let cursor;
+    try {
+      for (let i = 0; i < 40; i++) {                                           // at most 8,000 files are looked at
+        const opts = { scope, limit: 200 }; if (cursor) opts.cursor = cursor;
+        const page = await tavo.file.list(opts);
+        for (const f of ((page && page.files) || [])) {
+          if (!f || typeof f.path !== 'string') continue;
+          const b = bucketOf(f);
+          if (b) out.push({ path: f.path, name: stBase(f.name || f.path), size: Number(f.size) || 0, mimeType: f.mimeType || '', modifiedAt: f.modifiedAt, bucket: b });
+        }
+        if (!page || !page.nextCursor) { cursor = null; break; }
+        cursor = page.nextCursor;
+      }
+      if (cursor) res.complete = false;
+    } catch { res.complete = false; }
+    return res;
+  }
+  async function stInventory() {
+    const [cs, gs] = await Promise.all([stScan('chat', stChatBucket), stScan('global', stGlobalBucket)]);
+    const now = Date.now();
+    const sum = (a) => a.reduce((n, f) => n + f.size, 0);
+    const saved = cs.files.filter(f => f.bucket === 'saved');
+    const temp = cs.files.filter(f => f.bucket === 'temp').map(f => ({ ...f, state: classifyTemp(f, now) }));
+    const removable = temp.filter(f => f.state === 'stale');
+    const binFiles = gs.files.filter(f => f.bucket === 'bin');
+    const listed = getRecycleBin();
+    const listedPaths = new Set(listed.map(e => e.path));
+    const unlisted = binFiles.filter(f => !listedPaths.has(f.path));
+    const wallFiles = gs.files.filter(f => f.bucket === 'wall');
+    const pageFiles = gs.files.filter(f => f.bucket === 'pages');
+    const gameFiles = gs.files.filter(f => f.bucket === 'games');
+    let pageList = []; try { pageList = await webPagesLoad(); } catch {}
+    const hist = getLookupHistory(), brave = !!getBraveKey(), tav = !!getTavilyKey();
+    const cats = [
+      { id: 'saved', count: saved.length, bytes: sum(saved) + stVarBytes('emonImageViewerSourceMap', 'chat') + stVarBytes('emonImageViewerDisplayNames', 'chat') + stVarBytes(DEVICE_MAP_VAR, 'chat') },
+      { id: 'pins', count: pins.length + pinsOverflow.length, bytes: stVarBytes('emonImageViewerPins', 'chat') },
+      { id: 'bin', count: listed.length, bytes: sum(binFiles) + stVarBytes('emonImageViewerRecycleBin', 'global'), unlisted: unlisted.length, days: recycleRetentionDays() },
+      { id: 'temp', count: temp.length, bytes: sum(temp), removable: removable.length, removableBytes: sum(removable), kept: temp.length - removable.length },
+      { id: 'pages', count: pageList.length, bytes: sum(pageFiles) },
+      { id: 'lookup', count: hist.length, bytes: stVarBytes('emonImageViewerLookupHistory') + stVarBytes('emonImageViewerHistoryOn'), on: isHistoryEnabled() },
+      { id: 'keys', count: (brave ? 1 : 0) + (tav ? 1 : 0), bytes: stVarBytes('emonImageViewerBraveKey', 'global') + stVarBytes(TAVILY_VAR, 'global') + stVarBytes(ENGINE_VAR, 'global'), brave, tavily: tav },
+      { id: 'look', count: Object.keys(getLookOverrides()).length, bytes: stVarBytes(LOOK_VAR, 'global') + stVarBytes(WALL_VAR, 'global') + stVarBytes('emonImageViewerFabPosition', 'global')
+        + stVarBytes('emonImageViewerCleanIntro', 'global') + stVarBytes('emonImageViewerPrivacyMode', 'global') + sum(wallFiles), wall: sum(wallFiles), wallCount: wallFiles.length, fab: stHas('emonImageViewerFabPosition', 'global') },
+      { id: 'games', count: getUserGames().length, bytes: sum(gameFiles) + stGameVars().reduce((n, k) => n + stVarBytes(k, 'global'), 0), gameFiles: gameFiles.length },
+    ];
+    return { cats, total: cats.reduce((n, c) => n + c.bytes, 0), complete: cs.complete && gs.complete, removableTemp: removable.length };
+  }
+
+  // ---- the clean-up actions ----
+  // Recycle Bin: empties for good. The list is trusted only if it reads as a list; a record that points at a file that is not
+  // ours is dropped without touching that file; unlisted leftovers are removed only when provably old (a move may be running).
+  async function stEmptyBin() {
+    const res = { done: 0, failed: 0, damaged: false };
+    let raw; try { raw = tavo.get('emonImageViewerRecycleBin', 'global'); } catch { res.damaged = true; return res; }
+    if (raw != null && !Array.isArray(raw)) { res.damaged = true; return res; }          // an unreadable list: never guess which files to delete
+    const gone = new Set();
+    for (const e of getRecycleBin()) {
+      if (!(/^files\/global\//i.test(e.path) && ST_BIN_RE.test(stBase(e.path)))) { gone.add(e.id); continue; }   // not ours: forget the record, leave the file
+      try { await tavo.file.delete(e.path, { scope: 'global' }); gone.add(e.id); res.done++; } catch { res.failed++; }
+    }
+    try {
+      const scan = await stScan('global', f => (ST_BIN_RE.test(stBase(f.name || f.path)) ? 'bin' : ''));
+      const still = new Set(getRecycleBin().filter(e => !gone.has(e.id)).map(e => e.path));
+      const now = Date.now();
+      for (const f of scan.files) {
+        if (still.has(f.path)) continue;
+        if (ageState(Number(ST_BIN_RE.exec(f.name)[1]), f.modifiedAt, now) !== 'stale') continue;
+        try { await tavo.file.delete(f.path, { scope: 'global' }); res.done++; } catch { res.failed++; }
+      }
+    } catch {}
+    setRecycleBin(getRecycleBin().filter(e => !gone.has(e.id)));                         // entries that could not be deleted stay, so a later try can finish
+    return res;
+  }
+  async function stClearPages() {
+    const before = (await webPagesLoad()).length;
+    webPagesCache = [];
+    try { await tavo.file.delete(WEB_FILE, { scope: 'global' }); return { done: before, failed: 0 }; }
+    catch { webPagesCache = null; return { done: 0, failed: before || 1 }; }              // not deleted: forget the in-memory copy so the next look reads the real state
+  }
+  function stClearLookup() {
+    const before = getLookupHistory().length;
+    setLookupHistory([]); try { renderHistoryList(); } catch {}
+    const left = getLookupHistory().length;
+    return { done: before - left, failed: left };
+  }
+  function stRemoveKeys() {
+    const before = (getBraveKey() ? 1 : 0) + (getTavilyKey() ? 1 : 0);
+    for (const k of ['emonImageViewerBraveKey', TAVILY_VAR]) { try { tavo.set(k, '', 'global'); } catch {} }
+    try { refreshSearchKeyUI(); } catch {}
+    const left = (getBraveKey() ? 1 : 0) + (getTavilyKey() ? 1 : 0);
+    return { done: before - left, failed: left };
+  }
+  async function stResetLook() {
+    const res = { done: 0, failed: 0 };
+    for (const k of [LOOK_VAR, WALL_VAR, 'emonImageViewerFabPosition']) { try { tavo.set(k, null, 'global'); res.done++; } catch { res.failed++; } }
+    try {      // wallpaper pictures: by name only, so a stored path can never point this at a file that is not ours
+      const scan = await stScan('global', f => (ST_WALL_RE.test(stBase(f.name || f.path)) ? 'wall' : ''));
+      for (const f of scan.files) { try { await tavo.file.delete(f.path, { scope: 'global' }); } catch { res.failed++; } }
+    } catch {}
+    try { applyPanelLook(); } catch {}
+    try { window.dispatchEvent(new CustomEvent('emon-iv-fab-reset-v2')); } catch {}
+    return res;
+  }
+  const stRow = (label, detail) => [label, detail == null ? '' : String(detail)];
+  const ST_ACTIONS = {
+    cleanTemp: { cat: 'temp', label: 'runtime.stActTemp', keep: 'runtime.stKeepTemp', done: 'runtime.stDoneTemp', disabled: c => !c.removable,
+      rows: c => [stRow(t('runtime.stSumTemp'), `${c.removable} · ${fmtBytes(c.removableBytes)}`)].concat(c.kept ? [stRow(t('runtime.stSumTempKept'), c.kept)] : []),
+      run: async () => { const r = await cleanTempFiles(); return { done: r.removed, failed: r.failed, p: { n: r.removed, size: fmtBytes(r.bytes) } }; } },
+    moveSaved: { cat: 'saved', label: 'runtime.stActSaved', keep: 'runtime.stKeepSaved', done: 'runtime.stDoneSaved', disabled: c => !c.count,
+      rows: c => [stRow(t('runtime.stSumSaved'), `${c.count} · ${fmtBytes(c.bytes)}`), stRow(t('runtime.stSumSavedGo', { days: recycleRetentionDays() }))],
+      run: async () => { const r = await clearSavedFiles({ confirmed: true }); return r ? { done: r.moved, failed: r.failed, p: { n: r.moved } } : { done: 0, failed: 1 }; } },
+    removePins: { cat: 'pins', label: 'runtime.stActPins', keep: 'runtime.stKeepPins', done: 'runtime.stDonePins', disabled: c => !c.count,
+      rows: c => [stRow(t('runtime.stSumPins'), c.count)],
+      run: async () => { const n = clearAllPins({ confirmed: true }); return { done: n, failed: 0, p: { n } }; } },
+    emptyBin: { cat: 'bin', label: 'runtime.stActBin', keep: 'runtime.stKeepBin', done: 'runtime.stDoneBin', irreversible: true, disabled: c => !c.count && !c.unlisted,
+      rows: c => [stRow(t('runtime.stSumBin'), `${c.count} · ${fmtBytes(c.bytes)}`)].concat(c.unlisted ? [stRow(t('runtime.stSumBinOrphan'), c.unlisted)] : []),
+      run: async () => { const r = await stEmptyBin(); return r.damaged ? { damaged: true, done: 0, failed: 0 } : { done: r.done, failed: r.failed, p: { n: r.done } }; } },
+    clearPages: { cat: 'pages', label: 'runtime.stActPages', keep: 'runtime.stKeepPages', done: 'runtime.stDonePages', disabled: c => !c.count,
+      rows: c => [stRow(t('runtime.stSumPages'), `${c.count} · ${fmtBytes(c.bytes)}`)], run: () => stClearPages() },
+    clearLookup: { cat: 'lookup', label: 'runtime.stActLookup', keep: 'runtime.stKeepLookup', done: 'runtime.stDoneLookup', disabled: c => !c.count,
+      rows: c => [stRow(t('runtime.stSumLookup'), c.count)], run: async () => stClearLookup() },
+    removeKeys: { cat: 'keys', label: 'runtime.stActKeys', keep: 'runtime.stKeepKeys', done: 'runtime.stDoneKeys', disabled: c => !c.count,
+      rows: c => [stRow(t('runtime.stSumKeys'), c.count)], run: async () => stRemoveKeys() },
+    resetLook: { cat: 'look', label: 'runtime.stActLook', keep: 'runtime.stKeepLook', done: 'runtime.stDoneLook', disabled: c => !c.count && !c.wallCount && !c.fab,
+      rows: c => [stRow(t('runtime.stSumLook'), c.count), stRow(t('runtime.stSumWall'), c.wallCount ? fmtBytes(c.wall) : t('runtime.stNone')), stRow(t('runtime.stSumFab'), c.fab ? t('runtime.stSaved') : t('runtime.stNone'))],
+      run: async () => stResetLook() },
+  };
+  const ST_ACTS_OF = { saved: ['moveSaved'], pins: ['removePins'], bin: ['emptyBin'], temp: ['cleanTemp'], pages: ['clearPages'], lookup: ['clearLookup'], keys: ['removeKeys'], look: ['resetLook'], games: [] };
+  function stDetailLines(c) {
+    if (c.id === 'temp') return [t('runtime.stDetailTemp', { stale: c.removable, kept: c.kept })];
+    if (c.id === 'bin') return [t('runtime.stDetailBin', { n: c.count, m: c.unlisted }), t('runtime.stDetailBinDays', { days: c.days })];
+    if (c.id === 'lookup') return [t(c.on ? 'runtime.stDetailLookupOn' : 'runtime.stDetailLookupOff')];
+    if (c.id === 'keys') return [t('runtime.stDetailKeys', { a: t(c.brave ? 'runtime.stSaved' : 'runtime.stNotSaved'), b: t(c.tavily ? 'runtime.stSaved' : 'runtime.stNotSaved') })];
+    if (c.id === 'look') return [t('runtime.stDetailLook', { w: c.wallCount ? fmtBytes(c.wall) : t('runtime.stNone') })];
+    if (c.id === 'games') return [t('runtime.stDetailGames', { n: c.count, size: fmtBytes(c.bytes) })];
+    return [];
+  }
+
+  // ---- the screens ----
+  function stSetHead(title, sub, back) {
+    if (stTitleEl) stTitleEl.textContent = title;
+    if (stSubEl) { stSubEl.textContent = sub || ''; stSubEl.hidden = !sub; }
+    if (stBackBtn) { stBackBtn.hidden = !back; stBackBtn.setAttribute('aria-label', t('runtime.stBack')); }
+    if (stCloseBtn) stCloseBtn.setAttribute('aria-label', t('runtime.close'));
+  }
+  function stRenderOverview(inv) {
+    stSetHead(t('runtime.stTitle'), t('runtime.stSub'), false);
+    const frag = document.createDocumentFragment();
+    frag.append(stNode('p', { class: 'emon-iv-st-intro', text: t('runtime.stIntro') }));
+    frag.append(stNode('div', { class: 'emon-iv-st-total' },
+      stNode('div', { class: 'emon-iv-st-total-n', text: t(inv.complete ? 'runtime.stTotal' : 'runtime.stTotalAtLeast', { size: fmtBytes(inv.total) }) }),
+      stNode('div', { class: 'emon-iv-st-total-s', text: t('runtime.stNoHidden') })));
+    if (stState.note) frag.append(stNode('div', { class: 'emon-iv-st-note', role: 'status', text: stState.note }));
+    for (const c of inv.cats) {
+      const tx = ST_TXT[c.id], meta = ST_META[c.id];
+      frag.append(stNode('button', { type: 'button', class: 'emon-iv-st-row', onclick: () => stGo('detail', c.id) },
+        stNode('span', { class: 'emon-iv-st-ico', 'aria-hidden': 'true', text: meta.icon }),
+        stNode('span', { class: 'emon-iv-st-main' }, stNode('b', { text: t(tx.name) }), stNode('small', { text: t(tx.desc) })),
+        stNode('span', { class: 'emon-iv-st-side' }, stNode('b', { text: c.bytes > 0 ? fmtBytes(c.bytes) : t('runtime.stNone') }), stNode('small', { text: stCountText(c.count) })),
+        stNode('span', { class: 'emon-iv-st-chev', 'aria-hidden': 'true', text: '›' })));
+    }
+    frag.append(stNode('button', { type: 'button', class: 'emon-iv-st-clean', disabled: inv.removableTemp ? null : true, onclick: () => stAsk('cleanTemp'),
+      text: t('runtime.stActTemp') + (inv.removableTemp ? ` (${inv.removableTemp})` : '') }));
+    return frag;
+  }
+  function stRenderDetail(inv, id) {
+    const c = inv.cats.find(x => x.id === id), tx = ST_TXT[id], meta = ST_META[id];
+    stSetHead(t(tx.name), t(tx.desc), true);
+    const frag = document.createDocumentFragment();
+    frag.append(stNode('div', { class: 'emon-iv-st-badges' },
+      stNode('span', { class: 'emon-iv-st-badge tone-' + meta.tone, text: t(ST_TONE[meta.tone]) }),
+      stNode('span', { class: 'emon-iv-st-badge-n', text: `${c.bytes > 0 ? fmtBytes(c.bytes) : t('runtime.stNone')} · ${stCountText(c.count)}` })));
+    for (const line of stDetailLines(c)) frag.append(stNode('div', { class: 'emon-iv-st-extra', text: line }));
+    if (stState.note) frag.append(stNode('div', { class: 'emon-iv-st-note', role: 'status', text: stState.note }));
+    for (const [q, a] of [['runtime.stQWhat', tx.what], ['runtime.stQWhy', tx.why], ['runtime.stQDel', tx.del], ['runtime.stQAgain', tx.again], ['runtime.stQAffects', tx.affects]]) {
+      frag.append(stNode('div', { class: 'emon-iv-st-qa' }, stNode('b', { text: t(q) }), stNode('p', { text: t(a) })));
+    }
+    if (tx.hint) frag.append(stNode('p', { class: 'emon-iv-st-hint', text: t(tx.hint) }));
+    const row = stNode('div', { class: 'emon-iv-st-actions' });
+    if (id === 'bin') row.append(stNode('button', { type: 'button', class: 'emon-iv-st-btn', text: t('runtime.stOpenBin'), onclick: () => { stShut(); openRecycleBin(); } }));
+    for (const aid of ST_ACTS_OF[id]) {
+      const a = ST_ACTIONS[aid];
+      row.append(stNode('button', { type: 'button', class: 'emon-iv-st-btn danger', disabled: a.disabled(c) ? true : null, text: t(a.label), onclick: () => stAsk(aid) }));
+    }
+    if (row.childNodes.length) frag.append(row);
+    return frag;
+  }
+  function stRenderConfirm(inv, aid) {
+    const a = ST_ACTIONS[aid], c = inv.cats.find(x => x.id === a.cat);
+    stSetHead(t('runtime.stConfirmTitle'), '', true);
+    const frag = document.createDocumentFragment();
+    frag.append(stNode('p', { class: 'emon-iv-st-lead', text: t('runtime.stConfirmLead') }));
+    const list = stNode('div', { class: 'emon-iv-st-sum' });
+    for (const [label, detail] of a.rows(c)) list.append(stNode('div', { class: 'emon-iv-st-sumrow' }, stNode('span', { text: label }), detail ? stNode('b', { text: detail }) : null));
+    frag.append(list);
+    frag.append(stNode('div', { class: 'emon-iv-st-keep' }, stNode('b', { text: t('runtime.stKeepLead') + ' ' }), t(a.keep)));
+    let cb = null;
+    if (a.irreversible) {
+      frag.append(stNode('div', { class: 'emon-iv-st-warn', text: t('runtime.stIrreversible') }));
+      cb = stNode('input', { type: 'checkbox', id: 'emon-iv-st-ack' });
+      frag.append(stNode('label', { class: 'emon-iv-st-check', for: 'emon-iv-st-ack' }, cb, stNode('span', { text: t('runtime.stUnderstand') })));
+    }
+    const go = stNode('button', { type: 'button', class: 'emon-iv-st-btn danger', disabled: (a.irreversible || stState.busy) ? true : null, text: t(stState.busy ? 'runtime.stDoing' : 'runtime.stDo'), onclick: () => stRun(aid) });
+    if (cb) cb.onchange = () => { go.disabled = !cb.checked || stState.busy; };
+    frag.append(stNode('div', { class: 'emon-iv-st-actions' }, stNode('button', { type: 'button', class: 'emon-iv-st-btn', text: t('runtime.stCancel'), onclick: () => stGo('detail', a.cat) }), go));
+    return frag;
+  }
+  function stRender() {
+    if (!stBodyEl) return;
+    let content;
+    if (stState.error) {
+      stSetHead(t('runtime.stTitle'), t('runtime.stSub'), false);
+      content = [stNode('p', { class: 'emon-iv-st-intro', text: t('runtime.stScanFailed') }), stNode('button', { type: 'button', class: 'emon-iv-st-btn', text: t('runtime.stRetry'), onclick: () => openStorage() })];
+    } else if (!stState.inv) {
+      stSetHead(t('runtime.stTitle'), t('runtime.stSub'), false);
+      content = [stNode('p', { class: 'emon-iv-st-intro', text: t('runtime.stScanning') })];
+    } else if (stState.view === 'confirm') content = [stRenderConfirm(stState.inv, stState.act)];
+    else if (stState.view === 'detail') content = [stRenderDetail(stState.inv, stState.cat)];
+    else content = [stRenderOverview(stState.inv)];
+    stBodyEl.replaceChildren(...content);
+    const card = stModal && stModal.querySelector('.emon-iv-modal-card'); if (card) card.scrollTop = 0;
+  }
+  function stGo(view, cat) { stState.view = view; if (cat) stState.cat = cat; if (view === 'overview') stState.cat = ''; stState.note = view === 'confirm' ? '' : stState.note; stRender(); }
+  function stBack() { if (stState.view === 'confirm') stGo('detail', stState.cat); else if (stState.view === 'detail') { stState.note = ''; stGo('overview'); } }
+  // Re-counts first, so the summary the person confirms is the state right now, not the state when the manager was opened.
+  async function stAsk(aid) {
+    if (stState.busy) return;
+    const gen = stGen;
+    try { stState.inv = await stInventory(); } catch { return; }
+    if (gen !== stGen) return;
+    stState.act = aid; stState.cat = ST_ACTIONS[aid].cat; stGo('confirm');
+  }
+  async function stRun(aid) {
+    if (stState.busy) return;
+    const a = ST_ACTIONS[aid], gen = stGen;
+    stState.busy = true; stRender();
+    let msg = '', r = null;
+    try { r = await a.run(); }
+    catch (e) { console.error('[Image Preview] storage action', aid, e); r = { done: 0, failed: 1 }; }
+    stState.busy = false;
+    if (r && r.damaged) msg = t('runtime.stBinDamaged');
+    else if (r && r.failed > 0) msg = t('runtime.stDonePartial', { done: r.done, failed: r.failed });
+    else if (r && r.done > 0) msg = t(a.done, r.p || { n: r.done });
+    else msg = t('runtime.stDoneNone');
+    try { tavo.utils.toast(msg); } catch {}
+    if (gen !== stGen) return;                 // closed while it worked: the toast above is the whole answer
+    try { stState.inv = await stInventory(); } catch {}
+    if (gen !== stGen) return;
+    stState.note = msg; stState.view = 'detail'; stState.cat = a.cat; stRender();
+  }
+  const stIsOpen = () => !!(stModal && stModal.classList.contains('show'));
+  function stShut() { stGen++; stState.busy = false; hideModal(stModal); }
+  async function openStorage() {
+    if (!termsAgreed()) { requireTerms(() => openStorage()); return; }              // like every other screen: not before the Terms are agreed to
+    const gen = ++stGen;
+    Object.assign(stState, { view: 'overview', cat: '', act: '', inv: null, note: '', busy: false, error: false });
+    stRender(); showModal(stModal);
+    try { stState.inv = await stInventory(); } catch (e) { console.error('[Image Preview] storage scan', e); if (gen === stGen) { stState.error = true; stRender(); } return; }
+    if (gen === stGen) stRender();
+  }
+  if (stCloseBtn) stCloseBtn.onclick = stShut;
+  if (stBackBtn) stBackBtn.onclick = stBack;
+  bindBackdropClose(stModal, stShut);
+  bus('emon-iv-open-storage', () => requireTerms(() => { openStorage(); }));
+
 
   // ---- Character page ----
   // The open chat's character card as one scrollable page, like Janitor's intro: picture, text, picture, text… Creator notes,
@@ -3255,11 +3675,18 @@
   const webSaveBtn = byId('emon-iv-web-save');
   const webRefreshBtn = byId('emon-iv-web-refresh');
   const webBrowserBtn = byId('emon-iv-web-browser');
+  const WEB_PLACEHOLDER_RE = /(?:^|\/)(?:blank|spacer|pixel|placeholder|loading|lazy|transparent|1x1)[^\/]{0,40}\.(?:gif|png|svg|webp)(?:[?#]|$)/i;
+  // "More files" / "Load more pictures": clearly about pictures. A bare "Load more" / "Show more" is only believed on a page that already has several pictures.
+  const WEB_MORE_PIC_RE = /\bmore\s+(?:files|images|pictures|photos|pics)\b|\b(?:load|show|view|see)\s+(?:all|more)\s+(?:files|images|pictures|photos|pics)\b/i;
+  const WEB_MORE_RE = /\b(?:load|show|view|see)\s+(?:all|more)\b/i;
   const WEB_MAX_IMAGES = 80, WEB_MAX_TEXT = 14000, WEB_MAX_BLOCKS = 140, WEB_FILE = 'emon-iv-pages.json', WEB_KEEP = 20, WEB_PAGE_MS = 25000;
+  // A gallery that the page lists as data (see webGalleryFromData): up to WEB_GALLERY_MAX pictures are kept (WEB_GALLERY_SCAN list entries are looked at) and they are
+  // put on screen WEB_BATCH at a time. WEB_EXTRACT_V changes whenever the page reader changes what it finds: a saved copy made by an older reader is read again.
+  const WEB_GALLERY_MAX = 500, WEB_GALLERY_SCAN = 3000, WEB_BATCH = 80, WEB_DATA_MAX = 3000000, WEB_EXTRACT_V = 3;
   let webSeq = 0, webModel = null, webPicked = new Set(), webSaving = false, webBack = null, webGen = 0, webLastUrl = '';
 
   function webErr(code) { const e = new Error(code); e.code = code; return e; }
-  function webSay(text) { if (webStatusEl) webStatusEl.textContent = text || ''; }
+  function webSay(text) { if (webStatusEl) { webStatusEl.textContent = text || ''; delete webStatusEl.dataset.fail; } }
   const webHost = (u) => hostOf(u).replace(/^www\./, '');
 
   // ---- read the page ----
@@ -3269,7 +3696,7 @@
     if (peek && peek.kind === 'blocked') throw webErr('blocked');
     if (peek && peek.kind === 'big') throw webErr('big');
     if (peek && peek.kind === 'image') return { image: true };
-    const dl = tavo.file.save(`emon-page-${Date.now()}-${Math.floor(Math.random() * 1e6)}.html`, url, { scope: 'chat' });
+    const dl = tavo.file.save(tempPageName(), url, { scope: 'chat' });
     let file;
     try { file = await withTimeout(dl, WEB_PAGE_MS); }
     catch (e) { dl.then(late => tavo.file.delete(late, { scope: 'chat' })).catch(() => {}); throw webErr(e && e.code === 'timeout' ? 'timeout' : 'fetch'); }
@@ -3284,52 +3711,133 @@
   function webImageModel(url) {
     return { url, title: titleFromUrl(url), host: webHost(url), images: [{ url, full: '', alt: '' }], text: '', blocked: 0, via: 'image' };
   }
+  // ---- A gallery that the page lists as data ----
+  // Image Chest is an Inertia (Vue) app. The page its server sends is an empty shell plus the social tags; the real content sits in
+  // <div id="app" data-page="{json}">, and the post's pictures are props.post.files[].link. The shell holds no <img>, so the generic reader below
+  // only ever found the one social-preview picture (2.26.2 looked for data-url attributes, which is how its older pages were written).
+  // The JSON is read as data (JSON.parse), never run, and every address in it goes through the same checks as any other picture.
+  const IMGCHEST_POST_RE = /^\/p\/[A-Za-z0-9_-]{4,40}(?:\/|$)/, WEB_GALLERY_EXT_RE = /^(?:png|jpe?g|gif|webp|avif|bmp|svg)$/;
+  function isImgchestPost(pageUrl) {
+    try { const u = new URL(pageUrl); return /^(?:www\.)?imgchest\.com$/i.test(u.hostname) && IMGCHEST_POST_RE.test(u.pathname); } catch { return false; }
+  }
+  // The page's own JSON (Inertia keeps it in a data-page attribute, or in <script data-page type="application/json">), or null.
+  function webReadPageData(doc) {
+    const nodes = doc.querySelectorAll('[data-page]');
+    for (let i = 0; i < nodes.length && i < 4; i++) {
+      const el = nodes[i];
+      const raw = String((el.tagName === 'SCRIPT' ? el.textContent : el.getAttribute('data-page')) || '');
+      if (raw.length < 2 || raw.length > WEB_DATA_MAX) continue;
+      const txt = raw.trim();
+      if (txt.charAt(0) !== '{') continue;
+      try { const v = JSON.parse(txt); if (v && typeof v === 'object') return v; } catch {}
+    }
+    return null;
+  }
+  // -> null when this is not such a page or its data holds no list, else { images, title, declared, listed, valid, total, drop }.
+  function webGalleryFromData(doc, pageUrl, base) {
+    if (!isImgchestPost(pageUrl)) return null;
+    const data = webReadPageData(doc);
+    const props = data && typeof data.props === 'object' ? data.props : null;
+    const post = props && typeof props.post === 'object' ? props.post : null;
+    // "files" is what the page uses (it is what gallery-dl reads too); "images" is the same list's name in Image Chest's public API: a fallback in case the page is renamed.
+    const list = post ? (Array.isArray(post.files) ? post.files : Array.isArray(post.images) ? post.images : null) : null;
+    if (!list || !list.length) return null;
+    const images = [], seen = new Set(), drop = { dup: 0, type: 0, bad: 0 };
+    let valid = 0;
+    const n = Math.min(list.length, WEB_GALLERY_SCAN);                                   // however long the list claims to be, at most this many entries are looked at
+    for (let i = 0; i < n; i++) {
+      const f = list[i];
+      const raw = typeof f === 'string' ? f : (f && typeof f === 'object' ? (typeof f.link === 'string' ? f.link : typeof f.url === 'string' ? f.url : '') : '');
+      if (!raw || raw.length > 2048) { drop.bad++; continue; }
+      const u = absUrl(base, raw.trim());
+      if (!u || !/^https?:\/\//i.test(u) || u.length > 2048 || !isFetchableUrl(u) || isAdHost(u)) { drop.bad++; continue; }
+      const ext = fileExtOf(u);
+      if (ext && !WEB_GALLERY_EXT_RE.test(ext)) { drop.type++; continue; }                // a video or another kind of file: Page view shows pictures
+      const k = u.replace(/#.*$/, '');
+      if (seen.has(k)) { drop.dup++; continue; }                                          // the same file twice (distinct files are never merged)
+      seen.add(k); valid++;
+      if (images.length < WEB_GALLERY_MAX) images.push({ url: u, full: '', alt: (f && typeof f === 'object' && typeof f.description === 'string') ? f.description.slice(0, 400).replace(/\s+/g, ' ').trim().slice(0, 120) : '' });
+    }
+    let declared = 0;                                                                     // how many pictures the site says the post has (when it says)
+    for (const key of ['image_count', 'images_count', 'files_count', 'file_count']) { const v = Number(post[key]); if (Number.isFinite(v) && v > 0) { declared = Math.floor(v); break; } }
+    const title = typeof post.title === 'string' ? post.title.slice(0, 400).replace(/\s+/g, ' ').trim().slice(0, 140) : '';
+    return { images, title, declared, listed: list.length, valid, total: valid + Math.max(0, list.length - n), drop };
+  }
   // Pictures and words of a downloaded page. Ads, trackers and one-pixel images are counted, never kept.
   function parseWebPage(html, pageUrl) {
     const doc = new DOMParser().parseFromString(String(html).slice(0, 3000000), 'text/html');   // inert: nothing in it runs or loads
     const host = webHost(pageUrl);
     const baseTag = doc.querySelector('base[href]');
     const base = (baseTag && absUrl(pageUrl, baseTag.getAttribute('href'))) || pageUrl;
+    const gal = webGalleryFromData(doc, pageUrl, base);              // a gallery the page lists as data (Image Chest), or null
+    const useGal = !!(gal && gal.images.length);
     const meta = (sel) => { const m = doc.querySelector(sel); return m ? String(m.getAttribute('content') || '').trim() : ''; };
-    const title = (meta('meta[property="og:title"]') || (doc.title || '').trim() || meta('meta[name="twitter:title"]') || host).replace(/\s+/g, ' ').slice(0, 140);
+    const title = ((useGal && gal.title) || meta('meta[property="og:title"]') || (doc.title || '').trim() || meta('meta[name="twitter:title"]') || host).replace(/\s+/g, ' ').slice(0, 140);
     let blocked = doc.querySelectorAll('script[src],iframe,ins,embed,object').length;     // present on the page, never loaded here
-    const imgs = [], seen = new Set();
+    const imgs = [], seen = new Set(), drop = { dup: 0, small: 0, bad: 0, cap: 0 };      // what the filters kept out (counts only)
+    let heroN = 0, bodyN = 0, more = false;
     const add = (raw, o = {}) => {
-      if (!raw || imgs.length >= WEB_MAX_IMAGES) return;
+      if (!raw) return;
+      if (imgs.length >= WEB_MAX_IMAGES) { drop.cap++; return; }
       const u = absUrl(base, decodeHtml(String(raw).trim()));
-      if (!u || !/^https?:\/\//i.test(u) || u.length > 2048 || !isFetchableUrl(u)) return;
+      if (!u || !/^https?:\/\//i.test(u) || u.length > 2048 || !isFetchableUrl(u)) { drop.bad++; return; }
       if (isAdHost(u) || (o.node && inAdContext(o.node)) || (!o.hero && isAdPath(u))) { blocked++; return; }
       const w = parseInt(o.w, 10) || 0, h = parseInt(o.h, 10) || 0;
       if ((w && w <= 2) || (h && h <= 2) || (w && h && isAdSize(w, h))) { blocked++; return; }   // tracking pixels and banner sizes
-      if (!o.hero && ((w && w < 80) || (h && h < 80))) return;                                   // icons, bullets, avatars
+      if (!o.hero && ((w && w < 80) || (h && h < 80))) { drop.small++; return; }                                   // icons, bullets, avatars
       const k = u.replace(/#.*$/, '').replace(/-\d{2,4}x\d{2,4}(?=\.[a-z0-9]+(?:\?|$))/i, '');
-      if (seen.has(k)) return; seen.add(k);
+      if (seen.has(k)) { drop.dup++; return; } seen.add(k);
       let full = '';
       if (o.full) { const f = absUrl(base, decodeHtml(String(o.full).trim())); if (f && /^https?:\/\//i.test(f) && isFetchableUrl(f) && !isAdHost(f)) full = f; }
       imgs.push({ url: u, full: (full && full !== u) ? full : '', alt: String(o.alt || '').replace(/\s+/g, ' ').trim().slice(0, 120) });
+      if (o.hero) heroN++; else bodyN++;
     };
-    ['meta[property="og:image"]', 'meta[property="og:image:secure_url"]', 'meta[name="twitter:image"]', 'meta[itemprop="image"]']
-      .forEach(sel => doc.querySelectorAll(sel).forEach(n => add(n.getAttribute('content'), { hero: true })));
-    doc.querySelectorAll('img').forEach(node => {
-      if (node.closest('nav,footer,[role="navigation"]')) return;
-      let raw = node.getAttribute('src') || node.getAttribute('data-src') || node.getAttribute('data-lazy-src') || node.getAttribute('data-original') || '';
-      const ss = node.getAttribute('srcset') || node.getAttribute('data-srcset') || '';
-      if (ss) { const parts = ss.split(',').map(p => p.trim().split(/\s+/)).filter(p => p[0]); parts.sort((a, b) => (parseFloat(b[1]) || 0) - (parseFloat(a[1]) || 0)); if (parts[0]) raw = parts[0][0]; }
-      const a = node.closest('a'), href = a ? a.getAttribute('href') : '';
-      if (a && linkKind(absUrl(base, href)).kind === 'promo') { blocked++; return; }          // a banner that only leads somewhere else
-      const full = href && IMG_EXT_RE.test(String(href).split(/[?#]/)[0]) ? href : '';        // a thumbnail that links to its full-size picture
-      add(raw, { node, w: node.getAttribute('width'), h: node.getAttribute('height'), alt: node.getAttribute('alt'), full });
-    });
-    doc.querySelectorAll('a[href]').forEach(a => {
-      if (a.querySelector('img') || a.closest('nav,footer')) return;
-      const href = a.getAttribute('href') || '';
-      if (IMG_EXT_RE.test(href.split(/[?#]/)[0])) add(href, { node: a, alt: a.textContent });
-    });
-    let bg = 0;
-    doc.querySelectorAll('[style*="url("]').forEach(el => {
-      if (bg >= 20) return;
-      const m = /url\(\s*['"]?([^'")]+)/i.exec(el.getAttribute('style') || ''); if (m) { bg++; add(m[1], { node: el }); }
-    });
+    if (useGal) { gal.images.forEach(x => imgs.push(x)); }          // the page's own list is complete and in order: loose pictures of the shell are not mixed in
+    else {
+      ['meta[property="og:image"]', 'meta[property="og:image:secure_url"]', 'meta[name="twitter:image"]', 'meta[itemprop="image"]']
+        .forEach(sel => doc.querySelectorAll(sel).forEach(n => add(n.getAttribute('content'), { hero: true })));
+      doc.querySelectorAll('img').forEach(node => {
+        if (node.closest('nav,footer,[role="navigation"]')) return;
+        // Lazy-loading pages keep the real address in a data-* attribute and a placeholder in src (a 1-pixel data: image, "blank.gif" ...).
+        // The placeholder must not win (before 2.26.2 it did, and the picture was lost). Image Chest keeps its pictures in "data-url".
+        const lazyRaw = ['data-src', 'data-lazy-src', 'data-original', 'data-url'].map(a => node.getAttribute(a)).find(v => v && v.trim()) || '';
+        let raw = node.getAttribute('src') || '';
+        if (lazyRaw && (!raw.trim() || /^(?:data:|about:|#|javascript:)/i.test(raw.trim()) || WEB_PLACEHOLDER_RE.test(raw))) raw = lazyRaw;
+        const ss = node.getAttribute('srcset') || node.getAttribute('data-srcset') || '';
+        if (ss) { const parts = ss.split(',').map(p => p.trim().split(/\s+/)).filter(p => p[0]); parts.sort((a, b) => (parseFloat(b[1]) || 0) - (parseFloat(a[1]) || 0)); if (parts[0]) raw = parts[0][0]; }
+        const a = node.closest('a'), href = a ? a.getAttribute('href') : '';
+        if (a && linkKind(absUrl(base, href)).kind === 'promo') { blocked++; return; }          // a banner that only leads somewhere else
+        const full = href && IMG_EXT_RE.test(String(href).split(/[?#]/)[0]) ? href : '';        // a thumbnail that links to its full-size picture
+        add(raw, { node, w: node.getAttribute('width'), h: node.getAttribute('height'), alt: node.getAttribute('alt'), full });
+      });
+      doc.querySelectorAll('a[href]').forEach(a => {
+        if (a.querySelector('img') || a.closest('nav,footer')) return;
+        const href = a.getAttribute('href') || '';
+        if (IMG_EXT_RE.test(href.split(/[?#]/)[0])) add(href, { node: a, alt: a.textContent });
+      });
+      // pictures that sit in a data-url attribute of a wrapper (not an <img>): only values that really end like a picture are taken
+      const duNodes = doc.querySelectorAll('[data-url]');
+      for (let i = 0, seen = 0; i < duNodes.length && seen < 400; i++) {                 // at most 400 wrappers are looked at, however many the page has
+        const el = duNodes[i]; if (el.tagName === 'IMG') continue; seen++;
+        if (el.closest('nav,footer,[role="navigation"]')) continue;
+        const v = String(el.getAttribute('data-url') || '').trim();
+        if (v.length < 2000 && IMG_EXT_RE.test(v.split(/[?#]/)[0])) add(v, { node: el, alt: el.getAttribute('title') || el.getAttribute('aria-label') || '' });
+      }
+      // A "load more" button means the page only holds its first pictures; the rest are fetched by the site's own script, which cannot run here.
+      let morePic = false, moreBare = false;
+      const btnNodes = doc.querySelectorAll('button,a,[role="button"]');
+      for (let i = 0; i < btnNodes.length && i < 400 && !morePic; i++) {                // at most 400 buttons / links are read
+        const s = (btnNodes[i].textContent || '').replace(/\s+/g, ' ').trim();
+        if (s.length < 4 || s.length > 40) continue;
+        if (WEB_MORE_PIC_RE.test(s)) morePic = true; else if (WEB_MORE_RE.test(s)) moreBare = true;
+      }
+      more = morePic || (moreBare && imgs.length >= 3);
+      let bg = 0;
+      doc.querySelectorAll('[style*="url("]').forEach(el => {
+        if (bg >= 20) return;
+        const m = /url\(\s*['"]?([^'")]+)/i.exec(el.getAttribute('style') || ''); if (m) { bg++; add(m[1], { node: el }); }
+      });
+    }
     // the words: headings and paragraphs of the main part of the page
     const root = doc.querySelector('article, main, [role="main"]') || doc.body || doc.documentElement;
     const NOISE = 'nav,header,footer,aside,form,button,select,[role="navigation"],[role="banner"],[role="complementary"],[aria-hidden="true"]';
@@ -3347,7 +3855,14 @@
     });
     const head = String(html).slice(0, 8000);
     const challenge = /just a moment|attention required|verify you are human|enable javascript and cookies|cf-browser-verification|challenge-platform/i.test(head);
-    return { url: pageUrl, title, host, images: imgs, text: lines.join('\n\n').slice(0, WEB_MAX_TEXT), blocked, via: 'page', challenge };
+    const textOut = lines.join('\n\n').slice(0, WEB_MAX_TEXT);
+    // Only the social-preview picture and hardly any words: usually an app that draws itself with JavaScript (a gallery read from data is never a "shell").
+    const shell = !useGal && heroN > 0 && bodyN === 0 && textOut.length < 300;
+    const stats = useGal
+      ? { src: 'gallery', listed: gal.listed, declared: gal.declared, found: gal.valid, kept: imgs.length, dup: gal.drop.dup, type: gal.drop.type, bad: gal.drop.bad }
+      : { src: 'page', kept: imgs.length, hero: heroN, body: bodyN, ads: blocked, small: drop.small, dup: drop.dup, bad: drop.bad, cap: drop.cap };
+    return { url: pageUrl, title, host, images: imgs, text: textOut, blocked, via: useGal ? 'gallery' : 'page', challenge,
+      more: more || !!(useGal && gal.declared > gal.listed), total: useGal ? gal.total : imgs.length, declared: useGal ? gal.declared : 0, shell, stats };
   }
   // Tavily reads the page on its own servers (for pages that only show their pictures with JavaScript); only the link is sent.
   async function webViaTavilyPage(url, key) {
@@ -3379,9 +3894,15 @@
       model = parseWebPage(dl.html, url);
     } catch (e) { failure = e; }
     const empty = !model || (!model.images.length && model.text.length < 300);
-    if (empty && canTavily && !(failure && (failure.code === 'blocked' || failure.code === 'big'))) {
+    // A page whose only picture is its social-preview tag, with hardly any words, is usually an app that draws itself with JavaScript: that one picture is
+    // not a success (before 2.26.3 it stopped Tavily from being asked, so the rest of the pictures were never looked for).
+    const shell = !!model && !empty && !!model.shell;
+    if ((empty || shell) && canTavily && !(failure && (failure.code === 'blocked' || failure.code === 'big'))) {
       webSay(t('runtime.webTavilyTry'));
-      try { const m2 = await webViaTavilyPage(url, tk); if (seq !== webSeq) return null; if (m2 && (m2.images.length || m2.text)) return m2; }
+      try {
+        const m2 = await webViaTavilyPage(url, tk); if (seq !== webSeq) return null;
+        if (m2 && (empty ? (m2.images.length || m2.text) : m2.images.length > model.images.length)) return m2;
+      }
       catch (e) { console.warn('[Image Preview] tavily page', e); }
     }
     if (failure && empty) throw failure;
@@ -3408,7 +3929,8 @@
     const was = i >= 0 ? list[i] : null;
     const entry = {
       u: model.url, t: String(model.title || '').slice(0, 120), at: Date.now(), n: model.images.length, s: !!saved || !!(was && was.s),
-      imgs: model.images.slice(0, WEB_MAX_IMAGES).map(x => (x.full ? [x.url, x.full] : x.url)), x: String(model.text || '').slice(0, 1500), via: model.via || ''
+      imgs: model.images.slice(0, WEB_GALLERY_MAX).map(x => (x.full ? [x.url, x.full] : x.url)), x: String(model.text || '').slice(0, 1500), via: model.via || '', mo: model.more ? 1 : 0,
+      ev: WEB_EXTRACT_V, tot: model.total > model.images.length ? model.total : 0, dc: model.declared || 0, sh: model.shell ? 1 : 0
     };
     if (i >= 0) list.splice(i, 1);
     list.unshift(entry); if (list.length > WEB_KEEP) list.length = WEB_KEEP;
@@ -3416,8 +3938,9 @@
   }
   function webFromCache(e) {
     const imgs = (Array.isArray(e.imgs) ? e.imgs : []).map(x => Array.isArray(x) ? { url: String(x[0]), full: String(x[1] || ''), alt: '' } : { url: String(x), full: '', alt: '' })
-      .filter(x => /^https?:\/\//i.test(x.url) && isFetchableUrl(x.url) && !isAdHost(x.url)).slice(0, WEB_MAX_IMAGES);
-    return { url: e.u, title: String(e.t || webHost(e.u)), host: webHost(e.u), images: imgs, text: String(e.x || ''), blocked: 0, via: e.via || 'page', cached: true };
+      .filter(x => /^https?:\/\//i.test(x.url) && isFetchableUrl(x.url) && !isAdHost(x.url)).slice(0, WEB_GALLERY_MAX);
+    return { url: e.u, title: String(e.t || webHost(e.u)), host: webHost(e.u), images: imgs, text: String(e.x || ''), blocked: 0, via: e.via || 'page', cached: true, more: !!e.mo,
+      total: Math.max(imgs.length, Number(e.tot) || 0), declared: Number(e.dc) || 0, shell: !!e.sh, stats: null };
   }
 
   // ---- screens ----
@@ -3432,7 +3955,9 @@
       const chip = (cls, text) => { const c = document.createElement('span'); c.className = 'emon-iv-web-chip ' + cls; c.textContent = text; webChipsEl.appendChild(c); };
       if (m && m.blocked > 0) chip('shield', '🛡 ' + t('runtime.webBlocked', { n: m.blocked }));
       if (m && m.via === 'tavily') chip('', '✨ ' + t('runtime.webViaTavily'));
+      if (m && m.via === 'gallery') chip('', '🗂 ' + t('runtime.webPictures', { n: m.images.length }) + ' · ' + t('runtime.webViaGallery'));
       if (m && m.cached) chip('', '💾 ' + t('runtime.webSavedCopy'));
+      if (m && m.more) chip('', '➕ ' + t('runtime.webMoreChip'));
     }
   }
   function webSetActions() {
@@ -3478,26 +4003,68 @@
     row.appendChild(retry); box.appendChild(row);
     webModel = null; webLastUrl = url; webSetActions();
   }
+  // After the pictures were asked for: how many arrived and how many did not. Counts only, kept on the model; one debug line per page, nothing else is logged.
+  function webTileSummary() {
+    const m = webModel; if (!m || !webBodyEl) return;
+    const q = (sel) => webBodyEl.querySelectorAll('.emon-iv-web-tile' + sel).length;
+    const all = q(':not(.sk)'), ok = q('.ok'), bad = q('.bad');
+    if (m.stats) { m.stats.shown = all; m.stats.loaded = ok; m.stats.failed = bad; }
+    if (ok + bad < all) return;                                                           // still loading
+    if (!webSaving) {
+      if (bad) { webSay(t('runtime.webLoadFailed', { n: bad })); if (webStatusEl) webStatusEl.dataset.fail = '1'; }
+      else if (webStatusEl && webStatusEl.dataset.fail) webSay('');                      // a retry worked: the warning goes away (other messages are left alone)
+    }
+    if (m.stats && !m._diag) { m._diag = 1; try { console.debug('[Image Preview] page view', JSON.stringify(m.stats)); } catch {} }
+  }
   function webRender(model) {
     webSetHero(model); webSay('');
     webBodyEl.textContent = '';
     const gen = ++webGen, loads = [];
     const frag = document.createDocumentFragment();
+    const onTile = (tile) => (ok) => { if (gen !== webGen) return; tile.classList.toggle('ok', ok); tile.classList.toggle('bad', !ok); webTileSummary(); };
     if (model.images.length) {
       const grid = document.createElement('div'); grid.className = 'emon-iv-web-grid';
-      model.images.forEach((x, i) => {
-        const tile = document.createElement('div'); tile.className = 'emon-iv-web-tile'; tile.dataset.i = String(i); tile.style.setProperty('--d', Math.min(i, 10) * 35 + 'ms');
-        const img = document.createElement('img'); img.alt = x.alt || ''; img.dataset.src = x.url; tile.appendChild(img);
-        if (/\.gif(?:[?#]|$)/i.test(x.full || x.url)) { const g = document.createElement('span'); g.className = 'gif'; g.textContent = 'GIF'; tile.appendChild(g); }
-        const sv = document.createElement('span'); sv.className = 'tag'; sv.textContent = t('runtime.tileSaved'); tile.appendChild(sv);
-        const pick = document.createElement('button'); pick.type = 'button'; pick.className = 'pick'; pick.textContent = '✓'; tile.appendChild(pick);
-        grid.appendChild(tile);
-        loads.push([img, tile]);
-      });
+      // A long list is put on screen WEB_BATCH pictures at a time: the next ones only start loading when "Show more" is tapped.
+      const addTiles = (from, to) => {
+        for (let i = from; i < to; i++) {
+          const x = model.images[i];
+          const tile = document.createElement('div'); tile.className = 'emon-iv-web-tile'; tile.dataset.i = String(i); tile.style.setProperty('--d', Math.min(i - from, 10) * 35 + 'ms');
+          const img = document.createElement('img'); img.alt = x.alt || ''; img.dataset.src = x.url; tile.appendChild(img);
+          if (/\.gif(?:[?#]|$)/i.test(x.full || x.url)) { const g = document.createElement('span'); g.className = 'gif'; g.textContent = 'GIF'; tile.appendChild(g); }
+          const sv = document.createElement('span'); sv.className = 'tag'; sv.textContent = t('runtime.tileSaved'); tile.appendChild(sv);
+          const pick = document.createElement('button'); pick.type = 'button'; pick.className = 'pick'; pick.textContent = '✓'; tile.appendChild(pick);
+          grid.appendChild(tile);
+          loads.push([img, tile]);
+        }
+      };
+      let shown = Math.min(model.images.length, WEB_BATCH);
+      addTiles(0, shown);
       frag.appendChild(grid);
-      savedSourceSet().then(set => { if (gen !== webGen) return; grid.querySelectorAll('.emon-iv-web-tile').forEach(tl => { const x = model.images[Number(tl.dataset.i)]; if (x && set.has(srcKey(x.full || x.url))) tl.classList.add('saved'); }); }).catch(() => {});
+      const markSaved = () => savedSourceSet().then(set => { if (gen !== webGen) return; grid.querySelectorAll('.emon-iv-web-tile').forEach(tl => { const x = model.images[Number(tl.dataset.i)]; if (x && set.has(srcKey(x.full || x.url))) tl.classList.add('saved'); }); }).catch(() => {});
+      if (model.images.length > shown) {
+        const row = document.createElement('div'); row.className = 'emon-iv-web-erract';
+        const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'emon-iv-btn';
+        const label = () => t('runtime.webShowMore', { n: model.images.length - shown });
+        btn.textContent = label();
+        btn.onclick = () => {
+          if (gen !== webGen) return;
+          const from = shown, start = loads.length;
+          shown = Math.min(model.images.length, shown + WEB_BATCH);
+          addTiles(from, shown);
+          loads.slice(start).forEach(([img, tile]) => tileLoad(img, onTile(tile)));
+          markSaved();
+          if (shown >= model.images.length) row.remove(); else btn.textContent = label();
+          webTileSummary();
+        };
+        row.appendChild(btn); frag.appendChild(row);
+      }
+      const note = (text) => { const mn = document.createElement('div'); mn.className = 'emon-iv-pg-note'; mn.textContent = text; frag.appendChild(mn); };
+      if (model.total > model.images.length) note(t('runtime.webLimited', { n: model.images.length, total: model.total }));   // a safety limit was reached: say so
+      if (model.more) note(t('runtime.webMore'));
+      if (model.shell) { note(t('runtime.webShell')); if (!getTavilyKey()) note(t('runtime.webErrTip')); }
+      markSaved();
     } else {
-      const n = document.createElement('div'); n.className = 'emon-iv-pg-note'; n.textContent = t('runtime.webNoPictures'); frag.appendChild(n);
+      const n = document.createElement('div'); n.className = 'emon-iv-pg-note'; n.textContent = t(model.more ? 'runtime.webMore' : 'runtime.webNoPictures'); frag.appendChild(n);
     }
     if (model.text) {
       const sec = document.createElement('div'); sec.className = 'emon-iv-pg-sec emon-iv-web-read';
@@ -3509,7 +4076,7 @@
       sec.appendChild(box); frag.appendChild(sec);
     }
     webBodyEl.appendChild(frag); webBodyEl.scrollTop = 0;
-    loads.forEach(([img, tile]) => tileLoad(img, ok => { if (gen !== webGen) return; tile.classList.toggle('ok', ok); tile.classList.toggle('bad', !ok); }));   // after the tiles are on screen
+    loads.forEach(([img, tile]) => tileLoad(img, onTile(tile)));   // after the tiles are on screen
     webSetActions();
   }
   async function webLanding(msg) {
@@ -3550,9 +4117,14 @@
     webSetHero({ url, title: '', host: webHost(url) });
     webShowLoading(); webSay(t('runtime.webReading'));
     try {
-      let model = null;
-      if (!refresh) { const e = (await webPagesLoad()).find(p => p.u === url); if (e && Array.isArray(e.imgs) && e.imgs.length) model = webFromCache(e); }
-      if (!model) model = await webFetchModel(url, seq);
+      let model = null, older = null;
+      if (!refresh) {
+        const e = (await webPagesLoad()).find(p => p.u === url);
+        if (e && Array.isArray(e.imgs) && e.imgs.length) { if (e.ev === WEB_EXTRACT_V) model = webFromCache(e); else older = e; }
+      }
+      // A copy made by an older reader may lack pictures that the current reader finds (before 2.26.3 a saved one-picture copy hid the rest for good):
+      // such a page is read again, and the old copy is only used when that fails.
+      if (!model) { try { model = await webFetchModel(url, seq); } catch (err) { if (!older) throw err; model = webFromCache(older); } }
       if (seq !== webSeq || !model) return;
       webModel = model; webRender(model);
       if (!model.cached) webRemember(model, false);
@@ -5820,5 +6392,5 @@
   document.querySelectorAll('body > .emon-iv-modal').forEach(n=>n.remove());
   if(!startApp()) renderPinsList();
   loadSavedPreviews();
-  offOnAbort(tavo.plugin.i18n.onChange(()=>{renderText();renderProfiles();loadSavedPreviews();refreshGameUI()}));
+  offOnAbort(tavo.plugin.i18n.onChange(()=>{renderText();renderProfiles();loadSavedPreviews();refreshGameUI();if(stIsOpen()) stRender();if(lookModal&&lookModal.classList.contains('show')) syncLookModal()}));
 })();

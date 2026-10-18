@@ -151,6 +151,7 @@
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpSearchT"></b><p data-i18n="runtime.helpSearchB"></p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS2T">Save &amp; manage images</b><p data-i18n="runtime.helpS2B">Save preview keeps a copy for this chat, and every pinned image is saved automatically too. Tap Select above the saved grid to pick a few and Pin selected — handy right after Extract images from text, or anytime you just fancy a couple back on the chat. Tap any saved image normally for Fullscreen, Pin, Save to device, Copy link, Rename, Info and Delete. Rename only changes the label; the image itself is never touched. Deleting one — or using Clear all — doesn&#39;t erase it right away either; see Recycle Bin below. The saved grid shows 200 images at a time; tap Show more at its end for the rest.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpRecycleT">Recycle Bin</b><p data-i18n="runtime.helpRecycleB">Nothing&#39;s gone the moment you delete it. Deleted saved images rest in the Recycle Bin first — 7 or 30 days, whichever you&#39;ve picked under Settings — so a stray tap on Clear all is never the end of the world. Open it anytime from &quot;Open Recycle Bin&quot; in the chat&#39;s right sidebar, tick whatever you want, then Restore (it lands in the chat you have open) or Delete forever if you&#39;re sure. Anything you never touch quietly clears itself out once its own time is up.</p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpStorageT">Storage manager</b><p data-i18n="runtime.helpStorageB"></p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpThemeT">Make it yours</b><p data-i18n="runtime.helpThemeB">See the little monkey munching a banana next to the title? Poke him — he gets grumpy, then opens the look options: a wallpaper from your phone (or an image link), how dark it is, a nature-inspired panel background like Forest or Aurora, the panel font, and your floating button&#39;s icon and color. Everything applies right away, and &quot;Back to defaults&quot; undoes your changes.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS3T">Quick Lookup ⚓</b><p data-i18n="runtime.helpS3B">The ⚓ hangs on a rope and sways by itself. Pull it down to open Translate, Meaning and Web Search. To close, tap the ⚓ or pull it down again. A tap on the closed anchor only gives the rope a tug.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS4T">Game Corner</b><p data-i18n="runtime.helpS4B">Tap 🎮 for a Jump Game, Snake and Memory Bomb, or add your own game. Drag the top bar to move the window and the corner to resize it. The ⚙ button inside a game holds your player name and that game&#39;s own settings and resets.</p></div>
@@ -318,7 +319,28 @@
         <div class="emon-iv-sheet-group" data-i18n="runtime.lookFabGroup">FLOATING BUTTON</div>
         <label class="emon-iv-look-field"><span data-i18n="settings.fabIcon">Floating button icon</span><select id="emon-iv-look-fabicon"></select></label>
         <label class="emon-iv-look-field"><span data-i18n="settings.fabTheme">Floating button color</span><select id="emon-iv-look-fabtheme"></select></label>
+        <div class="emon-iv-sheet-group" data-i18n="runtime.lookTextGroup">TEXT SIZE</div>
+        <label class="emon-iv-look-field"><span><span data-i18n="settings.textScale">Panel text size</span> <b id="emon-iv-look-textval" class="emon-iv-look-val">100%</b></span><input id="emon-iv-look-textscale" type="range" min="0.85" max="1.3" step="0.05" value="1"></label>
+        <div id="emon-iv-look-textprev" class="emon-iv-look-prev" data-i18n="runtime.lookTextPrev">This is how your panel text will look.</div>
+        <div class="emon-iv-extract-row one"><button id="emon-iv-look-textreset" type="button" class="secondary" data-i18n="runtime.lookTextDefault">Default size</button></div>
+        <div class="emon-iv-sheet-group" data-i18n="runtime.lookMotionGroup">BACKGROUND MOTION</div>
+        <label class="emon-iv-look-field"><span data-i18n="settings.bgMotion">Background motion</span><select id="emon-iv-look-motion"></select></label>
+        <div id="emon-iv-look-motionnote" class="emon-iv-help"></div>
+        <div class="emon-iv-sheet-group" data-i18n="runtime.lookStorageGroup">STORAGE</div>
+        <div class="emon-iv-extract-row one"><button id="emon-iv-look-storage" type="button" class="secondary" data-i18n="runtime.lookStorageBtn">Storage manager…</button></div>
         <div class="emon-iv-extract-row" style="margin-top:10px"><button id="emon-iv-look-reset" class="secondary" data-i18n="runtime.lookReset">Back to defaults</button></div>
+      </div>
+    </div>
+
+    <div id="emon-iv-storage-modal" class="emon-iv-modal" role="dialog" aria-modal="true" aria-labelledby="emon-iv-st-title">
+      <div class="emon-iv-modal-card emon-iv-st-card">
+        <div class="emon-iv-st-top">
+          <button id="emon-iv-st-back" type="button" class="emon-iv-st-iconbtn" hidden>‹</button>
+          <div id="emon-iv-st-title" class="emon-iv-sheet-heading" data-i18n="runtime.stTitle">Storage</div>
+          <button id="emon-iv-st-close" type="button" class="emon-iv-close" style="width:30px;height:30px;font-size:14px">×</button>
+        </div>
+        <div id="emon-iv-st-sub" class="emon-iv-sheet-subtitle" data-i18n="runtime.stSub">What Image Preview keeps on this phone.</div>
+        <div id="emon-iv-st-body" aria-live="polite"></div>
       </div>
     </div>
 
@@ -340,12 +362,12 @@
       </div>
     </div>
     <div class="emon-iv-section">
-      <div class="emon-iv-head" style="margin-bottom:8px">
+      <div class="emon-iv-head" style="margin-bottom:8px;flex-wrap:wrap;row-gap:8px">
         <div class="emon-iv-label" style="margin:0" data-i18n="runtime.saved">SAVED PREVIEWS</div>
-        <div style="display:flex;gap:6px">
-          <button class="emon-iv-close" style="width:auto;height:32px;padding:0 9px;font-size:12px" id="emon-iv-saved-select-toggle" data-i18n="runtime.selectMode">Select</button>
-          <button class="emon-iv-close" style="width:auto;height:32px;padding:0 9px;font-size:12px" id="emon-iv-refresh-saved" data-i18n="runtime.refresh">Refresh</button>
-          <button class="emon-iv-close" style="width:auto;height:32px;padding:0 9px;font-size:12px" id="emon-iv-clear-saved" data-i18n="runtime.clearAll">Clear all</button>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <button class="emon-iv-close" style="width:auto;height:auto;min-height:32px;padding:0 9px;font-size:calc(12px * var(--emon-iv-ts,1))" id="emon-iv-saved-select-toggle" data-i18n="runtime.selectMode">Select</button>
+          <button class="emon-iv-close" style="width:auto;height:auto;min-height:32px;padding:0 9px;font-size:calc(12px * var(--emon-iv-ts,1))" id="emon-iv-refresh-saved" data-i18n="runtime.refresh">Refresh</button>
+          <button class="emon-iv-close" style="width:auto;height:auto;min-height:32px;padding:0 9px;font-size:calc(12px * var(--emon-iv-ts,1))" id="emon-iv-clear-saved" data-i18n="runtime.clearAll">Clear all</button>
         </div>
       </div>
       <div class="emon-iv-saved" id="emon-iv-saved"></div>
