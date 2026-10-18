@@ -2,6 +2,19 @@
 
 All notable changes to Image Preview are documented here. Dates are approximate to when each version was built.
 
+## v2.26.3
+- Note: v2.26.2 was a test build that was never released. Everything in it is included here, on top of v2.26.1.
+- Fixed: **Page view showed only one picture for Image Chest links.** Image Chest sends its pages as an empty shell and keeps the pictures as data inside the page, not as ordinary images, so only the page's preview picture was found. Page view now reads that picture list, in order, and shows the whole gallery: 80 pictures first, then **Show more** for the rest, up to 500. Duplicates, videos and unsafe or private addresses are left out, and if the page has no usable list it is read the normal way. Other sites are read exactly as before (identical results on thousands of random pages in tests).
+- Fixed: a page you had opened with an older version could keep showing its old saved copy for ever, so a saved one-picture copy hid the pictures that are found now. Pages saved by an older reader are now read again once; the old copy is still shown if the page can't be reached.
+- Improved: when a page only gives its preview picture and hardly any words (usually a page that draws itself with JavaScript), Page view now says so, and asks Tavily to read it if you saved a key, instead of quietly showing one picture. After the pictures load it also tells you how many failed (tap one marked ⚠ to try again).
+- New: **Storage manager** (chat sidebar → Storage manager, or the monkey's pop-up → Storage manager…). It shows what Image Preview keeps on your phone, in plain words: saved previews, pins, Recycle Bin, temporary files, page history, lookup history, search keys, appearance and games. Each part explains what it is, why it is needed and what happens if you delete it. Every clean-up shows exactly what will go first, and emptying the Recycle Bin needs an extra tick because it can't be undone. Only Image Preview's own files and settings are shown or deleted.
+- Fixed: leftover temporary files. Pages opened with Page view left temporary files behind if the app closed at the wrong moment, and the old clean-up never recognised them; interrupted downloads and a failed “Save to device” could also leave copies. All of them are now cleaned up, but only when they are provably old, and anything touched lately is kept.
+- New: **Text size** in the monkey's pop-up: a slider (85% to 130%) with a preview and a default-size button.
+- New: **Background motion**: Static (default), Subtle, Enhanced or Off. Static keeps the panel still, your phone's “reduce motion” setting is always respected, and nothing animates while the panel is closed.
+- Improved: Page view finds pictures that sites hide behind lazy-loading, and a page with a “load more” button now says that only its first pictures are shown.
+- Improved: a warmer look: softer ivory text and one shared set of colours for the new screens.
+- A new internal event opens the Storage manager (`emon-iv-open-storage-v2`), so there are now seven. No change to permissions (`file`, `network`, `variable`, `input`, `message`).
+
 ## v2.26.1
 - Note: v2.25.2, v2.25.3 and v2.26.0 were test builds that were never released. Everything in them is included here, on top of v2.25.1.
 - New: **Page view.** Look at a web page's pictures and words without leaving Tavo. Links on the Character page now show as small pills that open it right there; you can also paste any link into the link field and tap 🌐 Page view, use the input's + → **Preview a link**, use the new **Page view** action in the chat's right sidebar, or tap Preview on a web-search result. Tap a picture to see it full screen, tick the circle in its corner to select it, and **Save pictures** keeps them in Saved Previews. Recent pages are remembered. The page is read as inert text (nothing on it runs or loads), and ads, trackers and one-pixel images are counted, never kept.

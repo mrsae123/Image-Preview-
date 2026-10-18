@@ -38,8 +38,9 @@ Image Preview lets you preview and pin images over your chat, read a character c
 - 🌐 **Page view**
   - Look at a web page's pictures and words without leaving Tavo. Open it by tapping a link pill on the Character page, by pasting a link into the panel's link field and tapping 🌐 Page view, from the input's + menu (**Preview a link**), from the chat's right sidebar (**Page view**), or by tapping Preview on a web-search result.
   - Tap a picture to see it full screen; tick the circle in its corner to select it, then **Save pictures** keeps them in Saved Previews. Recent pages are remembered.
+  - Image Chest links show the whole gallery: Page view reads the picture list the page keeps inside itself and shows 80 pictures at a time, then **Show more**.
   - Nothing on the page runs, and ads, trackers and banners are never loaded.
-  - If a page only shows its pictures with JavaScript, Page view says so. A free Tavily key can read those pages for you.
+  - If a page only shows its pictures with JavaScript (so only its preview picture can be read), Page view says so. A free Tavily key can read those pages for you.
 
 - 🔎 **Quick Lookup**
   - Translate text, look up word meanings, or search the web, without leaving the plugin panel.
@@ -60,6 +61,9 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - Wallpaper from your phone (shrunk to a sensible size so the panel stays quick) or from an image link, and how dark it is.
   - Panel background (Forest, Ocean, Sunset, Rose, Midnight, Aurora) and panel font (Default, Serif, Rounded, Monospace, Handwriting).
   - Floating button icon and color.
+  - Text size (85% to 130%) with a preview and a default-size button.
+  - Background motion: Static (default), Subtle, Enhanced or Off. Your phone's "reduce motion" setting is always respected, and nothing animates while the panel is closed.
+  - A button that opens the Storage manager (below).
   - Everything applies right away, and one button returns to your defaults.
 
 - ✨ **Feel**
@@ -77,12 +81,18 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - Recycle Bin retention (7 or 30 days).
   - Languages: English and Bengali.
 
+- 💾 **Storage manager**
+  - Shows what Image Preview keeps on your phone, in plain words: saved previews, pins, Recycle Bin, temporary files, page history, lookup history, search keys, appearance and games.
+  - Each part explains what it is, why it is needed and what happens if you delete it. Every clean-up shows exactly what will go first, and emptying the Recycle Bin needs an extra tick because it can't be undone.
+  - Open it from the chat's right sidebar (**Storage manager**) or from the monkey's pop-up. It only ever shows or deletes Image Preview's own data.
+
 - 🧭 **Sidebar Actions**
   - **Reset floating button position** — a one-tap action in the chat's right sidebar (Plugin · Image Preview), not a settings switch, so it can never get left silently "on." Snaps the button back on screen immediately if it's unreachable, with a small pulse and a confirmation toast.
   - **Open Recycle Bin** — opens the Recycle Bin to restore or permanently delete saved images.
   - **Scan chat for images** — the same chat scan as in the panel, one tap away.
   - **Character page** — opens the open chat's character card as one scrollable page.
   - **Page view** — opens Page view, where you can paste a link to see a web page's pictures and words.
+  - **Storage manager** — shows what Image Preview keeps on your phone and lets you clean it up safely.
 
 - 📜 **Terms of Use**
   - The first time you open Image Preview you tick a box to agree to a short, friendly Terms of Use (it also points to Tavo's own Terms of Service). Until you agree, nothing opens, scans or restores. "Not now" simply keeps everything closed.
@@ -99,7 +109,8 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - "Extract images from text" reads at most the first 300,000 characters, shows at most 200 links and ignores private-network links.
   - "Scan this chat for images" only runs when you tap it. It reads (never changes) the open chat's character card, persona, lorebooks and messages on your device, sends nothing anywhere, and keeps to the same limits and link rules. Plugin permissions: `file`, `network`, `variable`, `input` and `message`.
   - The Character page reads the open chat's card on your device only when you open it, changes nothing and sends nothing anywhere. Its text is drawn as plain elements — no scripts, no styles, no clickable links — and its pictures follow the same public-link rules and load only when you open the page (embedded pictures work too, but not SVG). The site hosting a picture sees your IP address, never a Referer.
-  - Page view downloads the page you ask for to a temporary file, reads it as inert text (nothing on it runs or loads: no scripts, styles, frames, ads or trackers), shows its words and pictures, and deletes the temporary file. It follows the same public-link rules and size limits. The site hosting the page and its pictures sees your IP address.
+  - Page view downloads the page you ask for to a temporary file, reads it as inert text (nothing on it runs or loads: no scripts, styles, frames, ads or trackers), shows its words and pictures, and deletes the temporary file. It follows the same public-link rules and size limits. For Image Chest links, the picture list the page keeps inside itself is read the same way, as data that is never run. The site hosting the page and its pictures sees your IP address.
+  - The Storage manager only looks for Image Preview's own files and settings (recognised by name), shows what will go before every clean-up, asks for an extra tick before the Recycle Bin is emptied, and sends nothing anywhere.
   - When an image loads from the web, the site hosting it sees your IP address (that can't be avoided), but never a Referer.
   - Found a problem? See [`SECURITY.md`](SECURITY.md).
 
@@ -120,17 +131,15 @@ Updating from an older version? Close Tavo completely and open it again once, so
 
 ## Current Version
 
-**v2.26.1**
+**v2.26.3**
 
-Highlights (v2.25.2, v2.25.3 and v2.26.0 were test builds that were never released; everything in them is included):
+Highlights (v2.26.2 was a test build that was never released; everything in it is included):
 
-- New: **Page view** — look at a web page's pictures and words without leaving Tavo. Tap a link pill on the Character page, paste a link, use + → Preview a link, or tap Preview on a search result, then save its pictures to Saved Previews. Nothing on the page runs, and ads, trackers and banners are never loaded.
-- New: **Clean view** — the Character page and Found images leave out promo banners, Discord/Patreon-style links, profile-link “creators” and scraper stamps such as “[retrieved by …]”. A green bar lets you show everything again.
-- New: **Tavily** as a web-search engine next to Brave (free plan, no card), with a clear order and a fallback. It can also read pages that only show their pictures with JavaScript.
-- Better: the **Character page** keeps centered text, text sizes, bold, italic and underline, and its pictures load only as you scroll close to them and fade in, so it jumps much less.
-- Fixed: DataCat-style picture links in Found images were cut short, so pictures showed twice and half never loaded. Pictures now load a few at a time, retry on their own, and a failed one can be tapped to try again.
-- Security: crafted text (a card, lorebook, message or page made of thousands of unfinished tags or a huge run of blank space) can no longer freeze Tavo; links that spell out a private address are refused; and every download is checked again once it arrives, so anything that isn't really a picture is deleted at once.
-- Steadier: the menu says so when the panel isn't ready instead of doing nothing, a new copy of the panel can no longer be left without working buttons, and scanning a very long chat reads only its newest 5,000 messages.
+- Fixed: **Page view and Image Chest** — an Image Chest link used to show only one picture. Page view now reads the picture list the page keeps inside itself and shows the whole gallery, 80 pictures at a time with a **Show more** button.
+- Better: a page you opened with an older version is read again once, so an old one-picture copy can no longer hide pictures; and a page that only gives its preview picture now says so (and asks Tavily if you saved a key).
+- New: **Storage manager** — see what Image Preview keeps on your phone, in plain words, and clean it up safely. Every clean-up shows what will go first.
+- New: **Text size** and **Background motion** (Static by default) in the monkey's pop-up, and a warmer look.
+- Fixed: leftover temporary files from Page view and interrupted downloads are now cleaned up, but only when they are provably old.
 - The ❔ Help guide explains all of this, in English and Bengali.
 
 See [`CHANGELOG.md`](CHANGELOG.md) or the [Releases](https://github.com/mrsae123/Image-Preview-/releases) page for the full history.
