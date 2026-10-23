@@ -4,14 +4,14 @@
   "name": {
     "$t": "plugin.name"
   },
-  "version": "2.26.3",
+  "version": "2.27.1",
   "entry": "entry.js",
   "author": "Emon",
   "description": {
     "$t": "plugin.description"
   },
   "releaseNotes": {
-    "$t": "releaseNotes.2_26_3"
+    "$t": "releaseNotes.2_27_1"
   },
   "localization": {
     "defaultLocale": "en",
