@@ -27,7 +27,7 @@ Image Preview lets you preview and pin images over your chat, read a character c
 
 - 📖 **Character Page**
   - Tap **Character page** in the panel (or in the chat's right sidebar) to read the open chat's character card as one scrollable page: creator notes, description, personality and scenario, with the pictures and GIFs right where the card put them — a bit like a bot's intro page.
-  - Works with the rich text that Janitor-style cards use, and with Markdown or plain text. `{{user}}` and `{{char}}` are filled in. Centered text, text sizes, bold, italic, underline and bright text colours are kept; backgrounds are not. Long runs of blank lines are squeezed.
+  - Works with the rich text that Janitor-style cards use, and with Markdown or plain text. `{{user}}` and `{{char}}` are filled in. Lists (`-`, `*`, `•`, `1.`, with sub-lists) and quotes (`>`) show as real lists and quotes, and a card's own look is kept: text colours, backgrounds and gradients, borders, rounded corners, spacing, side-by-side rows, centered text, text sizes, bold, italic and underline. Text always stays readable (a colour that can't be read on its background is replaced), and nothing that could cover the page, hide text or load something from outside is carried over. Long runs of blank lines are squeezed.
   - Links show as small pills that open **Page view** (below).
   - **Clean view** leaves out promo banners, Discord/Patreon-style links, profile-link “creators”, one-pixel trackers and scraper stamps such as “[retrieved by …]”. A green bar shows how many items were hidden; tap **Show all** to see everything (links are never clickable there).
   - Pictures load only when you scroll close to them, stay hidden until fully loaded, and then fade in, so the page jumps much less.
@@ -108,7 +108,7 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - Built-in games are fully offline. Games you add run in a sandbox **with no network access**, so they can't phone home, load outside code or reveal your IP, and they can't read your chats or Tavo data. Still, only add games from sources you trust.
   - "Extract images from text" reads at most the first 300,000 characters, shows at most 200 links and ignores private-network links.
   - "Scan this chat for images" only runs when you tap it. It reads (never changes) the open chat's character card, persona, lorebooks and messages on your device, sends nothing anywhere, and keeps to the same limits and link rules. Plugin permissions: `file`, `network`, `variable`, `input` and `message`.
-  - The Character page reads the open chat's card on your device only when you open it, changes nothing and sends nothing anywhere. Its text is drawn as plain elements — no scripts, no styles, no clickable links — and its pictures follow the same public-link rules and load only when you open the page (embedded pictures work too, but not SVG). The site hosting a picture sees your IP address, never a Referer.
+  - The Character page reads the open chat's card on your device only when you open it, changes nothing and sends nothing anywhere. Its text is drawn as plain elements — no scripts, no clickable links, and a card's styles are never copied as written (colours, backgrounds, borders and spacing are rebuilt from numbers and keywords within fixed limits; no background pictures, no positioning or animation, nothing that can cover the page or hide text) — and its pictures follow the same public-link rules and load only when you open the page (embedded pictures work too, but not SVG). The site hosting a picture sees your IP address, never a Referer.
   - Page view downloads the page you ask for to a temporary file, reads it as inert text (nothing on it runs or loads: no scripts, styles, frames, ads or trackers), shows its words and pictures, and deletes the temporary file. It follows the same public-link rules and size limits. For Image Chest links, the picture list the page keeps inside itself is read the same way, as data that is never run. The site hosting the page and its pictures sees your IP address.
   - The Storage manager only looks for Image Preview's own files and settings (recognised by name), shows what will go before every clean-up, asks for an extra tick before the Recycle Bin is emptied, and sends nothing anywhere.
   - When an image loads from the web, the site hosting it sees your IP address (that can't be avoided), but never a Referer.
@@ -131,15 +131,13 @@ Updating from an older version? Close Tavo completely and open it again once, so
 
 ## Current Version
 
-**v2.26.3**
+**v2.27.1**
 
-Highlights (v2.26.2 was a test build that was never released; everything in it is included):
+Highlights (v2.27.0 was a test build that was never released; everything in it is included):
 
-- Fixed: **Page view and Image Chest** — an Image Chest link used to show only one picture. Page view now reads the picture list the page keeps inside itself and shows the whole gallery, 80 pictures at a time with a **Show more** button.
-- Better: a page you opened with an older version is read again once, so an old one-picture copy can no longer hide pictures; and a page that only gives its preview picture now says so (and asks Tavily if you saved a key).
-- New: **Storage manager** — see what Image Preview keeps on your phone, in plain words, and clean it up safely. Every clean-up shows what will go first.
-- New: **Text size** and **Background motion** (Static by default) in the monkey's pop-up, and a warmer look.
-- Fixed: leftover temporary files from Page view and interrupted downloads are now cleaned up, but only when they are provably old.
+- New: **Lists and quotes on the Character page** — lines that start with `-`, `*`, `•` or `1.` show as real bullet and numbered lists (with sub-lists), and `>` lines as quotes, instead of raw symbols.
+- New: **A card's own look** — colours, backgrounds and gradients, borders, rounded corners, spacing and side-by-side rows are kept, so a designed profile looks like the card its creator made. Text is always checked against its background so it stays readable, and nothing from a card is copied as written.
+- Security: crafted text (one heading line followed by thousands of spaces) could freeze the Character page and Page view for a very long time. Fixed.
 - The ❔ Help guide explains all of this, in English and Bengali.
 
 See [`CHANGELOG.md`](CHANGELOG.md) or the [Releases](https://github.com/mrsae123/Image-Preview-/releases) page for the full history.
