@@ -365,7 +365,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 .emon-iv-page-chars:empty{display:none}
 .emon-iv-page-chars button{flex:none;border:1px solid #ffffff18;background:#ffffff0c;color:var(--iv-ink,#fff);border-radius:999px;padding:6px 12px;font-size:calc(12px * var(--emon-iv-ts,1))}
 .emon-iv-page-chars button.on{background:#8b5cf6;border-color:#8b5cf6}
-.emon-iv-page-body{flex:1 1 auto;min-height:120px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:2px 2px 10px}
+.emon-iv-page-body{flex:1 1 auto;min-height:120px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:2px 2px 10px}
 .emon-iv-pg-head{display:flex;align-items:center;gap:10px;margin:0 0 12px}
 .emon-iv-pg-head img{width:52px;height:52px;border-radius:14px;object-fit:cover;flex:none;background:#ffffff10}
 .emon-iv-pg-name{font-size:calc(16px * var(--emon-iv-ts,1));font-weight:800;line-height:1.25}
@@ -378,6 +378,10 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 .emon-iv-pg-txt h3,.emon-iv-pg-txt h4,.emon-iv-pg-txt h5{margin:.9em 0 .4em;line-height:1.3}
 .emon-iv-pg-txt h3{font-size:1.15em}.emon-iv-pg-txt h4{font-size:1.05em}.emon-iv-pg-txt h5{font-size:1em}
 .emon-iv-pg-txt ul,.emon-iv-pg-txt ol{margin:0 0 .75em;padding-left:1.4em}
+/* the card's own boxes may shrink below their content, so a link chip or a long word can never prop a narrow box open and run off the page */
+.emon-iv-pg-txt div,.emon-iv-pg-txt p,.emon-iv-pg-txt span,.emon-iv-pg-txt ul,.emon-iv-pg-txt ol,.emon-iv-pg-txt li,.emon-iv-pg-txt blockquote,.emon-iv-pg-txt h3,.emon-iv-pg-txt h4,.emon-iv-pg-txt h5{min-width:0}
+.emon-iv-pg-txt li{margin:.12em 0}
+.emon-iv-pg-txt li>ul,.emon-iv-pg-txt li>ol{margin:.15em 0 .1em}
 .emon-iv-pg-txt blockquote{margin:0 0 .75em;padding:2px 0 2px 10px;border-left:3px solid #ffffff30;opacity:.9}
 .emon-iv-pg-txt hr{border:0;border-top:1px solid #ffffff25;margin:14px 0}
 .emon-iv-pg-txt code{background:#ffffff14;border-radius:5px;padding:0 4px;font-size:.95em}

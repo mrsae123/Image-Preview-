@@ -3393,7 +3393,11 @@
   }
   // A few harmless look-alike properties are carried over (centering, size, bold, italic, underline, a generic font family). Each is rebuilt
   // from a number or a fixed word: nothing the card wrote is ever copied into the page as it is.
-  const PG_STYLE_KEYS = new Set(['text-align', 'font-size', 'font-weight', 'font-style', 'text-decoration', 'text-decoration-line', 'font-family']);
+  const PG_STYLE_KEYS = new Set(['text-align', 'font-size', 'font-weight', 'font-style', 'text-decoration', 'text-decoration-line', 'font-family',
+    'color', 'background', 'background-image', 'background-color', 'border', 'border-top', 'border-right', 'border-bottom', 'border-left', 'border-radius',
+    'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+    'display', 'flex', 'flex-direction', 'flex-wrap', 'flex-flow', 'justify-content', 'align-items', 'gap', 'row-gap', 'column-gap',
+    'width', 'max-width', 'height', 'letter-spacing', 'line-height', 'text-transform', 'opacity', 'text-shadow', 'list-style', 'list-style-type']);
   const PG_SIZE_KW = { 'xx-small': .7, 'x-small': .8, small: .9, medium: 1, large: 1.2, 'x-large': 1.45, 'xx-large': 1.8, 'xxx-large': 2.1 };
   function pgStyleMap(str) {
     const o = {}; str = String(str || '');
@@ -3401,18 +3405,23 @@
     for (const part of str.split(';')) {
       const i = part.indexOf(':'); if (i < 1) continue;
       const k = part.slice(0, i).trim().toLowerCase();
-      if (PG_STYLE_KEYS.has(k)) o[k] = part.slice(i + 1).trim().toLowerCase();
+      if (PG_STYLE_KEYS.has(k)) {
+        let v = part.slice(i + 1).trim().toLowerCase();
+        if (v.endsWith('important')) { const b = v.lastIndexOf('!'); if (b >= 0 && v.slice(b + 1).trim() === 'important') v = v.slice(0, b).trim(); }   // by hand: a pattern for this runs long on long runs of spaces
+        o[k] = v;
+      }
     }
     return o;
   }
-  function pgFormat(el, n, tag, isBlock, cur) {
-    const st = pgStyleMap(n.getAttribute('style'));
+  function pgFormat(el, n, tag, isBlock, cur, stIn, rich) {
+    const st = stIn || pgStyleMap(n.getAttribute('style'));
     let al = st['text-align'] || String(n.getAttribute('align') || '').trim().toLowerCase();
     if (tag === 'center') al = 'center';
     if (isBlock && (al === 'center' || al === 'right')) el.style.textAlign = al;
     let abs = null;
     if (tag === 'font' && n.getAttribute('size')) abs = ({ 1: .75, 2: .88, 3: 1, 4: 1.2, 5: 1.5, 6: 1.9, 7: 2.2 })[parseInt(n.getAttribute('size'), 10)] || null;
-    const fs = st['font-size'];
+    let fs = st['font-size'];
+    if (fs && rich && fs.startsWith('clamp(') && fs.length <= 80) { const a = pgSplit(fs.slice(6, fs.lastIndexOf(')')), ',')[0]; if (a) fs = a; }   // clamp(41px, 6.3vw, 72px): the smallest value is what a phone gets
     if (fs) {
       const m = fs.length <= 24 ? /^(\d+(?:\.\d+)?|\.\d+)\s*(px|pt|em|rem|%)$/.exec(fs) : null;   // short on purpose: a long run of digits made the old pattern crawl
       if (m) { const v = parseFloat(m[1]); abs = m[2] === 'px' ? v / 16 : m[2] === 'pt' ? v / 12 : m[2] === '%' ? cur * v / 100 : m[2] === 'em' ? cur * v : v; }
@@ -3429,8 +3438,391 @@
     const td = st['text-decoration'] || st['text-decoration-line'] || '';
     if (/underline/.test(td)) el.style.textDecoration = /line-through/.test(td) ? 'underline line-through' : 'underline'; else if (/line-through/.test(td)) el.style.textDecoration = 'line-through';
     const ff = st['font-family'];
-    if (ff) { if (/\bmonospace\b/.test(ff)) el.style.fontFamily = 'monospace'; else if (/\bcursive\b/.test(ff)) el.style.fontFamily = 'cursive'; else if (/\bsans-serif\b/.test(ff)) el.style.fontFamily = 'sans-serif'; }
+    if (ff) { if (/\bmonospace\b/.test(ff)) el.style.fontFamily = 'monospace'; else if (/\bcursive\b/.test(ff)) el.style.fontFamily = 'cursive'; else if (/\bsans-serif\b/.test(ff)) el.style.fontFamily = 'sans-serif'; else if (rich && /\bserif\b/.test(ff)) el.style.fontFamily = 'serif'; }
     return next;
+  }
+  // ===== Character page, richer rendering =====
+  // Lists and quotes written as Markdown become real lists and quotes, and a card's own look (colours, boxes, borders, gradients) is carried
+  // over. Nothing the card wrote is ever copied as it is: each value is read as numbers and fixed words, rebuilt, and held to limits. Text
+  // colour is always checked against the background it ends up on, so a card cannot make its own words unreadable.
+  const PG_MAX_DECO = 600, PG_MAX_SHADOW = 24, PG_MAX_QUOTE = 3, PG_MAX_LIST = 6, PG_HIN_MAX = 3.5;
+  const PG_NAMED = 'aliceblue:f0f8ff,antiquewhite:faebd7,aqua:00ffff,aquamarine:7fffd4,azure:f0ffff,beige:f5f5dc,bisque:ffe4c4,black:000000,blanchedalmond:ffebcd,blue:0000ff,blueviolet:8a2be2,brown:a52a2a,burlywood:deb887,cadetblue:5f9ea0,chartreuse:7fff00,chocolate:d2691e,coral:ff7f50,cornflowerblue:6495ed,cornsilk:fff8dc,crimson:dc143c,cyan:00ffff,darkblue:00008b,darkcyan:008b8b,darkgoldenrod:b8860b,darkgray:a9a9a9,darkgreen:006400,darkgrey:a9a9a9,darkkhaki:bdb76b,darkmagenta:8b008b,darkolivegreen:556b2f,darkorange:ff8c00,darkorchid:9932cc,darkred:8b0000,darksalmon:e9967a,darkseagreen:8fbc8f,darkslateblue:483d8b,darkslategray:2f4f4f,darkslategrey:2f4f4f,darkturquoise:00ced1,darkviolet:9400d3,deeppink:ff1493,deepskyblue:00bfff,dimgray:696969,dimgrey:696969,dodgerblue:1e90ff,firebrick:b22222,floralwhite:fffaf0,forestgreen:228b22,fuchsia:ff00ff,gainsboro:dcdcdc,ghostwhite:f8f8ff,gold:ffd700,goldenrod:daa520,gray:808080,green:008000,greenyellow:adff2f,grey:808080,honeydew:f0fff0,hotpink:ff69b4,indianred:cd5c5c,indigo:4b0082,ivory:fffff0,khaki:f0e68c,lavender:e6e6fa,lavenderblush:fff0f5,lawngreen:7cfc00,lemonchiffon:fffacd,lightblue:add8e6,lightcoral:f08080,lightcyan:e0ffff,lightgoldenrodyellow:fafad2,lightgray:d3d3d3,lightgreen:90ee90,lightgrey:d3d3d3,lightpink:ffb6c1,lightsalmon:ffa07a,lightseagreen:20b2aa,lightskyblue:87cefa,lightslategray:778899,lightslategrey:778899,lightsteelblue:b0c4de,lightyellow:ffffe0,lime:00ff00,limegreen:32cd32,linen:faf0e6,magenta:ff00ff,maroon:800000,mediumaquamarine:66cdaa,mediumblue:0000cd,mediumorchid:ba55d3,mediumpurple:9370db,mediumseagreen:3cb371,mediumslateblue:7b68ee,mediumspringgreen:00fa9a,mediumturquoise:48d1cc,mediumvioletred:c71585,midnightblue:191970,mintcream:f5fffa,mistyrose:ffe4e1,moccasin:ffe4b5,navajowhite:ffdead,navy:000080,oldlace:fdf5e6,olive:808000,olivedrab:6b8e23,orange:ffa500,orangered:ff4500,orchid:da70d6,palegoldenrod:eee8aa,palegreen:98fb98,paleturquoise:afeeee,palevioletred:db7093,papayawhip:ffefd5,peachpuff:ffdab9,peru:cd853f,pink:ffc0cb,plum:dda0dd,powderblue:b0e0e6,purple:800080,rebeccapurple:663399,red:ff0000,rosybrown:bc8f8f,royalblue:4169e1,saddlebrown:8b4513,salmon:fa8072,sandybrown:f4a460,seagreen:2e8b57,seashell:fff5ee,sienna:a0522d,silver:c0c0c0,skyblue:87ceeb,slateblue:6a5acd,slategray:708090,slategrey:708090,snow:fffafa,springgreen:00ff7f,steelblue:4682b4,tan:d2b48c,teal:008080,thistle:d8bfd8,tomato:ff6347,turquoise:40e0d0,violet:ee82ee,wheat:f5deb3,white:ffffff,whitesmoke:f5f5f5,yellow:ffff00,yellowgreen:9acd32';
+  let pgNames = null;
+  const pgIsWs = (c) => c === 32 || (c >= 9 && c <= 13) || c === 160 || c === 5760 || (c >= 8192 && c <= 8202) || c === 8232 || c === 8233 || c === 8239 || c === 8287 || c === 12288 || c === 65279;
+  // colour → [r,g,b,a] or null. Short strings only, so no pattern can run long.
+  function pgParseColor(v) {
+    const s = String(v || '').trim().toLowerCase();
+    if (!s || s.length > 64) return null;
+    if (s === 'transparent') return [0, 0, 0, 0];
+    let x;
+    if (s.charCodeAt(0) === 35) {
+      if (!(x = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/.exec(s))) return null;
+      let h = x[1]; if (h.length <= 4) h = h.replace(/./g, (c) => c + c);
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1];
+    }
+    const alpha = (t) => { if (t == null) return 1; const a = t.endsWith('%') ? parseFloat(t) / 100 : parseFloat(t); return isFinite(a) ? Math.max(0, Math.min(1, a)) : NaN; };
+    if ((x = /^rgba?\(\s*([\d.]{1,7}%?)\s*[, ]\s*([\d.]{1,7}%?)\s*[, ]\s*([\d.]{1,7}%?)\s*(?:[,/]\s*([\d.]{1,7}%?)\s*)?\)$/.exec(s))) {
+      const ch = (t) => { const n = parseFloat(t); return isFinite(n) ? Math.max(0, Math.min(255, Math.round(t.endsWith('%') ? n * 2.55 : n))) : NaN; };
+      const c = [ch(x[1]), ch(x[2]), ch(x[3]), alpha(x[4])];
+      return c.every((n) => n === n) ? c : null;
+    }
+    if ((x = /^hsla?\(\s*(-?[\d.]{1,7})(?:deg)?\s*[, ]\s*([\d.]{1,7})%\s*[, ]\s*([\d.]{1,7})%\s*(?:[,/]\s*([\d.]{1,7}%?)\s*)?\)$/.exec(s))) {
+      const h = ((parseFloat(x[1]) % 360) + 360) % 360, sa = Math.min(100, parseFloat(x[2])) / 100, li = Math.min(100, parseFloat(x[3])) / 100, a = alpha(x[4]);
+      if (![h, sa, li, a].every((n) => n === n)) return null;
+      const f = (n) => { const k = (n + h / 30) % 12; return Math.round((li - sa * Math.min(li, 1 - li) * Math.max(-1, Math.min(k - 3, 9 - k, 1))) * 255); };
+      return [f(0), f(8), f(4), a];
+    }
+    if (/^[a-z]{3,20}$/.test(s)) {
+      if (!pgNames) { pgNames = new Map(); for (const e of PG_NAMED.split(',')) { const i = e.indexOf(':'); pgNames.set(e.slice(0, i), e.slice(i + 1)); } }
+      const h = pgNames.get(s);
+      if (h) return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), 1];
+    }
+    return null;
+  }
+  function pgLum(c) { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); }
+  function pgContrast(a, b) { const x = pgLum(a), y = pgLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  const pgOver = (c, base) => c[3] >= 1 ? [c[0], c[1], c[2]] : [0, 1, 2].map((i) => Math.round(c[i] * c[3] + base[i] * (1 - c[3])));
+  const pgMean = (set) => { let r = 0, g = 0, b = 0; for (const c of set) { r += c[0]; g += c[1]; b += c[2]; } const n = set.length || 1; return [Math.round(r / n), Math.round(g / n), Math.round(b / n)]; };
+  const pgMinContrast = (fg, set) => { let m = 99; for (const b of set) m = Math.min(m, pgContrast(fg, b)); return m; };
+  const pgRgb = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
+  const pgRgba = (c) => c[3] >= 1 ? pgRgb(c) : `rgba(${c[0]},${c[1]},${c[2]},${+c[3].toFixed(3)})`;
+  const PG_LIGHT = [244, 241, 238], PG_DARK = [27, 29, 35];
+  const pgPickText = (set) => pgMinContrast(PG_LIGHT, set) >= pgMinContrast(PG_DARK, set) ? PG_LIGHT : PG_DARK;
+  // splits at top-level commas or spaces (not inside brackets); one pass, at most 40 pieces
+  function pgSplit(s, sep) {
+    const out = []; let depth = 0, cur = '';
+    for (let i = 0; i < s.length && out.length < 40; i++) {
+      const ch = s[i];
+      if (ch === '(') depth++; else if (ch === ')') depth = Math.max(0, depth - 1);
+      if (depth === 0 && (sep === ' ' ? (ch === ' ' || ch === '\t') : ch === sep)) { if (cur.trim() || sep === ',') out.push(cur.trim()); cur = ''; } else cur += ch;
+    }
+    if (cur.trim() || sep === ',') out.push(cur.trim());
+    return out;
+  }
+  function pgLen(w) {
+    const x = /^(-?\d{1,4}(?:\.\d{1,3})?|-?\.\d{1,3})(px|em|rem|pt|%)?$/.exec(w || '');
+    if (!x) return null;
+    const v = parseFloat(x[1]); if (!isFinite(v) || (!x[2] && v !== 0)) return null;
+    return { v, u: x[2] || 'px' };
+  }
+  const pgEm = (L) => L.u === 'px' ? L.v / 16 : L.u === 'pt' ? L.v / 12 : L.v;
+  const pgNum = (v, lo, hi) => +Math.max(lo, Math.min(hi, v)).toFixed(3);
+  function pgPos(s) {
+    const t = String(s).trim().split(/ +/); if (t.length < 1 || t.length > 2) return null;
+    const out = [];
+    for (const w of t) {
+      let x;
+      if (/^(?:left|right|top|bottom|center)$/.test(w)) out.push(w);
+      else if ((x = /^(-?\d{1,4}(?:\.\d{1,2})?)(%|px)$/.exec(w))) out.push(x[2] === '%' ? pgNum(parseFloat(x[1]), -50, 150) + '%' : pgNum(parseFloat(x[1]), -500, 3000) + 'px');
+      else return null;
+    }
+    return out.join(' ');
+  }
+  // "linear-gradient(...)" / "radial-gradient(...)" → rebuilt text or ''; the colours it uses are added to `colors`
+  function pgGradient(layer, colors) {
+    const mm = /^(linear|radial)-gradient\((.*)\)$/s.exec(layer); if (!mm) return '';
+    const args = pgSplit(mm[2], ','); if (args.length < 2 || args.length > 12) return '';
+    let head = '', i0 = 0, x;
+    const first = args[0].toLowerCase();
+    if (mm[1] === 'linear') {
+      if ((x = /^(-?\d{1,4}(?:\.\d{1,3})?)(deg|turn|rad|grad)$/.exec(first))) { const v = parseFloat(x[1]); head = pgNum(x[2] === 'deg' ? v : x[2] === 'turn' ? v * 360 : x[2] === 'rad' ? v * 180 / Math.PI : v * 0.9, -3600, 3600) + 'deg'; i0 = 1; }
+      else if ((x = /^to (left|right|top|bottom)(?: (left|right|top|bottom))?$/.exec(first))) { head = 'to ' + x[1] + (x[2] ? ' ' + x[2] : ''); i0 = 1; }
+    } else {
+      let rest = first, shape = '', size = '', at = '';
+      if ((x = /^(circle|ellipse)(?: +|$)/.exec(rest))) { shape = x[1]; rest = rest.slice(x[0].length); }
+      if ((x = /^((?:closest|farthest)-(?:side|corner))(?: +|$)/.exec(rest))) { size = x[1]; rest = rest.slice(x[0].length); }
+      if ((x = /^at +(.+)$/.exec(rest))) { const p = pgPos(x[1]); if (p == null) return ''; at = 'at ' + p; rest = ''; }
+      if ((shape || size || at) && rest === '') { head = [shape, size, at].filter(Boolean).join(' '); i0 = 1; }
+    }
+    const stops = [];
+    for (let i = i0; i < args.length; i++) {
+      const parts = pgSplit(args[i], ' '); if (!parts.length || parts.length > 3) return '';
+      const c = pgParseColor(parts[0]); if (!c) return '';
+      let pos = '';
+      for (let j = 1; j < parts.length; j++) {
+        const p = /^(-?\d{1,4}(?:\.\d{1,2})?)(%|px)$/.exec(parts[j]); if (!p) return '';
+        pos += ' ' + (p[2] === '%' ? pgNum(parseFloat(p[1]), -50, 150) + '%' : pgNum(parseFloat(p[1]), -500, 3000) + 'px');
+      }
+      stops.push(pgRgba(c) + pos);
+      if (c[3] > 0.02) colors.push(c);
+    }
+    return stops.length < 2 ? '' : `${mm[1]}-gradient(${head ? head + ',' : ''}${stops.join(',')})`;
+  }
+  // background / background-image / background-color → { img, col, colors } or null. Only colours and gradients; a picture address is never kept.
+  function pgBackground(st) {
+    const raw = st.background || st['background-image'] || '';
+    const imgs = [], colors = []; let col = null;
+    if (raw && raw.length <= 1500) {
+      for (const layer of pgSplit(raw, ',').slice(0, 6)) {
+        const toks = pgSplit(layer, ' '); if (!toks.length) continue;
+        if (/^(?:linear|radial)-gradient\(/.test(toks[0])) { const g = pgGradient(toks[0], colors); if (g && imgs.length < 4) imgs.push(g); }
+        else for (const w of toks) { const c = pgParseColor(w); if (c) { col = c; break; } }
+      }
+    }
+    if (!col && st['background-color']) col = pgParseColor(st['background-color']);
+    return imgs.length || col ? { img: imgs.join(','), col, colors } : null;
+  }
+  // 1–4 values → [top,right,bottom,left]; each { em } | { pct } | { auto }; null if anything is off
+  function pgBox(val, allowAuto) {
+    const t = String(val).split(/ +/).filter(Boolean); if (!t.length || t.length > 4) return null;
+    const v = [];
+    for (const w of t) {
+      if (w === 'auto') { if (!allowAuto) return null; v.push({ auto: true }); continue; }
+      const L = pgLen(w); if (!L) return null;
+      v.push(L.u === '%' ? { pct: L.v } : { em: pgEm(L) });
+    }
+    const [a, b = a, c = a, d = b] = v; return [a, b, c, d];
+  }
+  const pgSide = (v, max) => v.auto ? 'auto' : v.pct != null ? pgNum(v.pct, 0, 6) + '%' : pgNum(v.em, 0, max) + 'em';
+  function pgBorder(val) {
+    let w = null, sty = '', col = null;
+    for (const tk of pgSplit(val, ' ')) {
+      const L = pgLen(tk), c = L ? null : pgParseColor(tk);
+      if (L && L.u !== '%') { w = L.u === 'px' ? L.v : L.u === 'pt' ? L.v * 1.333 : L.v * 16; }
+      else if (/^(?:solid|dashed|dotted|double)$/.test(tk)) sty = tk;
+      else if (/^(?:none|hidden)$/.test(tk)) return { none: true };
+      else if (/^(?:thin|medium|thick)$/.test(tk)) w = { thin: 1, medium: 3, thick: 5 }[tk];
+      else if (c) col = c;
+      else return null;
+    }
+    if (!sty || w == null || w <= 0) return { none: true };
+    return { css: `${pgNum(w, 0, 6)}px ${sty} ${col ? pgRgba(col) : 'rgba(255,255,255,.25)'}` };
+  }
+  function pgRadius(val) {
+    const t = String(val).split(/ +/).filter(Boolean); if (!t.length || t.length > 4) return '';
+    const out = [];
+    for (const w of t) { const L = pgLen(w); if (!L) return ''; out.push(L.u === '%' ? pgNum(L.v, 0, 50) + '%' : pgNum(pgEm(L), 0, 1.8) + 'em'); }
+    return out.join(' ');
+  }
+  function pgShadow(val) {
+    const out = [];
+    for (const layer of pgSplit(val, ',').slice(0, 3)) {
+      const tk = pgSplit(layer, ' '); if (tk.length < 3 || tk.length > 5) return '';
+      let col = null; const n = [];
+      for (const w of tk) {
+        const c = pgParseColor(w);
+        if (c) { if (col) return ''; col = c; continue; }
+        const L = pgLen(w); if (!L || L.u === '%') return '';
+        n.push(L.u === 'px' ? L.v : pgEm(L) * 16);
+      }
+      if (!col || n.length < 2 || n.length > 3) return '';
+      out.push(`${pgNum(n[0], -12, 12)}px ${pgNum(n[1], -12, 12)}px ${pgNum(n[2] || 0, 0, 16)}px ${pgRgba(col)}`);
+    }
+    return out.join(',');
+  }
+  function pgSize(val, maxPx) {
+    const L = pgLen(val); if (!L) return '';
+    return L.u === '%' ? pgNum(L.v, 0, 100) + '%' : pgNum(L.u === 'px' ? L.v : L.u === 'pt' ? L.v * 1.333 : L.v * 16, 0, maxPx) + 'px';
+  }
+  const PG_SIDES = ['top', 'right', 'bottom', 'left'];
+  // Carries a card's look onto one element. Returns [state for its children, height and width for an empty decorative bar or dot].
+  function pgRich(el, n, tag, isBlock, st, S, ctx) {
+    let fg = S.fg, bg = S.bg, hin = S.hin, dh = '', dw = '', deco = false, bgUsed = false, bordered = false, bgImg = '', bgCol = '', x;
+    const room = (ctx.deco || 0) < PG_MAX_DECO;
+    if (room && (st.background || st['background-image'] || st['background-color'])) {
+      const b = pgBackground(st);
+      if (b) {
+        const base = pgMean(bg), set = b.colors.map((c) => pgOver(c, base)), solid = b.col && b.col[3] > 0.02;
+        if (solid) set.push(pgOver(b.col, base));
+        if (set.length) { bgImg = b.img; bgCol = solid ? pgRgba(b.col) : ''; bg = set; bgUsed = deco = true; }
+      }
+    }
+    let kept = false;
+    const rawc = tag === 'font' ? (n.getAttribute('color') || st.color) : st.color;
+    const c = rawc ? pgParseColor(rawc) : null;
+    if (c && c[3] > 0.05) {
+      const eff = pgOver(c, pgMean(bg));
+      if (pgMinContrast(eff, bg) >= 3) { el.style.color = pgRgba(c); fg = eff; kept = true; }
+    }
+    if (!kept && bgUsed && pgMinContrast(fg, bg) < 3) {
+      let pick = pgPickText(bg);
+      // a gradient from near-white to near-black cannot be read with any single text colour: it becomes its average colour instead
+      if (pgMinContrast(pick, bg) < 3) { const m = pgMean(bg); bg = [m]; bgImg = ''; bgCol = pgRgb(m); pick = pgPickText(bg); }
+      fg = pick; el.style.color = pgRgb(fg);
+    }
+    if (bgImg) el.style.backgroundImage = bgImg;
+    if (bgCol) el.style.backgroundColor = bgCol;
+    if (room) {
+      if ((x = st['letter-spacing']) && (x = pgLen(x)) && x.u !== '%') el.style.letterSpacing = pgNum(pgEm(x), -0.05, 0.4) + 'em';
+      if ((x = st['line-height']) && (x = /^(\d{1,2}(?:\.\d{1,3})?|\.\d{1,3})(%|em)?$/.exec(x))) { const v = x[2] === '%' ? parseFloat(x[1]) / 100 : parseFloat(x[1]); if (v >= 1) el.style.lineHeight = String(Math.min(2.4, v)); }
+      if (/^(?:uppercase|lowercase|capitalize)$/.test(st['text-transform'] || '')) el.style.textTransform = st['text-transform'];
+      if ((x = st.opacity) && (x = /^(\d(?:\.\d{1,3})?|\.\d{1,3})(%)?$/.exec(x))) { const v = x[2] ? parseFloat(x[1]) / 100 : parseFloat(x[1]); if (v < 0.999) el.style.opacity = String(Math.max(0.45, v)); }
+      if (st['text-shadow'] && (ctx.shadows || 0) < PG_MAX_SHADOW) { const s = pgShadow(st['text-shadow']); if (s) { el.style.textShadow = s; ctx.shadows = (ctx.shadows || 0) + 1; } }
+      if (/^(?:ul|ol|li)$/.test(el.tagName.toLowerCase())) { const ls = st['list-style-type'] || st['list-style'] || ''; const m = /\b(none|disc|circle|square|decimal|lower-alpha|upper-alpha|lower-roman|upper-roman)\b/.exec(ls); if (m) el.style.listStyleType = m[1]; }
+      for (const [k, prop] of [['border', 'border'], ['border-top', 'borderTop'], ['border-right', 'borderRight'], ['border-bottom', 'borderBottom'], ['border-left', 'borderLeft']]) {
+        if (st[k]) { const b = pgBorder(st[k]); if (b && b.css) { el.style[prop] = b.css; bordered = deco = true; } }
+      }
+      if (st['border-radius'] && (x = pgRadius(st['border-radius']))) { el.style.borderRadius = x; deco = true; }
+      // padding and margin: each side clamped, and the sideways total shared out so nested boxes can never squeeze the text away
+      const pad = st.padding ? pgBox(st.padding, false) : null, mar = st.margin ? pgBox(st.margin, true) : null;
+      const pick = (prop, arr, i, auto) => { const lv = st[prop + '-' + PG_SIDES[i]]; const b = lv ? pgBox(lv, auto) : null; return b ? b[0] : (arr ? arr[i] : null); };
+      const sides = [];
+      for (let i = 0; i < 4; i++) {
+        const p = pick('padding', pad, i, false), m = pick('margin', mar, i, true);
+        if (p) sides.push(['padding', i, p]);
+        if (m) sides.push(['margin', i, m]);
+      }
+      let hs = 0; for (const [, i, v] of sides) if ((i === 1 || i === 3) && v.em != null) hs += Math.min(v.em, 3);
+      const left = Math.max(0, PG_HIN_MAX - hin), scale = hs > left && hs > 0 ? left / hs : 1;
+      hin += Math.min(hs, left);
+      for (const [kind, i, v] of sides) {
+        const horiz = i === 1 || i === 3;
+        let css = pgSide(v, horiz ? 3 : 1.5);
+        if (horiz && v.em != null && scale < 1) css = pgNum(Math.min(v.em, 3) * scale, 0, 3) + 'em';
+        el.style[kind + PG_SIDES[i][0].toUpperCase() + PG_SIDES[i].slice(1)] = css; deco = true;
+      }
+      const dsp = st.display;
+      if (/^(?:block|inline|inline-block|flex|inline-flex)$/.test(dsp || '')) el.style.display = dsp;
+      if (/flex$/.test(dsp || '')) {
+        if (/^(?:row|column)$/.test(st['flex-direction'] || '')) el.style.flexDirection = st['flex-direction'];
+        const ff = st['flex-flow'] || ''; if (/\bcolumn\b/.test(ff) && !st['flex-direction']) el.style.flexDirection = 'column';
+        if (!(st['flex-direction'] === 'column' || (/\bcolumn\b/.test(ff) && !st['flex-direction']))) el.style.flexWrap = 'wrap';   // a row always wraps: on a phone a row that cannot would run off the edge and lose its right-hand side
+        if (/^(?:center|flex-start|flex-end|space-between|space-around|space-evenly)$/.test(st['justify-content'] || '')) el.style.justifyContent = st['justify-content'];
+        if (/^(?:center|flex-start|flex-end|stretch|baseline)$/.test(st['align-items'] || '')) el.style.alignItems = st['align-items'];
+        const g = st.gap ? pgBox(st.gap, false) : null;
+        if (g) { el.style.rowGap = pgNum(g[0].em != null ? g[0].em : 0, 0, 1.5) + 'em'; el.style.columnGap = pgNum((g[1].em != null ? g[1].em : 0), 0, 1.5) + 'em'; }
+        else { const rg = pgLen(st['row-gap']), cg = pgLen(st['column-gap']); if (rg && rg.u !== '%') el.style.rowGap = pgNum(pgEm(rg), 0, 1.5) + 'em'; if (cg && cg.u !== '%') el.style.columnGap = pgNum(pgEm(cg), 0, 1.5) + 'em'; }
+      }
+      if ((x = st.flex) && x.length <= 40) {
+        const t = x === 'none' ? ['0', '0', 'auto'] : x === 'auto' ? ['1', '1', 'auto'] : pgSplit(x, ' ');
+        if (t.length >= 1 && t.length <= 3 && /^\d{1,2}(?:\.\d{1,2})?$/.test(t[0]) && (t.length < 2 || /^\d{1,2}(?:\.\d{1,2})?$/.test(t[1]))) {
+          const basis = t.length === 3 ? (t[2] === 'auto' ? 'auto' : pgSize(t[2], 800)) : '0%';
+          if (basis) el.style.flex = `${pgNum(parseFloat(t[0]), 0, 10)} 1 ${basis}`;   // shrink is always 1: an item that refuses to shrink is how a row overflows
+        }
+      }
+      // a box too narrow to hold words (0px, 8px, 5%) is a way to squeeze text out of sight, so such a width is only used on an empty dot or bar
+      const tinyW = (v) => parseFloat(v) < (/px$/.test(v) ? 24 : 10);
+      let sized = false, w;
+      if ((w = pgSize(st.width, 1200))) { if (!tinyW(w)) { el.style.width = w; sized = true; } else if (bgUsed || bordered) dw = w; }
+      if ((w = pgSize(st['max-width'], 1200)) && !tinyW(w)) el.style.maxWidth = w; else if (sized) el.style.maxWidth = '100%';
+      if (sized || deco) el.style.boxSizing = 'border-box';
+      if ((bgUsed || bordered) && st.height && (x = pgLen(st.height)) && x.u !== '%') { const px = x.u === 'px' ? x.v : x.u === 'pt' ? x.v * 1.333 : x.v * 16; if (px > 0 && px <= 12) dh = pgNum(px, 0, 12) + 'px'; }
+      if (deco) ctx.deco = (ctx.deco || 0) + 1;
+    }
+    return [fg === S.fg && bg === S.bg && hin === S.hin ? S : { fg, bg, hin }, dh, dw];
+  }
+  // ----- Markdown blocks -----
+  const pgHrRe = /^\s{0,3}([-*_])(?:\s*\1){2,}\s*$/;
+  // "# Title" → { lvl, text }. One pass: the old single pattern for this took cubic time on "# a" followed by thousands of spaces.
+  function pgHead(ln) {
+    let i = 0; while (i < 3 && pgIsWs(ln.charCodeAt(i))) i++;
+    let h = 0; while (h < 7 && ln.charCodeAt(i + h) === 35) h++;
+    if (h < 1 || h > 6 || !pgIsWs(ln.charCodeAt(i + h))) return null;
+    let s = i + h; while (pgIsWs(ln.charCodeAt(s))) s++;
+    let e = ln.length; while (e > s && pgIsWs(ln.charCodeAt(e - 1))) e--;
+    while (e > s && ln.charCodeAt(e - 1) === 35) e--;
+    while (e > s && pgIsWs(ln.charCodeAt(e - 1))) e--;
+    let text = ln.slice(s, e); if (!text) text = ln.charAt(s);
+    return text.trim() ? { lvl: h, text } : null;
+  }
+  // "- a", "*   a", "+ a", "• a", "1. a", "2) a" → { ind, ord, num, txt }. The marker must be followed by a space, so "**bold**" and "-x" are not items.
+  function pgListItem(ln) {
+    let i = 0, ind = 0;
+    for (; i < ln.length && i < 40; i++) { const c = ln.charCodeAt(i); if (c === 32) ind++; else if (c === 9) ind += 4; else break; }
+    const c = ln.charCodeAt(i);
+    let ord = false, num = 0, j;
+    if (c === 45 || c === 42 || c === 43 || c === 8226) j = i + 1;
+    else if (c >= 48 && c <= 57) {
+      let k = i; while (k < ln.length && k - i < 3 && ln.charCodeAt(k) >= 48 && ln.charCodeAt(k) <= 57) k++;
+      const d = ln.charCodeAt(k); if (d !== 46 && d !== 41) return null;
+      num = parseInt(ln.slice(i, k), 10); ord = true; j = k + 1;
+    } else return null;
+    const sp = ln.charCodeAt(j); if (sp !== 32 && sp !== 9) return null;
+    while (ln.charCodeAt(j) === 32 || ln.charCodeAt(j) === 9) j++;
+    let e = ln.length; while (e > j && pgIsWs(ln.charCodeAt(e - 1))) e--;
+    return e > j ? { ind, ord, num, txt: ln.slice(j, e) } : null;
+  }
+  function pgQuoteLine(ln) {
+    let i = 0; while (i < 3 && ln.charCodeAt(i) === 32) i++;
+    if (ln.charCodeAt(i) !== 62) return null;
+    i++; if (ln.charCodeAt(i) === 32) i++;
+    return ln.slice(i);
+  }
+  // a run of list lines → nested <ul>/<ol>; a deeper indent opens a nested list, an indented plain line continues the item above
+  function pgList(out, lines, i, ctx) {
+    const stack = []; let k = i;
+    while (k < lines.length) {
+      if (ctx.nodes > PG_MAX_NODES) { ctx.cut = true; break; }
+      if (pgHrRe.test(lines[k])) break;   // "- - -" under a list is a rule, not one more bullet
+      const m = pgListItem(lines[k]);
+      if (m) {
+        let top = stack[stack.length - 1];
+        while (stack.length > 1 && m.ind < top.ind) { stack.pop(); top = stack[stack.length - 1]; }
+        if (top && stack.length === 1 && m.ind < top.ind) top.ind = m.ind;
+        const open = (parent) => {
+          const el = document.createElement(m.ord ? 'ol' : 'ul'); ctx.nodes++;
+          if (m.ord && m.num !== 1) el.setAttribute('start', String(m.num));
+          parent.appendChild(el); top = { ind: m.ind, ord: m.ord, el, li: null }; stack.push(top);
+        };
+        if (!top) open(out);
+        else if (m.ind > top.ind && top.li && stack.length < PG_MAX_LIST) open(top.li);
+        else if (top.ord !== m.ord && m.ind <= top.ind) { stack.pop(); open(stack.length ? stack[stack.length - 1].li : out); }
+        const li = document.createElement('li'); ctx.nodes++;
+        pgInline(li, m.txt, ctx); top.el.appendChild(li); top.li = li; k++;
+        continue;
+      }
+      const L = lines[k]; let a = 0;
+      while (a < 8 && (L.charCodeAt(a) === 32 || L.charCodeAt(a) === 9)) a++;
+      if (stack.length && a >= 2 && a < L.length && !pgIsWs(L.charCodeAt(a))) {
+        const last = stack[stack.length - 1].li; last.appendChild(document.createElement('br')); ctx.nodes++;
+        pgInline(last, L.trim(), ctx); k++;
+        continue;
+      }
+      break;
+    }
+    return k;
+  }
+  function pgQuote(out, lines, i, ctx, o) {
+    const inner = []; let k = i;
+    for (let q; k < lines.length && (q = pgQuoteLine(lines[k])) !== null; k++) inner.push(q);
+    const body = inner.join('\n');
+    if (!body.trim()) return k;
+    const bq = document.createElement('blockquote'); ctx.nodes++;
+    const qd = (o.qd || 0) + 1;
+    if (qd > PG_MAX_QUOTE) pgInline(bq, body, ctx); else pgBlocks(bq, body, ctx, { br: o.br, first: true, qd });
+    out.appendChild(bq);
+    return k;
+  }
+  // The Markdown-style blocks of one piece of text: headings, rules, lists, quotes. Plain lines stay plain. With br the lines are joined by <br>
+  // (HTML-mode text, where raw line breaks would collapse); without it each keeps its own "\n" (the page keeps line breaks itself).
+  function pgBlocks(out, text, ctx, o) {
+    const lines = text.split('\n');
+    let a = 0, b = lines.length;
+    if (o.br) { while (a < b && !lines[a].trim()) a++; while (b > a && !lines[b - 1].trim()) b--; }
+    else while (a < b - 1 && !lines[a].trim() && !out.firstChild) a++;   // blank lines at the very start (after a wrapper tag) would only push the page down
+    const startsBlock = (k) => k < b && !pgHrRe.test(lines[k]) && (pgListItem(lines[k]) !== null || pgQuoteLine(lines[k]) !== null);   // "* * *" looks like a bullet but is a rule
+    let after = false, firstOut = true;
+    for (let i = a; i < b; ) {
+      if (ctx.nodes > PG_MAX_NODES) { ctx.cut = true; return; }
+      const ln = lines[i], canBlock = i > 0 || o.first;
+      if (!ln.trim()) {
+        if (after) { after = false; i++; continue; }
+        if (canBlock && startsBlock(i + 1)) { i++; continue; }
+        pgInline(out, o.br ? '' : (i < b - 1 ? ln + '\n' : ln), ctx);
+        if (o.br && i < b - 1) { out.appendChild(document.createElement('br')); ctx.nodes++; }
+        i++; continue;
+      }
+      after = false;
+      const hd = pgHead(ln);
+      if (hd) { const e = document.createElement(hd.lvl <= 2 ? 'h3' : hd.lvl === 3 ? 'h4' : 'h5'); pgInline(e, hd.text, ctx); out.appendChild(e); ctx.nodes++; i++; firstOut = false; continue; }
+      if (pgHrRe.test(ln)) { out.appendChild(document.createElement('hr')); ctx.nodes++; i++; firstOut = false; continue; }
+      if (canBlock) {
+        if (pgListItem(ln)) { i = pgList(out, lines, i, ctx); after = true; firstOut = false; continue; }
+        if (pgQuoteLine(ln) !== null) { i = pgQuote(out, lines, i, ctx, o); after = true; firstOut = false; continue; }
+      }
+      if (o.br) {
+        let s = ln.replace(/[\t ]+/g, ' ');
+        if (!firstOut || i > a || o.first) s = s.replace(/^ /, '');
+        pgInline(out, s, ctx);
+        if (i < b - 1 && !startsBlock(i + 1)) { out.appendChild(document.createElement('br')); ctx.nodes++; }
+      } else pgInline(out, i < b - 1 ? ln + '\n' : ln, ctx);
+      firstOut = false; i++;
+    }
+  }
+  function pgHasBlocks(v, first) {
+    const L = v.split('\n');
+    for (let i = first ? 0 : 1; i < L.length && i < 4000; i++) if ((pgListItem(L[i]) && !pgHrRe.test(L[i])) || pgQuoteLine(L[i]) !== null || pgHead(L[i])) return true;
+    return false;
   }
   // A card made of tens of thousands of tags, or tags nested hundreds deep, is not a real card (and can make a parser crawl): it is shown
   // as plain words instead. Tags that close themselves (p, li, td…) are not counted as nesting.
@@ -3502,26 +3894,36 @@
     if (!isHtml) text = text.replace(/\n[ \t]*(?:\n[ \t]*){2,}/g, '\n\n').trim();   // long runs of blank lines become one gap
     const doc = new DOMParser().parseFromString(text, 'text/html');       // inert: nothing in it runs or loads
     const frag = document.createDocumentFragment();
-    const addText = (out, v) => {
+    // is this text at the start of a line? (a list marker only counts there, not in the middle of a sentence after a tag)
+    const atLineStart = (n) => {
+      let p = n.previousSibling; while (p && p.nodeType === 8) p = p.previousSibling;
+      if (p) return p.nodeType === 1 && (p.tagName === 'BR' || !PG_INLINE[p.tagName.toLowerCase()]);
+      const par = n.parentNode;
+      return !(par && par.nodeType === 1 && PG_INLINE[par.tagName.toLowerCase()]);
+    };
+    const S0 = { fg: [255, 255, 255], bg: [[20, 24, 33]], hin: 0 };
+    const addText = (out, v, ok) => {
       if (isHtml) {
+        if (ctx.rich && v.indexOf('\n') >= 0 && pgHasBlocks(v, ok || /^[ \t]*\n/.test(v))) { pgBlocks(out, v, ctx, { br: true, first: ok || /^[ \t]*\n/.test(v), qd: 0 }); return; }   // Markdown lines inside an HTML card
         const s = v.replace(/[\t\r\n ]+/g, ' ');
         if (!s.trim()) { const prev = out.lastChild; if (prev && (prev.nodeType === 3 || (prev.nodeType === 1 && PG_INLINE[prev.tagName.toLowerCase()]))) out.appendChild(document.createTextNode(' ')); return; }
         pgInline(out, out.lastChild ? s : s.replace(/^ /, ''), ctx);
         return;
       }
-      // plain / Markdown-style text: keep the line breaks, turn "# Title" and "---" into a heading and a rule
+      // plain / Markdown-style text: keep the line breaks; headings, rules, lists and quotes become real elements
+      if (ctx.rich) { pgBlocks(out, v, ctx, { br: false, first: ok || /^[ \t]*\n/.test(v), qd: 0 }); return; }
       const lines = v.split('\n');
       lines.forEach((ln, i) => {
-        const h = /^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/.exec(ln);
-        if (h) { const e = document.createElement(h[1].length <= 2 ? 'h3' : h[1].length === 3 ? 'h4' : 'h5'); pgInline(e, h[2], ctx); out.appendChild(e); ctx.nodes++; return; }
+        const h = pgHead(ln);
+        if (h) { const e = document.createElement(h.lvl <= 2 ? 'h3' : h.lvl === 3 ? 'h4' : 'h5'); pgInline(e, h.text, ctx); out.appendChild(e); ctx.nodes++; return; }
         if (/^\s{0,3}([-*_])(?:\s*\1){2,}\s*$/.test(ln)) { out.appendChild(document.createElement('hr')); ctx.nodes++; return; }
         pgInline(out, i < lines.length - 1 ? ln + '\n' : ln, ctx);
       });
     };
-    const walk = (node, out, depth, cur = 1) => {
+    const walk = (node, out, depth, cur = 1, S = S0) => {
       for (let n = node.firstChild; n; n = n.nextSibling) {
         if (ctx.nodes > PG_MAX_NODES) { ctx.cut = true; return; }
-        if (n.nodeType === 3) { addText(out, n.nodeValue || ''); continue; }
+        if (n.nodeType === 3) { addText(out, n.nodeValue || '', atLineStart(n)); continue; }
         if (n.nodeType !== 1) continue;
         const tag = n.tagName.toLowerCase();
         if (PG_SKIP.has(tag)) continue;
@@ -3535,21 +3937,24 @@
           const lk = linkKind(n.getAttribute('href')), imgs = n.querySelectorAll('img').length;
           if (lk.kind === 'promo' && ctx.clean) { if (imgs) ctx.hidden.ads += imgs; else ctx.hidden.links++; continue; }   // a banner or link that only leads somewhere else
           if (lk.kind === 'page' || lk.kind === 'image') {
-            if (imgs) { walk(n, out, depth + 1, cur); if (lk.kind === 'page') pgLink(out, lk.url, '', ctx); }              // a picture that links to a page: keep the picture, add a "look" pill
+            if (imgs) { walk(n, out, depth + 1, cur, S); if (lk.kind === 'page') pgLink(out, lk.url, '', ctx); }              // a picture that links to a page: keep the picture, add a "look" pill
             else pgLink(out, lk.url, n.textContent || '', ctx);
             continue;
           }
         }
         const blockTag = PG_BLOCK[tag], inlineTag = PG_INLINE[tag];
-        if (depth >= PG_MAX_DEPTH || (!blockTag && !inlineTag)) { walk(n, out, depth + 1, cur); continue; }   // unknown or too deep: keep the words, drop the tag
+        if (depth >= PG_MAX_DEPTH || (!blockTag && !inlineTag)) { walk(n, out, depth + 1, cur, S); continue; }   // unknown or too deep: keep the words, drop the tag
         const el = document.createElement(blockTag || inlineTag); ctx.nodes++;
-        const col = pgColor(tag === 'font' ? n.getAttribute('color') : n.getAttribute('style'));
-        if (col) el.style.color = col;
-        const nextCur = pgFormat(el, n, tag, !!blockTag, cur);
+        const st = pgStyleMap(n.getAttribute('style'));
+        let S2 = S, dh = '', dw = '';
+        if (ctx.rich) { try { const r = pgRich(el, n, tag, !!blockTag, st, S, ctx); S2 = r[0]; dh = r[1]; dw = r[2]; } catch (_) { S2 = S; dh = ''; dw = ''; } }   // a card's own look; if anything about it is odd, this element simply stays plain
+        else { const col = pgColor(tag === 'font' ? n.getAttribute('color') : n.getAttribute('style')); if (col) el.style.color = col; }
+        const nextCur = pgFormat(el, n, tag, !!blockTag, cur, st, ctx.rich);
         const hid0 = ctx.hidden.links;
-        walk(n, el, depth + 1, nextCur);
+        walk(n, el, depth + 1, nextCur, S2);
         // a short line that was mostly a promo link ("Join my ... and support me on ...!") goes away as a whole instead of leaving its leftover words
         if (blockTag && ctx.clean && ctx.hidden.links > hid0 && !el.querySelector('img,hr') && el.textContent.replace(/[\s.,;:!?'"()\-–—*_~|♡♥❤✨]+/g, ' ').trim().length <= 80) continue;
+        if ((dh || dw) && !el.firstChild) { if (dh) el.style.height = dh; if (dw) el.style.width = dw; out.appendChild(el); continue; }   // an empty decorative bar or dot is kept
         // empty paragraphs (cards use runs of them for spacing) would stack into huge gaps: they are left out
         if (blockTag && !el.textContent.trim() && !el.querySelector('img,hr')) continue;
         out.appendChild(el);
@@ -3619,7 +4024,7 @@
       else if (creator) { const by = document.createElement('div'); by.className = 'emon-iv-pg-by'; by.textContent = t('runtime.pageBy', { name: creator.slice(0, 60) }); meta.appendChild(by); }
       head.appendChild(meta); frag.appendChild(head);
       const bar = document.createElement('div'); frag.appendChild(bar);
-      const ctx = { nodes: 0, images: 0, moreImages: false, cut: false, clean, hidden: hiddenAll, links: 0 };
+      const ctx = { nodes: 0, images: 0, moreImages: false, cut: false, clean, hidden: hiddenAll, links: 0, rich: true, deco: 0, shadows: 0 };
       let any = false;
       for (const [k1, k2, key] of [['creatorNotes', 'creator_notes', 'runtime.pageSecNotes'], ['description', '', 'runtime.pageSecDesc'], ['personality', '', 'runtime.pageSecPers'], ['scenario', '', 'runtime.pageSecScen']]) {
         const val = (typeof ch[k1] === 'string' && ch[k1]) ? ch[k1] : (k2 && typeof ch[k2] === 'string' ? ch[k2] : '');
