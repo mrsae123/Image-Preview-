@@ -123,45 +123,14 @@ tavo.plugin.onInputAction('extract-images', async () => {
   sendToPanel('emon-iv-extract-results-v2', { urls, clearInput: true });
 });
 
-tavo.plugin.onSidebarAction('reset-fab-position', async () => {
-  // Clear the saved position so the FAB falls back to its default corner on next load.
-  try { tavo.set('emonImageViewerFabPosition', null, 'global'); } catch {}
-
-  // If Image Preview's panel is currently mounted on this chat page, snap the button back
-  // right away instead of waiting for the next chat open.
-  try { window.dispatchEvent(new CustomEvent('emon-iv-fab-reset-v2')); } catch {}
-
-  // Confirm the action fired and finished — this is a one-shot action, not a toggle,
-  // so there is nothing left "on" to turn back off.
-  try { tavo.utils.toast(tavo.plugin.i18n.t('runtime.fabResetToast')); } catch {}
-});
-
-// Opens the Recycle Bin picker (built and rendered inside panel.html, portaled to the page so it
-// doesn't need the floating panel open) from the chat's right sidebar.
-tavo.plugin.onSidebarAction('open-recycle-bin', async () => {
-  sendToPanel('emon-iv-open-recycle-v2');
-});
-
-// Opens the Storage manager (what Image Preview keeps on the phone, with safe clean-up). Built and rendered inside
-// panel.html like the Recycle Bin; this is the same hand-off.
-tavo.plugin.onSidebarAction('open-storage', async () => {
-  sendToPanel('emon-iv-open-storage-v2');
-});
-
-// Scans the open chat (character card, persona, lorebooks and messages) for image links. The scan and its
-// picker live in panel.html; this just asks it to start, the same hand-off the Recycle Bin uses.
-tavo.plugin.onSidebarAction('scan-chat', async () => {
-  sendToPanel('emon-iv-scan-chat-v2');
-});
-
-// Opens the Character page: the open chat's character card (notes, description, personality, scenario) as one scrollable page
-// with its pictures. The page is drawn by panel.html; this just asks it to open.
-tavo.plugin.onSidebarAction('character-page', async () => {
-  sendToPanel('emon-iv-character-page-v2');
+// The chat's right sidebar can only list buttons, it cannot fold them, so Image Preview keeps ONE row there. It opens the Image Preview
+// menu (drawn by panel.html), where every tool lives in groups that open and close and remember how they were left.
+tavo.plugin.onSidebarAction('open-menu', async () => {
+  sendToPanel('emon-iv-open-menu-v2');
 });
 
 // Page view: reads a web page's pictures and words inside Tavo (drawn by panel.html). From the + menu it takes the first link in the
-// input box; from the sidebar it opens the recent-pages screen.
+// input box; from the Image Preview menu it opens the recent-pages screen.
 tavo.plugin.onInputAction('preview-link', async () => {
   let url = '';
   try {
@@ -170,7 +139,4 @@ tavo.plugin.onInputAction('preview-link', async () => {
     if (m) url = m[0].replace(/[.,;:!?]+$/, '');
   } catch {}
   sendToPanel('emon-iv-web-open-v2', { url });
-});
-tavo.plugin.onSidebarAction('web-preview', async () => {
-  sendToPanel('emon-iv-web-open-v2', { url: '' });
 });

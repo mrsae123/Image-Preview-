@@ -4,14 +4,14 @@
   "name": {
     "$t": "plugin.name"
   },
-  "version": "2.27.1",
+  "version": "2.28.2",
   "entry": "entry.js",
   "author": "Emon",
   "description": {
     "$t": "plugin.description"
   },
   "releaseNotes": {
-    "$t": "releaseNotes.2_27_1"
+    "$t": "releaseNotes.2_28_2"
   },
   "localization": {
     "defaultLocale": "en",
@@ -44,39 +44,9 @@
     ],
     "sidebar": [
       {
-        "id": "reset-fab-position",
+        "id": "open-menu",
         "label": {
-          "$t": "actions.resetFabPosition"
-        }
-      },
-      {
-        "id": "open-recycle-bin",
-        "label": {
-          "$t": "actions.openRecycleBin"
-        }
-      },
-      {
-        "id": "open-storage",
-        "label": {
-          "$t": "actions.openStorage"
-        }
-      },
-      {
-        "id": "scan-chat",
-        "label": {
-          "$t": "actions.scanChat"
-        }
-      },
-      {
-        "id": "character-page",
-        "label": {
-          "$t": "actions.characterPage"
-        }
-      },
-      {
-        "id": "web-preview",
-        "label": {
-          "$t": "actions.webPreview"
+          "$t": "actions.openMenu"
         }
       }
     ],
