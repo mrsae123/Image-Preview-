@@ -15,7 +15,7 @@ Thanks for wanting to help. This project is small, personal, and community-minde
 ```
 source/
   manifest.json       Plugin manifest (id, version, settings schema, input and sidebar actions, etc.)
-  entry.js             Plugin entry script — the input actions ("Extract images from text", "Preview a link") and the sidebar actions (Reset floating button position, Open Recycle Bin, Scan chat for images, Character page, Page view)
+  entry.js             Plugin entry script — the input actions ("Extract images from text", "Preview a link") and the one sidebar action (Image Preview menu, which opens the menu that panel.html draws)
   icon.png             Plugin icon
   ui/panel.html        The plugin's chat-page layout (HTML only)
   ui/styles.css        Its styles
@@ -39,6 +39,7 @@ The entry script and the panel talk through window events (`emon-iv-extract-resu
 - Describe what you changed and why in the PR description.
 - Anything that loads or downloads a link must follow the existing link rules (`isFetchableUrl`: public `http(s)` only, and only images, GIFs and web pages), and should ask `peekCached` first when it fetches a file. A downloaded file is kept only after it passes the picture checks (`sniffImageExt` for links without a file ending, `probeLocalImage` for the rest). Please don't add permissions or new network calls without opening an Issue first.
 - The Terms of Use text lives in the locale files (`runtime.terms*`) and its version is `TERMS_VERSION` in `ui/panel.js`. Change the version only when the terms change in a way people should agree to again.
+- Gallery files are named so that the list of files IS the gallery: pictures `emon-gal-<collection id>-<size in base 36>-<hash of the full original name>-<readable part>.<type>` and their small previews `emon-gth-<collection id>-<size>-<hash>.jpg` (`GAL_RE` and `GTH_RE` in `ui/panel.js`). Do not change this scheme without a way to read the old names, and keep every file the Gallery writes matching those patterns.
 - When you add or change a feature, update its text in the ❔ Help guide (`runtime.help*` in both locale files). Keep the plugin description short; the details belong in the Help guide.
 - Look elements up with `byId('...')` in `ui/panel.js`, never `document.getElementById('...')`, so a second copy of the panel can't grab the first copy's elements.
 - Never run an unbounded pattern over card, lorebook, message or page text (for example `[^>]*` with no limit, or `\s+$`): crafted text can make it search to the end again from every start and freeze the app. Use a one-pass scan that remembers the next position (see `pgTooComplex`, `stripTagsLinear`, `imgHasSizeAttr`), `trim()`, or a hard limit such as `{0,300}`.
