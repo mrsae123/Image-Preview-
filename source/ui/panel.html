@@ -110,6 +110,7 @@
       </div>
       <button id="emon-iv-web-open" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.webOpen">🌐 Page view</button>
       <button id="emon-iv-import" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.importImage">Import from device</button>
+      <button id="emon-iv-gal-btn" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.galBtn">Gallery</button>
       <button id="emon-iv-scan-chat" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.scanChat">Scan this chat for images</button>
       <div class="emon-iv-help" data-i18n="runtime.scanChatHint">Looks through this chat's character card, persona, lorebooks and messages for image and GIF links. Nothing leaves your device while it scans.</div>
       <button id="emon-iv-page-btn" class="emon-iv-btn secondary" style="width:100%;margin-top:8px" data-i18n="runtime.pageBtn">Character page</button>
@@ -152,6 +153,8 @@
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS2T">Save &amp; manage images</b><p data-i18n="runtime.helpS2B">Save preview keeps a copy for this chat, and every pinned image is saved automatically too. Tap Select above the saved grid to pick a few and Pin selected — handy right after Extract images from text, or anytime you just fancy a couple back on the chat. Tap any saved image normally for Fullscreen, Pin, Save to device, Copy link, Rename, Info and Delete. Rename only changes the label; the image itself is never touched. Deleting one — or using Clear all — doesn&#39;t erase it right away either; see Recycle Bin below. The saved grid shows 200 images at a time; tap Show more at its end for the rest.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpRecycleT">Recycle Bin</b><p data-i18n="runtime.helpRecycleB">Nothing&#39;s gone the moment you delete it. Deleted saved images rest in the Recycle Bin first — 7 or 30 days, whichever you&#39;ve picked under Settings — so a stray tap on Clear all is never the end of the world. Open it anytime from &quot;Open Recycle Bin&quot; in the chat&#39;s right sidebar, tick whatever you want, then Restore (it lands in the chat you have open) or Delete forever if you&#39;re sure. Anything you never touch quietly clears itself out once its own time is up.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpStorageT">Storage manager</b><p data-i18n="runtime.helpStorageB"></p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpGalleryT">Gallery</b><p data-i18n="runtime.helpGalleryB"></p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpMenuT">Image Preview menu</b><p data-i18n="runtime.helpMenuB"></p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpThemeT">Make it yours</b><p data-i18n="runtime.helpThemeB">See the little monkey munching a banana next to the title? Poke him — he gets grumpy, then opens the look options: a wallpaper from your phone (or an image link), how dark it is, a nature-inspired panel background like Forest or Aurora, the panel font, and your floating button&#39;s icon and color. Everything applies right away, and &quot;Back to defaults&quot; undoes your changes.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS3T">Quick Lookup ⚓</b><p data-i18n="runtime.helpS3B">The ⚓ hangs on a rope and sways by itself. Pull it down to open Translate, Meaning and Web Search. To close, tap the ⚓ or pull it down again. A tap on the closed anchor only gives the rope a tug.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS4T">Game Corner</b><p data-i18n="runtime.helpS4B">Tap 🎮 for a Jump Game, Snake and Memory Bomb, or add your own game. Drag the top bar to move the window and the corner to resize it. The ⚙ button inside a game holds your player name and that game&#39;s own settings and resets.</p></div>
@@ -344,6 +347,44 @@
       </div>
     </div>
 
+    <div id="emon-iv-hub" class="emon-iv-modal" role="dialog" aria-modal="true" aria-labelledby="emon-iv-hub-title">
+      <div class="emon-iv-modal-card emon-iv-hub-card">
+        <div class="emon-iv-st-top">
+          <div id="emon-iv-hub-title" class="emon-iv-sheet-heading" data-i18n="runtime.hubTitle">Image Preview</div>
+          <button id="emon-iv-hub-close" type="button" class="emon-iv-close" style="width:30px;height:30px;font-size:14px" aria-label="Close" data-i18n-title="runtime.close" title="Close">×</button>
+        </div>
+        <div class="emon-iv-sheet-subtitle" data-i18n="runtime.hubSub">Every tool in one place. Tap a group to open or close it.</div>
+        <div id="emon-iv-hub-body"></div>
+      </div>
+    </div>
+    <div id="emon-iv-gal" class="emon-iv-modal" role="dialog" aria-modal="true" aria-labelledby="emon-iv-gal-title">
+      <div class="emon-iv-modal-card emon-iv-gal-card">
+        <div class="emon-iv-st-top">
+          <button id="emon-iv-gal-back" type="button" class="emon-iv-st-iconbtn" aria-label="Back" data-i18n-title="runtime.stBack" title="Back" hidden>‹</button>
+          <div id="emon-iv-gal-title" class="emon-iv-sheet-heading" data-i18n="runtime.galTitle">Gallery</div>
+          <button id="emon-iv-gal-close" type="button" class="emon-iv-close" style="width:30px;height:30px;font-size:14px" aria-label="Close" data-i18n-title="runtime.close" title="Close">×</button>
+        </div>
+        <div id="emon-iv-gal-sub" class="emon-iv-sheet-subtitle"></div>
+        <div id="emon-iv-gal-body" class="emon-iv-gal-body">
+          <div id="emon-iv-gal-main" class="emon-iv-gal-main">
+            <div id="emon-iv-gal-chips" class="emon-iv-gal-chips"></div>
+            <div class="emon-iv-gal-tools">
+              <input id="emon-iv-gal-q" class="emon-iv-modal-field" type="search" maxlength="60" autocomplete="off" data-i18n-placeholder="runtime.galSearchPh" />
+              <button id="emon-iv-gal-sort" type="button" class="emon-iv-gal-sort"></button>
+            </div>
+            <div class="emon-iv-extract-row">
+              <button id="emon-iv-gal-add" type="button" class="pri" data-i18n="runtime.galAddBtn">Add pictures</button>
+              <button id="emon-iv-gal-sel" type="button" class="secondary" data-i18n="runtime.galSelect">Select</button>
+            </div>
+            <div id="emon-iv-gal-status" class="emon-iv-gal-status" role="status" aria-live="polite" hidden></div>
+            <div id="emon-iv-gal-selbar" class="emon-iv-gal-selbar" hidden></div>
+            <div id="emon-iv-gal-grid" class="emon-iv-gal-grid"></div>
+            <div id="emon-iv-gal-pager" class="emon-iv-gal-pager"></div>
+          </div>
+          <div id="emon-iv-gal-subview" class="emon-iv-gal-subview" hidden></div>
+        </div>
+      </div>
+    </div>
     <div id="emon-iv-recycle-modal" class="emon-iv-modal">
       <div class="emon-iv-modal-card emon-iv-recycle-card-wrap">
         <div class="emon-iv-modal-head"><button id="emon-iv-recycle-close" class="emon-iv-close" style="width:30px;height:30px;font-size:14px">×</button></div>

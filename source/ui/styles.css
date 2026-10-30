@@ -552,3 +552,73 @@ body:has(.emon-iv-modal.show) #emon-iv-root #emon-iv-panel::before{animation-pla
 :where(#emon-iv-root,.emon-iv-modal) :where(button,input,textarea,select){font-size:calc(13.3333px * var(--emon-iv-ts,1))}
 #emon-iv-game{font-size:16px}#emon-iv-game :where(button,input,textarea,select){font-size:13.3333px}
 .emon-iv-pinned{font-size:16px}.emon-iv-pinned :where(button,input,textarea,select){font-size:13.3333px}
+
+/* ===== Image Preview menu and Gallery (2.28.0) =====
+   Same look as the Storage manager: --iv-* colours, rows reuse .emon-iv-st-row. Nothing here animates or loops. */
+.emon-iv-hub-card{width:min(400px,100%);max-height:min(85vh,100%);display:flex;flex-direction:column}
+.emon-iv-hub-card>*{flex-shrink:0}
+#emon-iv-hub-body{flex:1 1 auto;min-height:0;margin-top:8px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain}
+.emon-iv-hub-group{margin:0 0 8px;border:1px solid var(--iv-line);border-radius:var(--iv-r);background:var(--iv-raise);overflow:hidden}
+.emon-iv-hub-head{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;min-height:46px;padding:10px 12px;border:0;background:transparent;color:var(--iv-ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.emon-iv-hub-head b{flex:1;min-width:0;font-size:calc(13.5px * var(--emon-iv-ts,1));font-weight:800;overflow-wrap:anywhere}
+.emon-iv-hub-head small{flex:none;font-size:calc(11px * var(--emon-iv-ts,1));color:var(--iv-faint)}
+.emon-iv-hub-head .chev{flex:none;font-size:16px;color:var(--iv-brass)}
+.emon-iv-hub-items{padding:0 8px 8px}
+.emon-iv-hub-items[hidden]{display:none}
+.emon-iv-hub-items .emon-iv-st-row{margin:0 0 6px}
+.emon-iv-hub-items .emon-iv-st-row:last-child{margin-bottom:0}
+
+.emon-iv-gal-card{width:min(470px,100%);max-height:min(88vh,100%);display:flex;flex-direction:column;padding:14px}
+.emon-iv-gal-card>*{flex-shrink:0}
+.emon-iv-gal-card .emon-iv-sheet-subtitle{white-space:normal;min-height:1.3em}
+.emon-iv-gal-body{flex:1 1 auto;min-height:0;margin-top:8px;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain}
+.emon-iv-gal-main{display:flex;flex-direction:column;gap:8px}
+.emon-iv-gal-main[hidden],.emon-iv-gal-subview[hidden]{display:none}
+.emon-iv-gal-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none}
+.emon-iv-gal-chips::-webkit-scrollbar{display:none}
+.emon-iv-gal-chip{flex:none;max-width:70%;min-height:36px;padding:6px 12px;border:1px solid var(--iv-line);border-radius:999px;background:var(--iv-raise);color:var(--iv-ink);font:inherit;font-size:calc(12px * var(--emon-iv-ts,1));font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.emon-iv-gal-chip small{margin-left:6px;font-weight:600;color:var(--iv-faint)}
+.emon-iv-gal-chip.on{border-color:var(--iv-brass);background:var(--iv-brass-bg)}
+.emon-iv-gal-chip.plus{border-style:dashed;color:var(--iv-dim)}
+.emon-iv-gal-tools{display:flex;gap:7px;align-items:center}
+.emon-iv-gal-tools .emon-iv-modal-field{flex:1;min-width:0;width:auto}
+.emon-iv-gal-sort{flex:none;min-height:40px;padding:8px 11px;border:1px solid var(--iv-line);border-radius:10px;background:var(--iv-raise2);color:var(--iv-ink);font:inherit;font-size:calc(12px * var(--emon-iv-ts,1));font-weight:750;white-space:nowrap;cursor:pointer}
+.emon-iv-gal-status{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid #c9a96a66;border-radius:var(--iv-r);background:var(--iv-brass-bg);font-size:calc(12.5px * var(--emon-iv-ts,1));line-height:1.45}
+.emon-iv-gal-status[hidden]{display:none}
+.emon-iv-gal-status span{flex:1;min-width:0;overflow-wrap:anywhere}
+.emon-iv-gal-status button{flex:none;min-height:34px;padding:4px 12px;border:1px solid var(--iv-bad-line);border-radius:9px;background:var(--iv-bad-bg);color:var(--iv-ink);font:inherit;font-size:calc(12px * var(--emon-iv-ts,1));font-weight:750;cursor:pointer}
+.emon-iv-gal-selbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;border:1px solid var(--iv-line);border-radius:var(--iv-r);background:var(--iv-raise)}
+.emon-iv-gal-selbar[hidden]{display:none}
+.emon-iv-gal-selbar b{flex:1 1 100%;font-size:calc(12px * var(--emon-iv-ts,1))}
+.emon-iv-gal-selbar button{flex:1 1 auto;min-height:38px;padding:6px 10px;border:1px solid var(--iv-line);border-radius:9px;background:var(--iv-raise2);color:var(--iv-ink);font:inherit;font-size:calc(12px * var(--emon-iv-ts,1));font-weight:750;cursor:pointer}
+.emon-iv-gal-selbar button.danger{border-color:var(--iv-bad-line);background:var(--iv-bad-bg)}
+.emon-iv-gal-selbar button:disabled,.emon-iv-gal-sort:disabled,.emon-iv-gal-chip:disabled{opacity:.38}
+.emon-iv-gal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+@media (min-width:430px){.emon-iv-gal-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.emon-iv-gal-tile{position:relative;display:block;padding:0;margin:0;aspect-ratio:1/1;border:2px solid transparent;border-radius:11px;overflow:hidden;background:#ffffff0d;color:var(--iv-ink);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.emon-iv-gal-tile img{display:block;width:100%;height:100%;object-fit:cover}
+.emon-iv-gal-tile.picked{border-color:#9b6cff}
+.emon-iv-gal-tile.picked::after{content:'✓';position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:#9b6cff;color:var(--iv-ink);font-size:12px;font-weight:800;line-height:20px;text-align:center}
+.emon-iv-gal-tile .tag{position:absolute;left:4px;bottom:4px;padding:1px 5px;border-radius:5px;background:#000000b0;color:var(--iv-ink);font-size:9px;font-weight:800;letter-spacing:.04em}
+.emon-iv-gal-tile.broken img{display:none}
+.emon-iv-gal-tile.broken::before{content:'🖼️';position:absolute;inset:0;display:grid;place-items:center;font-size:22px;opacity:.45}
+.emon-iv-gal-pager{display:flex;align-items:center;justify-content:center;gap:12px}
+.emon-iv-gal-pager[hidden]{display:none}
+.emon-iv-gal-pager button{min-width:46px;min-height:40px;border:1px solid var(--iv-line);border-radius:10px;background:var(--iv-raise2);color:var(--iv-ink);font:inherit;font-size:18px;cursor:pointer}
+.emon-iv-gal-pager button:disabled{opacity:.3}
+.emon-iv-gal-pager span{font-size:calc(12.5px * var(--emon-iv-ts,1));color:var(--iv-dim);font-variant-numeric:tabular-nums}
+.emon-iv-gal-empty{padding:20px 8px;text-align:center}
+.emon-iv-gal-empty b{display:block;margin-bottom:6px;font-size:calc(15px * var(--emon-iv-ts,1))}
+.emon-iv-gal-empty p{margin:0 0 6px;font-size:calc(12.5px * var(--emon-iv-ts,1));line-height:1.55;color:var(--iv-dim)}
+.emon-iv-gal-subview{padding-bottom:4px}
+.emon-iv-gal-seg{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:6px 0}
+.emon-iv-gal-seg button{min-height:42px;padding:8px;border:1px solid var(--iv-line);border-radius:var(--iv-r);background:var(--iv-raise);color:var(--iv-ink);font:inherit;font-size:calc(12.5px * var(--emon-iv-ts,1));font-weight:750;cursor:pointer}
+.emon-iv-gal-seg button.on{border-color:var(--iv-brass);background:var(--iv-brass-bg)}
+.emon-iv-gal-err{margin:6px 0;font-size:calc(12.5px * var(--emon-iv-ts,1));font-weight:750;color:var(--iv-bad)}
+.emon-iv-gal-hint{margin:2px 0 8px;font-size:calc(11.5px * var(--emon-iv-ts,1));line-height:1.4;color:var(--iv-faint)}
+.emon-iv-gal-tools[hidden]{display:none}
+.emon-iv-gal-grid>.emon-iv-gal-empty{grid-column:1/-1}
+.emon-iv-gal-tile.wait::before{content:'…';position:absolute;inset:0;display:grid;place-items:center;font-size:22px;opacity:.35}
+.emon-iv-recycle-card .recycle-left{display:block;margin:5px 7px 0;padding:2px 8px;border:1px solid var(--iv-line);border-radius:999px;background:var(--iv-raise2);font-size:calc(11px * var(--emon-iv-ts,1));font-weight:800;line-height:1.5;text-align:center;white-space:normal}
+.emon-iv-recycle-card .recycle-left.soon{border-color:#e0a84a88;background:#e0a84a24;color:#f2c377}
+.emon-iv-recycle-card .recycle-left.urgent{border-color:var(--iv-bad-line);background:var(--iv-bad-bg);color:#ffa3a3}

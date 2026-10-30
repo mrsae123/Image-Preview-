@@ -2758,13 +2758,17 @@
     }
     const days = recycleRetentionDays();
     recycleGrid.innerHTML = recycleEntries.map((e, i) => {
-      const left = Math.max(0, Math.ceil((recycleExpiryAt(e) - Date.now()) / 86400000));
+      const left = Math.min(days, Math.max(0, Math.ceil((recycleExpiryAt(e) - Date.now()) / 86400000)));
       const leftLabel = left <= 0 ? t('runtime.recycleExpiringSoon') : t('runtime.recycleDaysLeft').replace('{d}', String(left)).replace('{max}', String(days));
+      // the pill says it short and big: "5 days left", "Last day" (less than a day), "Expiring soon" (the time is up and it goes at the next check); amber from 3 days, red on the last
+      const pill = left <= 0 ? t('runtime.recycleExpiringSoon') : left === 1 ? t('runtime.recycleBadgeLast') : t('runtime.recycleBadgeDays').replace('{d}', String(left));
+      const tone = left <= 1 ? ' urgent' : left <= 3 ? ' soon' : '';
       return `<div class="emon-iv-recycle-card" data-i="${i}">
         <button type="button" class="emon-iv-recycle-preview-btn" data-i="${i}" aria-label="${esc(t('runtime.fullscreen'))}">⛶</button>
         <img src="${esc(e.path)}" alt="" loading="lazy" decoding="async">
         <span class="recycle-name">${esc(e.name || t('runtime.image'))}</span>
-        <span class="recycle-meta">${esc(e.chatName || t('runtime.unknownChat'))} · ${esc(leftLabel)}</span>
+        <span class="recycle-left${tone}" title="${esc(leftLabel)}" aria-label="${esc(leftLabel)}">${esc(pill)}</span>
+        <span class="recycle-meta">${esc(e.chatName || t('runtime.unknownChat'))}</span>
       </div>`;
     }).join('');
     recycleGrid.querySelectorAll('.emon-iv-recycle-card').forEach(card => {
@@ -2850,22 +2854,24 @@
   const stBase = (n) => String(n || '').split('/').pop();
   const stCountText = (n) => t(n === 1 ? 'runtime.stCountOne' : 'runtime.stCount', { n });
   const stChatBucket = (f) => {
+    { const gb = stBase(f && (f.name || f.path)); if (GAL_RE.test(gb) || GTH_RE.test(gb)) return 'gallery'; }
     if (classifyTemp(f) !== null) return 'temp';
     return (isSavedName(f && (f.name || f.path)) && /^image\//i.test((f && f.mimeType) || '')) ? 'saved' : '';
   };
   const stGlobalBucket = (f) => {
     const n = stBase(f && (f.name || f.path));
-    return ST_BIN_RE.test(n) ? 'bin' : ST_WALL_RE.test(n) ? 'wall' : ST_PAGES_RE.test(n) ? 'pages' : ST_GAME_RE.test(n) ? 'games' : '';
+    return (GAL_RE.test(n) || GTH_RE.test(n)) ? 'gallery' : ST_BIN_RE.test(n) ? 'bin' : ST_WALL_RE.test(n) ? 'wall' : ST_PAGES_RE.test(n) ? 'pages' : ST_GAME_RE.test(n) ? 'games' : '';
   };
   // Every text key the manager shows, written out in full so the localisation audit can check each one.
   const ST_META = {
-    saved: { icon: '🖼️', tone: 'yours' }, pins: { icon: '📌', tone: 'yours' }, bin: { icon: '🗑️', tone: 'recoverable' }, temp: { icon: '🧹', tone: 'disposable' },
+    saved: { icon: '🖼️', tone: 'yours' }, gallery: { icon: '🗂️', tone: 'yours' }, pins: { icon: '📌', tone: 'yours' }, bin: { icon: '🗑️', tone: 'recoverable' }, temp: { icon: '🧹', tone: 'disposable' },
     pages: { icon: '🌐', tone: 'disposable' }, lookup: { icon: '🔎', tone: 'disposable' }, keys: { icon: '🔑', tone: 'private' }, look: { icon: '🎨', tone: 'settings' },
     games: { icon: '🎮', tone: 'yours' },
   };
   const ST_TONE = { yours: 'runtime.stToneYours', recoverable: 'runtime.stToneRecoverable', disposable: 'runtime.stToneDisposable', private: 'runtime.stTonePrivate', settings: 'runtime.stToneSettings' };
   const ST_TXT = {
     saved: { name:'runtime.stSavedName', desc:'runtime.stSavedDesc', what:'runtime.stSavedWhat', why:'runtime.stSavedWhy', del:'runtime.stSavedDel', again:'runtime.stSavedAgain', affects:'runtime.stSavedAffects', hint:'runtime.stSavedHint' },
+    gallery: { name:'runtime.stGalleryName', desc:'runtime.stGalleryDesc', what:'runtime.stGalleryWhat', why:'runtime.stGalleryWhy', del:'runtime.stGalleryDel', again:'runtime.stGalleryAgain', affects:'runtime.stGalleryAffects' },
     pins: { name:'runtime.stPinsName', desc:'runtime.stPinsDesc', what:'runtime.stPinsWhat', why:'runtime.stPinsWhy', del:'runtime.stPinsDel', again:'runtime.stPinsAgain', affects:'runtime.stPinsAffects' },
     bin: { name:'runtime.stBinName', desc:'runtime.stBinDesc', what:'runtime.stBinWhat', why:'runtime.stBinWhy', del:'runtime.stBinDel', again:'runtime.stBinAgain', affects:'runtime.stBinAffects' },
     temp: { name:'runtime.stTempName', desc:'runtime.stTempDesc', what:'runtime.stTempWhat', why:'runtime.stTempWhy', del:'runtime.stTempDel', again:'runtime.stTempAgain', affects:'runtime.stTempAffects' },
@@ -2931,10 +2937,12 @@
     const wallFiles = gs.files.filter(f => f.bucket === 'wall');
     const pageFiles = gs.files.filter(f => f.bucket === 'pages');
     const gameFiles = gs.files.filter(f => f.bucket === 'games');
+    const galFiles = cs.files.concat(gs.files).filter(f => f.bucket === 'gallery');
     let pageList = []; try { pageList = await webPagesLoad(); } catch {}
     const hist = getLookupHistory(), brave = !!getBraveKey(), tav = !!getTavilyKey();
     const cats = [
       { id: 'saved', count: saved.length, bytes: sum(saved) + stVarBytes('emonImageViewerSourceMap', 'chat') + stVarBytes('emonImageViewerDisplayNames', 'chat') + stVarBytes(DEVICE_MAP_VAR, 'chat') },
+      { id: 'gallery', count: galFiles.filter(f => GAL_RE.test(stBase(f && (f.name || f.path)))).length, bytes: sum(galFiles) + stVarBytes('emonImageViewerGalleryCols', 'global') + stVarBytes('emonImageViewerGalleryCols', 'chat') },
       { id: 'pins', count: pins.length + pinsOverflow.length, bytes: stVarBytes('emonImageViewerPins', 'chat') },
       { id: 'bin', count: listed.length, bytes: sum(binFiles) + stVarBytes('emonImageViewerRecycleBin', 'global'), unlisted: unlisted.length, days: recycleRetentionDays() },
       { id: 'temp', count: temp.length, bytes: sum(temp), removable: removable.length, removableBytes: sum(removable), kept: temp.length - removable.length },
@@ -3027,7 +3035,7 @@
       rows: c => [stRow(t('runtime.stSumLook'), c.count), stRow(t('runtime.stSumWall'), c.wallCount ? fmtBytes(c.wall) : t('runtime.stNone')), stRow(t('runtime.stSumFab'), c.fab ? t('runtime.stSaved') : t('runtime.stNone'))],
       run: async () => stResetLook() },
   };
-  const ST_ACTS_OF = { saved: ['moveSaved'], pins: ['removePins'], bin: ['emptyBin'], temp: ['cleanTemp'], pages: ['clearPages'], lookup: ['clearLookup'], keys: ['removeKeys'], look: ['resetLook'], games: [] };
+  const ST_ACTS_OF = { saved: ['moveSaved'], gallery: [], pins: ['removePins'], bin: ['emptyBin'], temp: ['cleanTemp'], pages: ['clearPages'], lookup: ['clearLookup'], keys: ['removeKeys'], look: ['resetLook'], games: [] };
   function stDetailLines(c) {
     if (c.id === 'temp') return [t('runtime.stDetailTemp', { stale: c.removable, kept: c.kept })];
     if (c.id === 'bin') return [t('runtime.stDetailBin', { n: c.count, m: c.unlisted }), t('runtime.stDetailBinDays', { days: c.days })];
@@ -3080,6 +3088,7 @@
     if (tx.hint) frag.append(stNode('p', { class: 'emon-iv-st-hint', text: t(tx.hint) }));
     const row = stNode('div', { class: 'emon-iv-st-actions' });
     if (id === 'bin') row.append(stNode('button', { type: 'button', class: 'emon-iv-st-btn', text: t('runtime.stOpenBin'), onclick: () => { stShut(); openRecycleBin(); } }));
+    if (id === 'gallery') row.append(stNode('button', { type: 'button', class: 'emon-iv-st-btn', text: t('runtime.stOpenGallery'), onclick: () => { stShut(); galOpen(); } }));
     for (const aid of ST_ACTS_OF[id]) {
       const a = ST_ACTIONS[aid];
       row.append(stNode('button', { type: 'button', class: 'emon-iv-st-btn danger', disabled: a.disabled(c) ? true : null, text: t(a.label), onclick: () => stAsk(aid) }));
@@ -4603,6 +4612,833 @@
   if (webOpenBtn) webOpenBtn.onclick = () => { const v = urlEl ? urlEl.value.trim() : ''; openWebPreview(v); };
   bus('emon-iv-web-open', (e) => openWebPreview((e && e.detail && e.detail.url) || ''));
 
+
+  // ===================== Image Preview menu and Gallery (2.28.0) =====================
+  // THE MENU. The chat's right sidebar can only list buttons (Tavo cannot fold them), so entry.js keeps ONE row there and sends
+  // "emon-iv-open-menu". The tools live here, in groups that open and close and remember how they were left (closed on first run).
+  // THE GALLERY. Pictures the person added from the phone. Tavo can only COPY a picked file into its own storage (tavo.file.import), so
+  // every picture here is a copy and the original on the phone is never touched. One file = one picture, and its NAME tells everything:
+  //   emon-gal-<collection id>-<size in base 36>-<4 random>-<simplified original name>.<real type>
+  // so the list of files IS the gallery: there is no separate index that could drift or get lost. Only the collection NAMES (a tiny
+  // list) are kept in a variable, per scope: 'global' = every chat, 'chat' = this chat only (files sit in the same scope).
+  const GAL_COLS_VAR = 'emonImageViewerGalleryCols';
+  const GAL_VIEW_VAR = 'emonImageViewerGalleryView';
+  const HUB_OPEN_VAR = 'emonImageViewerMenuOpen';
+  const GAL_RE = /^emon-gal-([a-z0-9]{3,8})-([a-z0-9]{1,9})-([a-z0-9]{3,6})(?:-([a-z0-9_-]{1,48}))?\.(png|jpg|webp|gif|bmp|avif|svg)$/;
+  const GAL_PAGE = 48;                       // pictures drawn at once: an old phone never has hundreds of pictures decoded together
+  const GAL_MAX_BYTES = 25 * 1024 * 1024;    // bigger files are skipped: each file passes through memory once while it is copied
+  const GAL_WARN_BYTES = 200 * 1024 * 1024;  // ask first when one batch will take this much room
+  const GAL_LIST_PAGES = 200;                // up to 40,000 files are listed (200 per page): the pictures and their small previews
+  const GAL_NAME_MAX = 40, GAL_COLS_MAX = 40;
+  const GAL_EXTS = ['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'avif', 'svg'];
+  // THE SMALL PREVIEWS. A phone photo is 12 megapixels: drawn in a grid it is decoded at full size (about 48 MB each), so a page of them used up the
+  // drawing memory of a small phone and the list went black and laggy (seen on a real phone with 49 photos). So the grid never shows the picture itself:
+  // every picture has a small JPEG preview beside it, emon-gth-<same collection id, size and random part>.jpg, made once (while adding, or later while
+  // browsing) and drawn instead. A picture whose preview does not exist yet shows an empty tile until it is made, one at a time.
+  const GTH_RE = /^emon-gth-([a-z0-9]{3,8})-([a-z0-9]{1,9})-([a-z0-9]{3,6})\.jpg$/;
+  const GAL_THUMB_SHORT = 240, GAL_THUMB_LONG = 480, GAL_THUMB_Q = 0.72;   // about 240 px on the short side (never above 480 on the long side): crisp in a tile, around 10 KB
+  const GAL_MAX_PIXELS = 100 * 1000 * 1000;   // a picture of more than 100 megapixels is never drawn (that needs 400 MB+ of memory and can take a phone down); it keeps its file, its tile just says it cannot be shown
+  const GAL_PIN_MAX = 1600;                   // a still JPEG photo bigger than this is shrunk when pinned (a pin is a copy that Saved Previews draws too)
+
+  const galEl = byId('emon-iv-gal'), galBackBtn = byId('emon-iv-gal-back'), galCloseBtn = byId('emon-iv-gal-close');
+  const galTitleEl = byId('emon-iv-gal-title'), galSubEl = byId('emon-iv-gal-sub'), galBody = byId('emon-iv-gal-body');
+  const galMain = byId('emon-iv-gal-main'), galSubview = byId('emon-iv-gal-subview'), galChips = byId('emon-iv-gal-chips');
+  const galQ = byId('emon-iv-gal-q'), galSortBtn = byId('emon-iv-gal-sort'), galAddBtn = byId('emon-iv-gal-add'), galSelBtn = byId('emon-iv-gal-sel');
+  const galStatus = byId('emon-iv-gal-status'), galSelbar = byId('emon-iv-gal-selbar'), galGrid = byId('emon-iv-gal-grid'), galPager = byId('emon-iv-gal-pager');
+  const galOpenBtn = byId('emon-iv-gal-btn');
+  const gal = {
+    open: false, gen: 0, ready: false, error: false, lock: null, cols: { global: [], chat: [] }, files: [], truncated: false,
+    active: 'all', q: '', sort: 'new', page: 0, pages: 1, shown: [], select: false, sel: new Set(), busy: null, note: '', resolver: null, scrollY: 0, view: 'main',
+    thumbs: new Map(), thumbBad: new Set(), thumbHuge: new Set(), healed: new Set(), queue: [], pumping: false, pumpWorking: false,
+  };
+  let galStatusText = null, galQTimer = 0;
+
+  // ---- small helpers ----
+  const galKey = (scope, id) => scope + ':' + id;
+  const galAlive = (gen) => gal.open && gen === gal.gen && root.isConnected;
+  const galRand = (n) => (Math.random().toString(36) + '00000000').slice(2, 2 + n);
+  const galDrop = (p) => { const once = () => { try { return Promise.resolve(tavo.file.delete(p)); } catch (e) { return Promise.reject(e); } }; return once().catch(() => galSleep(40).then(once)).catch(() => {}); };   // a refused delete is tried once more
+  // A name is reduced to plain letters and numbers: it goes into a file name, and nothing in it can ever be read as markup or a path.
+  function galSlug(name) {
+    let s = String(name || '').replace(/\.[a-z0-9]{1,5}$/i, '');
+    try { s = s.normalize('NFKD'); } catch {}
+    return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, GAL_NAME_MAX).replace(/-+$/, '');
+  }
+  function galNewName(cid, z, slug, ext, rid) { return 'emon-gal-' + cid + '-' + z + '-' + (rid || galRand(4)) + (slug ? '-' + slug : '') + '.' + ext; }
+  // The 4-letter middle part of a picture's name is a hash of its FULL original name (any language: a Bengali or Chinese name leaves the readable part empty,
+  // but not this), so "the same name and the same size" can be recognised without reading the file. It is not a security measure: it only tells copies apart.
+  function galHash(str) {
+    let x = String(str || '').slice(0, 2000); try { x = x.normalize('NFC'); } catch {}
+    x = x.toLowerCase(); let h = 2166136261;
+    for (let i = 0; i < x.length; i++) { h ^= x.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return (h % 1679616).toString(36).padStart(4, '0');
+  }
+  // Keys of the pictures already in a collection -> the path of that picture. A long readable name + size also counts (pictures from the first builds have a random middle part).
+  function galDupMap(list) {
+    const m = new Map();
+    for (const f of list) { m.set('p:' + f.z + '|' + f.rid, f.path); m.set('r:' + f.z + '|' + f.rid + '|' + f.slug, f.path); if (f.slug.length >= 8) m.set('s:' + f.slug + '|' + f.z, f.path); }
+    return m;
+  }
+  const galFindDup = (m, z, rid, slug) => m.get('r:' + z + '|' + rid + '|' + slug) || (slug.length >= 8 ? m.get('s:' + slug + '|' + z) : '') || '';
+  const galNoteDup = (m, z, rid, slug, path) => { m.set('p:' + z + '|' + rid, path); m.set('r:' + z + '|' + rid + '|' + slug, path); if (slug.length >= 8) m.set('s:' + slug + '|' + z, path); };
+  // size + middle part also name a picture's small preview (emon-gth-<collection>-<size>-<middle part>), so two different pictures of one collection must never share them
+  const galPairTaken = (m, z, rid) => m.has('p:' + z + '|' + rid);
+  // "Same name and same size" is only a guess: before a move throws a picture away as a copy, the two files must be identical, byte for byte.
+  async function galSameContent(a, b) {
+    try { const x = await tavo.file.load(a, { encoding: 'base64' }); if (!x) return false; const y = await tavo.file.load(b, { encoding: 'base64' }); return !!y && x === y; } catch { return false; }
+  }
+  function galNewId() {
+    const used = new Set(gal.files.map(f => f.cid));
+    for (const s of ['global', 'chat']) for (const c of gal.cols[s]) used.add(c.id);
+    for (let i = 0; i < 30; i++) { const id = galRand(5); if (!used.has(id)) return id; }
+    return galRand(8);
+  }
+  function galParse(f, scope) {
+    const base = stBase(f && (f.name || f.path)), m = GAL_RE.exec(base);
+    if (!m) return null;
+    // the path is rebuilt from the scope that was listed and the checked name, so what Tavo reports for the path can never matter
+    return { path: 'files/' + scope + '/' + base, name: base, scope, cid: m[1], key: galKey(scope, m[1]), z: m[2], rid: m[3], pair: m[1] + '-' + m[2] + '-' + m[3], slug: m[4] || '', ext: m[5], gif: m[5] === 'gif',
+      size: Number(f.size) || 0, t: Date.parse(f.modifiedAt) || 0 };
+  }
+  function galParseThumb(f, scope) {
+    const base = stBase(f && (f.name || f.path)), m = GTH_RE.exec(base);
+    return m ? { scope, pair: m[1] + '-' + m[2] + '-' + m[3], path: 'files/' + scope + '/' + base, size: Number(f.size) || 0 } : null;
+  }
+  const galThumbName = (f) => 'emon-gth-' + f.pair + '.jpg';
+  const galThumbKey = (scope, pair) => scope + '|' + pair;
+  const galPairOf = (name) => { const m = GAL_RE.exec(name); return m ? m[1] + '-' + m[2] + '-' + m[3] : ''; };
+  const galDropThumb = (f) => galDrop('files/' + f.scope + '/' + galThumbName(f));
+  const galSize = (v) => { const n = Math.floor(Number(v)); return Number.isFinite(n) && n > 0 ? n : 0; };   // whole bytes, or 0 = unknown (a picker that reports 1234.5, -5, NaN or Infinity is not trusted)
+  const galTitle = (f) => f.slug ? f.slug.replace(/-/g, ' ') : t('runtime.galUnnamed');
+  const galScopeLabel = (scope) => t(scope === 'global' ? 'runtime.galScopeAll' : 'runtime.galScopeChat');
+  const galSumText = (n, bytes) => t(n === 1 ? 'runtime.galSummaryOne' : 'runtime.galSummary', { n, size: fmtBytes(bytes) });
+
+  // ---- reading the gallery: the files of both scopes, and the collection names ----
+  async function galListScope(scope) {
+    const out = [], thumbs = []; let cursor = null;
+    for (let i = 0; i < GAL_LIST_PAGES; i++) {
+      const opts = { scope, limit: 200 }; if (cursor) opts.cursor = cursor;
+      const page = await tavo.file.list(opts);
+      for (const f of ((page && page.files) || [])) { const e = galParse(f, scope); if (e) out.push(e); else { const th = galParseThumb(f, scope); if (th) thumbs.push(th); } }
+      if (!page || !page.nextCursor) { cursor = null; break; }
+      cursor = page.nextCursor;
+    }
+    return { files: out, thumbs, truncated: !!cursor };
+  }
+  async function galScanAll() {
+    const res = { files: [], thumbs: [], truncated: false, error: false, complete: { global: false, chat: false } };
+    for (const scope of ['global', 'chat']) {
+      try {
+        const r = await galListScope(scope);
+        for (const e of r.files) res.files.push(e);
+        for (const e of r.thumbs) res.thumbs.push(e);
+        if (r.truncated) res.truncated = true; else res.complete[scope] = true;
+      } catch { res.error = true; }
+    }
+    return res;
+  }
+  function galReadCols(scope) {
+    let v = null; try { v = tavo.get(GAL_COLS_VAR, scope); } catch {}
+    if (!Array.isArray(v)) return [];
+    const seen = new Set(), out = [];
+    for (const c of v) {
+      if (!c || typeof c !== 'object') continue;
+      const id = String(c.id || '');
+      if (!/^[a-z0-9]{3,8}$/.test(id) || seen.has(id)) continue;
+      seen.add(id);
+      out.push({ id, name: String(c.name || '').replace(/\s+/g, ' ').trim().slice(0, GAL_NAME_MAX) });
+      if (out.length >= GAL_COLS_MAX) break;
+    }
+    return out;
+  }
+  function galSaveCols(scope) {
+    try { const l = gal.cols[scope]; tavo.set(GAL_COLS_VAR, l.length ? l.map(c => ({ id: c.id, name: c.name })) : null, scope); } catch {}
+  }
+  function galReadView() {
+    let v = null; try { v = tavo.get(GAL_VIEW_VAR, 'global'); } catch {}
+    const ok = v && typeof v === 'object';
+    return { active: ok && typeof v.active === 'string' && v.active.length < 40 ? v.active : 'all', sort: ok && v.sort === 'name' ? 'name' : 'new' };
+  }
+  function galSaveView() { try { tavo.set(GAL_VIEW_VAR, { active: gal.active, sort: gal.sort }, 'global'); } catch {} }
+  async function galReload(gen) {
+    const res = await galScanAll();
+    if (!galAlive(gen)) return false;
+    gal.files = res.files; gal.truncated = res.truncated; gal.error = res.error && !res.files.length;   // a half-failed read still shows what it found
+    gal.thumbs = new Map(res.thumbs.map(th => [galThumbKey(th.scope, th.pair), th]));
+    // a preview whose picture is gone (a removal that was cut short) is cleaned up, but only from a complete reading of that place
+    const have = new Set(res.files.map(f => galThumbKey(f.scope, f.pair)));
+    for (const th of res.thumbs) { const k = galThumbKey(th.scope, th.pair); if (res.complete[th.scope] && !have.has(k)) { gal.thumbs.delete(k); galDrop(th.path); } }
+    gal.cols = { global: galReadCols('global'), chat: galReadCols('chat') };
+    gal.ready = true;
+    if (gal.active !== 'all' && gal.active !== 'unsorted' && !galGroupList().groups.some(g => g.key === gal.active)) gal.active = 'all';   // another chat's own collection
+    return true;
+  }
+
+  // ---- collections: the named ones, plus every file whose collection has no name any more (shown as "Unsorted", never hidden) ----
+  function galGroupList() {
+    const map = new Map();
+    for (const scope of ['global', 'chat']) for (const c of gal.cols[scope]) map.set(galKey(scope, c.id), { key: galKey(scope, c.id), scope, id: c.id, name: c.name, count: 0, bytes: 0 });
+    const loose = { key: 'unsorted', count: 0, bytes: 0 };
+    for (const f of gal.files) { const g = map.get(f.key) || loose; g.count++; g.bytes += f.size; }
+    return { groups: [...map.values()], loose };
+  }
+  const galGroupName = (g) => g.name || t('runtime.galDefaultName');
+  const galGroupOf = (f) => galGroupList().groups.find(g => g.key === f.key) || null;
+  function galFiltered() {
+    const known = new Set(); for (const s of ['global', 'chat']) for (const c of gal.cols[s]) known.add(galKey(s, c.id));
+    let list = gal.files.filter(f => gal.active === 'all' ? true : gal.active === 'unsorted' ? !known.has(f.key) : f.key === gal.active);
+    const words = gal.q.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    if (words.length) list = list.filter(f => { const hay = f.slug.replace(/-/g, ' '); return words.every(w => hay.includes(w)); });
+    if (gal.sort === 'name') list.sort((a, b) => a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : a.name < b.name ? -1 : 1);
+    else list.sort((a, b) => (b.t - a.t) || (a.name < b.name ? -1 : 1));
+    return list;
+  }
+
+  // ---- drawing ----
+  function galRenderSub() {
+    if (!gal.ready) { galSubEl.textContent = ''; return; }
+    const { groups, loose } = galGroupList();
+    const cur = gal.active === 'all' ? { count: gal.files.length, bytes: gal.files.reduce((n, f) => n + f.size, 0) } : gal.active === 'unsorted' ? loose : groups.find(g => g.key === gal.active) || { count: 0, bytes: 0 };
+    galSubEl.textContent = galSumText(cur.count, cur.bytes) + (gal.truncated ? ' · ' + t('runtime.galTruncated', { n: gal.files.length }) : '');
+  }
+  function galRenderTop() {
+    const locked = !!gal.busy, { groups, loose } = galGroupList();
+    const chip = (key, label, count, cls, fn) => stNode('button', { type: 'button', class: 'emon-iv-gal-chip' + (gal.active === key ? ' on' : '') + (cls || ''), 'aria-pressed': gal.active === key ? 'true' : 'false',
+      disabled: locked ? true : null, onclick: fn || (() => galSetActive(key)) }, label, count == null ? null : stNode('small', { text: String(count) }));
+    const items = [chip('all', t('runtime.galAll'), gal.files.length)];
+    for (const g of groups) items.push(chip(g.key, (g.scope === 'chat' ? '💬 ' : '') + galGroupName(g), g.count));
+    if (loose.count) items.push(chip('unsorted', t('runtime.galUnsorted'), loose.count));
+    items.push(chip('', t('runtime.galNewCol'), null, ' plus', () => galNewFlow()));
+    const cur = groups.find(g => g.key === gal.active);
+    if (cur) items.push(stNode('button', { type: 'button', class: 'emon-iv-gal-chip plus', text: '⋯', title: t('runtime.galOptions'), 'aria-label': t('runtime.galOptions'), disabled: locked ? true : null, onclick: () => galOptionsFlow(cur) }));
+    galChips.replaceChildren(...items);
+    galSortBtn.textContent = t(gal.sort === 'name' ? 'runtime.galSortName' : 'runtime.galSortNew');
+    galSortBtn.disabled = locked;
+    galQ.parentElement.hidden = !gal.files.length;
+  }
+  function galTileHuge(tile) {
+    tile.classList.remove('wait'); tile.classList.add('broken'); tile.setAttribute('title', t('runtime.galBroken'));
+    const img = tile.querySelector('img'); if (img) img.remove();
+  }
+  function galTileImage(tile, src, f, isThumb) {
+    let img = tile.querySelector('img');
+    if (!img) { img = stNode('img', { alt: '', loading: 'lazy', decoding: 'async' }); tile.insertBefore(img, tile.firstChild); }
+    img.onerror = () => {
+      if (isThumb && f && !gal.healed.has(f.path)) {    // a preview that will not load is a damaged file: throw it away and make it again (once)
+        gal.healed.add(f.path);
+        const k = galThumbKey(f.scope, f.pair), th = gal.thumbs.get(k); gal.thumbs.delete(k); if (th) galDrop(th.path);
+        tile.classList.add('wait'); img.removeAttribute('src'); gal.queue.unshift(f); galPumpKick();
+        return;
+      }
+      tile.classList.add('broken'); tile.setAttribute('title', t('runtime.galBroken'));
+    };
+    tile.classList.remove('wait'); tile.classList.remove('broken'); img.src = src;
+  }
+  function galTile(f) {
+    const k = galThumbKey(f.scope, f.pair), th = gal.thumbs.get(k), huge = gal.thumbHuge.has(k);
+    const src = huge ? '' : th ? th.path : (f.ext === 'svg' || gal.thumbBad.has(k)) ? f.path : '';   // never the full picture while its small preview is still to be made
+    const b = stNode('button', { type: 'button', class: 'emon-iv-gal-tile' + (gal.sel.has(f.path) ? ' picked' : '') + (huge ? ' broken' : src ? '' : ' wait'), 'aria-label': galTitle(f), 'data-p': f.path, onclick: () => galTap(f) },
+      f.gif ? stNode('span', { class: 'tag', text: 'GIF' }) : null);
+    if (huge) b.setAttribute('title', t('runtime.galBroken')); else if (src) galTileImage(b, src, f, !!th);
+    return b;
+  }
+  function galRenderGrid() {
+    const list = galFiltered();
+    gal.shown = list;
+    gal.pages = Math.max(1, Math.ceil(list.length / GAL_PAGE));
+    gal.page = Math.max(0, Math.min(gal.page, gal.pages - 1));
+    const slice = list.slice(gal.page * GAL_PAGE, (gal.page + 1) * GAL_PAGE);
+    let kids;
+    if (!gal.ready) kids = [];
+    else if (gal.error) kids = [stNode('div', { class: 'emon-iv-gal-empty' }, stNode('p', { text: t('runtime.galListFail') }), stNode('button', { type: 'button', class: 'emon-iv-st-btn', text: t('runtime.stRetry'), onclick: () => galRefresh() }))];
+    else if (!slice.length && !gal.files.length) kids = [stNode('div', { class: 'emon-iv-gal-empty' }, stNode('b', { text: t('runtime.galEmptyT') }), stNode('p', { text: t('runtime.galEmptyB') }), stNode('p', { class: 'emon-iv-gal-hint', text: t('runtime.galEmptyTip') }))];
+    else if (!slice.length) kids = [stNode('div', { class: 'emon-iv-gal-empty' }, stNode('p', { text: t(gal.q.trim() ? 'runtime.galNoMatch' : 'runtime.galEmptyCol') }))];
+    else kids = slice.map(galTile);
+    galGrid.replaceChildren(...kids);
+    galRenderPager();
+    galQueueRebuild();
+  }
+  function galRenderPager() {
+    galPager.hidden = gal.pages <= 1;
+    if (galPager.hidden) { galPager.replaceChildren(); return; }
+    const lock = !!gal.busy;
+    galPager.replaceChildren(
+      stNode('button', { type: 'button', text: '‹', 'aria-label': t('runtime.galPrev'), disabled: (lock || gal.page <= 0) ? true : null, onclick: () => galGoPage(gal.page - 1) }),
+      stNode('span', { text: t('runtime.galPage', { a: gal.page + 1, b: gal.pages }) }),
+      stNode('button', { type: 'button', text: '›', 'aria-label': t('runtime.galNext'), disabled: (lock || gal.page >= gal.pages - 1) ? true : null, onclick: () => galGoPage(gal.page + 1) }));
+  }
+  function galRenderSelbar() {
+    galSelBtn.textContent = t(gal.select ? 'runtime.galSelectDone' : 'runtime.galSelect');
+    galSelbar.hidden = !gal.select;
+    if (!gal.select) { galSelbar.replaceChildren(); return; }
+    const n = gal.sel.size, off = (!n || gal.busy) ? true : null, btn = (txt, fn, cls, dis) => stNode('button', { type: 'button', class: cls || null, text: txt, disabled: dis === undefined ? off : dis, onclick: fn });
+    galSelbar.replaceChildren(
+      stNode('b', { text: t('runtime.galSelCount', { n }) }),
+      btn(t('runtime.galSelPage'), () => galSelectSome(gal.shown.slice(gal.page * GAL_PAGE, (gal.page + 1) * GAL_PAGE)), null, gal.busy ? true : null),
+      btn(t('runtime.galSelAll', { n: gal.shown.length }), () => galSelectSome(gal.shown), null, gal.busy ? true : null),
+      btn(t('runtime.selectNone'), () => { gal.sel.clear(); galSyncSel(); }, null, n && !gal.busy ? null : true),
+      btn('📌 ' + t('runtime.pinExisting'), () => galPinFiles(galPicked())),
+      btn(t('runtime.galMove'), () => galMoveFlow(galPicked())),
+      btn(t('runtime.galRemove'), () => galRemoveFlow(galPicked()), 'danger'));
+  }
+  function galRenderStatus() {
+    galStatus.replaceChildren(); galStatusText = null;
+    if (gal.busy) {
+      galStatusText = stNode('span', { text: galBusyText() });
+      galStatus.append(galStatusText, stNode('button', { type: 'button', text: t('runtime.galStop'), onclick: () => { if (gal.busy) gal.busy.stop = true; } }));
+    } else if (!gal.ready) galStatus.append(stNode('span', { text: t('runtime.galLoading') }));
+    else if (gal.note) galStatus.append(stNode('span', { text: gal.note }));
+    else if (gal.pumping && gal.queue.length) { galStatusText = stNode('span', { text: t('runtime.galPrep', { n: gal.queue.length + 1 }) }); galStatus.append(galStatusText); }
+    galStatus.hidden = !galStatus.childNodes.length;
+  }
+  function galSyncControls() {
+    const lock = !!gal.busy;
+    galAddBtn.disabled = lock || !gal.ready || gal.error;
+    galSelBtn.disabled = lock || !gal.ready || !gal.files.length;
+    galQ.disabled = lock;
+    galRenderTop(); galRenderPager(); galRenderSelbar(); galRenderStatus();
+  }
+  function galRenderAll() {
+    galRenderSub(); galRenderTop(); galRenderGrid(); galRenderSelbar(); galRenderStatus();
+    galAddBtn.disabled = !!gal.busy || !gal.ready || gal.error; galSelBtn.disabled = !!gal.busy || !gal.ready || !gal.files.length; galQ.disabled = !!gal.busy;
+  }
+  const GAL_BUSY_KEY = { add: 'runtime.galBusyAdd', move: 'runtime.galBusyMove', remove: 'runtime.galBusyRemove', pin: 'runtime.galBusyPin' };   // written out in full so the localisation audit can check each one
+  const galBusyText = () => t(GAL_BUSY_KEY[gal.busy.kind] || GAL_BUSY_KEY.add, { i: gal.busy.i, n: gal.busy.n });
+  // A busy state belongs to the job that began it: only that job can tick it or end it (a job from before a close and reopen must not clear a newer one).
+  function galBeginBusy(kind, n) { const b = { kind, i: 0, n, stop: false, gen: gal.gen }; gal.busy = b; gal.note = ''; galSyncControls(); return b; }
+  function galTick(i, b) { if (!b || gal.busy !== b) return; b.i = i; if (galStatusText) galStatusText.textContent = galBusyText(); }
+  function galEndBusy(b) { if (b && gal.busy !== b) return; gal.busy = null; galSyncControls(); }
+  // After a change: read the gallery again (the files are the truth), show the result, and tell the person.
+  async function galFinish(gen, note, busy) {
+    galEndBusy(busy);
+    if (note) { try { tavo.utils.toast(note); } catch {} }
+    if (!galAlive(gen)) return;
+    await galReload(gen);
+    if (!galAlive(gen)) return;
+    gal.note = note || ''; galRenderAll();
+  }
+  async function galRefresh() { const gen = gal.gen; gal.ready = false; gal.error = false; galRenderAll(); await galReload(gen); if (galAlive(gen)) galRenderAll(); }
+
+  // ---- small previews: decode a picture ONCE, draw it smaller ----
+  const GAL_MIME = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp', avif: 'image/avif', svg: 'image/svg+xml' };
+  // Returns { w, h, data } (data = base64 JPEG, or null when `keepIfSmall` says no shrinking is needed), or null when this engine cannot read the picture.
+  // Same recipe as the wallpaper picker (downscaleToJpeg): a picture, a canvas, a JPEG. The canvas is emptied at once so the memory goes back.
+  function galDraw(b64, ext, fit, quality, keepIfSmall) {
+    return new Promise((resolve) => {
+      let done = false, img = null, timer = 0;
+      const finish = (v) => { if (done) return; done = true; clearTimeout(timer); try { if (img) { img.onload = img.onerror = null; img.removeAttribute('src'); } } catch {} resolve(v); };
+      timer = setTimeout(() => finish(null), 20000);
+      try {
+        img = new Image();
+        img.onload = () => {
+          try {
+            const w0 = img.naturalWidth, h0 = img.naturalHeight;
+            if (!(w0 > 0 && h0 > 0)) { finish(null); return; }
+            if (w0 * h0 > GAL_MAX_PIXELS) { finish({ w: w0, h: h0, data: null, huge: true }); return; }   // never drawn: it could take the phone down
+            const r = fit(w0, h0);
+            if (keepIfSmall && r >= 1) { finish({ w: w0, h: h0, data: null }); return; }
+            const k = Math.min(1, r), w = Math.max(1, Math.round(w0 * k)), h = Math.max(1, Math.round(h0 * k));
+            const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+            const cx = cv.getContext('2d'); cx.fillStyle = '#0e131d'; cx.fillRect(0, 0, w, h); cx.drawImage(img, 0, 0, w, h);
+            const url = cv.toDataURL('image/jpeg', quality), c = url.indexOf(',');
+            cv.width = 0; cv.height = 0;
+            finish(/^data:image\/jpeg/.test(url) && c > 0 ? { w, h, data: url.slice(c + 1) } : null);
+          } catch { finish(null); }
+        };
+        img.onerror = () => finish(null);
+        img.src = 'data:' + (GAL_MIME[ext] || 'image/png') + ';base64,' + b64;
+      } catch { finish(null); }
+    });
+  }
+  const galFitThumb = (w, h) => Math.min(1, GAL_THUMB_SHORT / Math.min(w, h), GAL_THUMB_LONG / Math.max(w, h));
+  const galShrink = (b64, ext) => ext === 'svg' ? Promise.resolve({ data: null, huge: false }) : galDraw(b64, ext, galFitThumb, GAL_THUMB_Q, false).then((r) => ({ data: (r && r.data) || null, huge: !!(r && r.huge) }));
+  const galSleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const galHasThumb = (f) => gal.thumbs.has(galThumbKey(f.scope, f.pair));
+  const galNeedsThumb = (f) => f.ext !== 'svg' && !galHasThumb(f) && !gal.thumbBad.has(galThumbKey(f.scope, f.pair)) && !gal.thumbHuge.has(galThumbKey(f.scope, f.pair));
+  // Makes the preview of one picture that has none: read it, shrink it, keep the small copy. Never throws.
+  async function galThumbFor(f) {
+    try {
+      const b64 = await tavo.file.load(f.path, { encoding: 'base64' });
+      const sm = b64 ? await galShrink(b64, f.ext) : null;
+      if (sm && sm.huge) return 'huge';
+      const small = sm && sm.data;
+      if (!small) return false;
+      const name = galThumbName(f);
+      if (!(await tavo.file.save(name, small, { scope: f.scope, encoding: 'base64' }))) return false;
+      gal.thumbs.set(galThumbKey(f.scope, f.pair), { scope: f.scope, pair: f.pair, path: 'files/' + f.scope + '/' + name, size: Math.floor(small.length * 3 / 4) });
+      return true;
+    } catch { return false; }
+  }
+  // Pictures without a preview are made ONE AT A TIME, the page on screen first, and never while the person's own action (add, move, remove...) is running.
+  function galQueueRebuild() {
+    const list = gal.shown, a = gal.page * GAL_PAGE, b = a + GAL_PAGE;
+    gal.queue = list.slice(a, b).concat(list.slice(b), list.slice(0, a)).filter(galNeedsThumb);
+    galPumpKick();
+  }
+  function galPumpKick() { if (!gal.pumping && gal.queue.length && galAlive(gal.gen)) galPump(gal.gen); }
+  async function galPump(gen) {
+    gal.pumping = true;
+    try {
+      while (galAlive(gen)) {
+        if (gal.busy || gal.lock) { await galSleep(300); continue; }
+        const f = gal.queue.shift();
+        if (!f) break;
+        if (!galNeedsThumb(f)) continue;
+        galRenderStatus();
+        gal.pumpWorking = true;
+        const res = await galThumbFor(f), k = galThumbKey(f.scope, f.pair);
+        gal.pumpWorking = false;
+        if (!galAlive(gen)) break;
+        if (res === 'huge') gal.thumbHuge.add(k); else if (!res) gal.thumbBad.add(k);    // too big to draw: its tile says so; cannot be made: its tile shows the picture itself instead
+        const tile = [...galGrid.children].find((n) => n.dataset && n.dataset.p === f.path);
+        if (tile) { if (res === 'huge') galTileHuge(tile); else galTileImage(tile, res === true ? gal.thumbs.get(k).path : f.path, f, res === true); }
+        await galSleep(20);
+      }
+    } finally {
+      gal.pumping = false; gal.pumpWorking = false;
+      if (galAlive(gal.gen)) { galRenderStatus(); if (gen !== gal.gen && gal.queue.length) galPumpKick(); }
+    }
+  }
+  // The preview follows its picture when it moves to another collection (a small copy), and goes when the picture goes.
+  async function galMoveThumb(f, destScope, newName) {
+    try {
+      const th = gal.thumbs.get(galThumbKey(f.scope, f.pair)), pair = galPairOf(newName);
+      if (th && pair) await galCopy(th.path, destScope, 'emon-gth-' + pair + '.jpg');
+    } catch {}
+    await galDropThumb(f);
+  }
+  // A pinned picture is a copy in this chat, and Saved Previews draws it too. A big still JPEG photo is shrunk to about 1,600 px first;
+  // GIF, SVG, PNG and WebP (which can be see-through or animated) and anything smaller are copied untouched.
+  async function galPinCopy(f, name) {
+    if (f.ext === 'jpg' && f.size > 400 * 1024) {
+      try {
+        const b64 = await tavo.file.load(f.path, { encoding: 'base64' });
+        if (b64) {
+          const r = await galDraw(b64, 'jpg', (w, h) => GAL_PIN_MAX / Math.max(w, h), 0.86, true);
+          if (r && r.data) { const saved = await galSaveB64(r.data, 'chat', name.replace(/\.[a-z0-9]+$/i, '.jpg')); if (saved) return saved; }
+          return await galSaveB64(b64, 'chat', name);                       // no need to shrink (or it could not be drawn): copied as it is, without reading the file again
+        }
+      } catch {}
+    }
+    return galCopy(f.path, 'chat', name);
+  }
+
+  // ---- moving around ----
+  function galSetActive(key) { gal.active = key; gal.page = 0; gal.sel.clear(); gal.note = ''; galSaveView(); galRenderSub(); galRenderTop(); galRenderGrid(); galRenderSelbar(); galRenderStatus(); }
+  function galGoPage(p) { gal.page = p; galRenderGrid(); galBody.scrollTop = 0; }
+  const galPicked = () => gal.files.filter(f => gal.sel.has(f.path));
+  function galSelectSome(list) { for (const f of list) gal.sel.add(f.path); galSyncSel(); }
+  // Selection changes only touch the tiles and the bar, so the grid does not redraw (and no picture reloads).
+  function galSyncSel() {
+    for (const n of galGrid.children) if (n.dataset && n.dataset.p) n.classList.toggle('picked', gal.sel.has(n.dataset.p));
+    galRenderSelbar();
+  }
+  function galToggleSelect() {
+    if (gal.busy || !gal.ready) return;
+    gal.select = !gal.select; gal.sel.clear(); galSyncSel();
+  }
+  function galTap(f) {
+    if (gal.busy || gal.lock) return;
+    if (gal.select) { if (gal.sel.has(f.path)) gal.sel.delete(f.path); else gal.sel.add(f.path); galSyncSel(); return; }
+    galOpenSheet(f);
+  }
+
+  // ---- screens inside the Gallery window (this plugin shows one pop-up at a time, so nothing stacks: a screen replaces the grid) ----
+  function galShowView(nodes) {
+    if (gal.view !== 'sub') gal.scrollY = galBody.scrollTop;
+    gal.view = 'sub'; galMain.hidden = true; galSubview.hidden = false; galSubview.replaceChildren(...nodes); galBackBtn.hidden = false; galBody.scrollTop = 0;
+  }
+  function galBackToMain() {
+    if (gal.view !== 'sub') return;
+    gal.view = 'main'; galMain.hidden = false; galSubview.hidden = true; galSubview.replaceChildren(); galBackBtn.hidden = true;
+    const y = gal.scrollY; requestAnimationFrame(() => { galBody.scrollTop = y; });
+  }
+  // Shows a screen and waits for the answer. Back, or closing the Gallery, answers null.
+  function galAsk(build) {
+    return new Promise((resolve) => {
+      const done = (v) => { if (gal.resolver !== done) return; gal.resolver = null; galBackToMain(); resolve(v); };
+      gal.resolver = done;
+      galShowView(build(done));
+    });
+  }
+  const galLead = (text) => stNode('p', { class: 'emon-iv-st-lead', text });
+  function galChoose(title, items) {
+    return galAsk((done) => [galLead(title), ...items.map(it => stNode('button', { type: 'button', class: 'emon-iv-st-row', onclick: () => done(it.id) },
+      stNode('span', { class: 'emon-iv-st-ico', 'aria-hidden': 'true', text: it.icon || '📁' }),
+      stNode('span', { class: 'emon-iv-st-main' }, stNode('b', { text: it.label }), it.sub ? stNode('small', { text: it.sub }) : null),
+      stNode('span', { class: 'emon-iv-st-chev', 'aria-hidden': 'true', text: '›' })))]);
+  }
+  async function galConfirm(text, yes, danger) {
+    const v = await galAsk((done) => [galLead(text), stNode('div', { class: 'emon-iv-modal-row' },
+      stNode('button', { type: 'button', text: t('runtime.cancel'), onclick: () => done(false) }),
+      stNode('button', { type: 'button', class: 'pri' + (danger ? ' danger' : ''), text: yes, onclick: () => done(true) }))]);
+    return v === true;
+  }
+  function galNameProblem(name, self, scope) {
+    if (!name) return t('runtime.galErrName');
+    const low = name.toLowerCase();
+    if (galGroupList().groups.some(g => (!self || g.key !== self.key) && galGroupName(g).toLowerCase() === low)) return t('runtime.galErrDup');
+    if (!self && gal.cols[scope].length >= GAL_COLS_MAX) return t('runtime.galErrMax', { n: GAL_COLS_MAX });
+    return '';
+  }
+  function galForm(mode, g) {
+    return galAsk((done) => {
+      let scope = 'global';
+      const input = stNode('input', { class: 'emon-iv-modal-field', type: 'text', maxlength: GAL_NAME_MAX, autocomplete: 'off', placeholder: t('runtime.galNamePh'), 'aria-label': t('runtime.galNameLabel') });
+      input.value = mode === 'rename' ? galGroupName(g) : '';
+      const err = stNode('div', { class: 'emon-iv-gal-err', role: 'alert', hidden: true });
+      const hint = stNode('div', { class: 'emon-iv-gal-hint', text: t('runtime.galScopeAllHint') });
+      const bAll = stNode('button', { type: 'button', class: 'on', text: t('runtime.galScopeAll') }), bChat = stNode('button', { type: 'button', text: t('runtime.galScopeChat') });
+      const setScope = (s) => { scope = s; bAll.classList.toggle('on', s === 'global'); bChat.classList.toggle('on', s === 'chat'); hint.textContent = t(s === 'global' ? 'runtime.galScopeAllHint' : 'runtime.galScopeChatHint'); };
+      bAll.onclick = () => setScope('global'); bChat.onclick = () => setScope('chat');
+      const submit = () => {
+        const name = input.value.replace(/\s+/g, ' ').trim().slice(0, GAL_NAME_MAX), bad = galNameProblem(name, mode === 'rename' ? g : null, scope);
+        if (bad) { err.textContent = bad; err.hidden = false; return; }
+        done({ name, scope });
+      };
+      input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } };
+      const nodes = [galLead(t(mode === 'new' ? 'runtime.galFormNew' : 'runtime.galFormRename')), input, err];
+      if (mode === 'new') nodes.push(galLead(t('runtime.galScopeLabel')), stNode('div', { class: 'emon-iv-gal-seg' }, bAll, bChat), hint);
+      nodes.push(stNode('div', { class: 'emon-iv-modal-row' }, stNode('button', { type: 'button', text: t('runtime.cancel'), onclick: () => done(null) }),
+        stNode('button', { type: 'button', class: 'pri', text: t(mode === 'new' ? 'runtime.galCreate' : 'runtime.galSave'), onclick: submit })));
+      setTimeout(() => { try { input.focus(); } catch {} }, 60);
+      return nodes;
+    });
+  }
+  function galOpenSheet(f) {
+    const g = galGroupOf(f);
+    const huge = gal.thumbHuge.has(galThumbKey(f.scope, f.pair)), th = gal.thumbs.get(galThumbKey(f.scope, f.pair)), img = huge ? null : stNode('img', { class: 'emon-iv-sheet-thumb', alt: '' });
+    if (img) img.src = th ? th.path : f.path;
+    const act = (icon, label, fn, cls) => stNode('button', { type: 'button', class: cls || null, onclick: fn }, stNode('span', { class: 'sheet-icon', text: icon }), stNode('span', { text: label }));
+    galShowView([...(img ? [img] : []),
+      stNode('div', { class: 'emon-iv-sheet-heading', text: galTitle(f) }),
+      stNode('div', { class: 'emon-iv-sheet-subtitle', text: t('runtime.galMeta', { type: formatLabel(f.ext, ''), size: fmtBytes(f.size), where: (g ? galGroupName(g) : t('runtime.galUnsorted')) + ' · ' + galScopeLabel(f.scope) }) }),
+      stNode('div', { class: 'emon-iv-sheet-actions' },
+        act('⛶', t('runtime.fullscreen'), () => { try { tavo.utils.preview(f.path); } catch { tavo.utils.toast(t('runtime.error')); } }),
+        act('📌', t('runtime.pinExisting'), () => { galBackToMain(); galPinFiles([f]); }),
+        act('📁', t('runtime.galMove'), () => { galBackToMain(); galMoveFlow([f]); }),
+        act('↓', t('runtime.saveDevice'), async () => { try { await tavo.file.export(f.path); } catch { tavo.utils.toast(t('runtime.error')); } })),
+      stNode('div', { class: 'emon-iv-sheet-group', text: t('runtime.sheetDanger') }),
+      stNode('div', { class: 'emon-iv-sheet-actions' }, act('🗑', t('runtime.galRemove'), () => { galBackToMain(); galRemoveFlow([f]); }, 'danger'))]);
+  }
+
+  // ---- the work: every flow runs alone (one at a time), and every loop checks that the Gallery is still open ----
+  async function galExclusive(fn) {
+    if (gal.lock || gal.busy) { try { tavo.utils.toast(t('runtime.galWait')); } catch {} return; }
+    const me = {}, gen = gal.gen; gal.lock = me;       // the lock belongs to THIS job: a job left over from before a close and reopen can never release a newer job's lock
+    try { while (gal.pumpWorking) await galSleep(30); return await fn(); }          // a preview that is being made finishes first: never two pictures decoded at once
+    catch (e) { console.error('[Image Preview] gallery', e); try { tavo.utils.toast(t('runtime.error')); } catch {} if (gal.busy && gal.busy.gen === gen) galEndBusy(gal.busy); }
+    finally { if (gal.lock === me) gal.lock = null; }
+  }
+  // One copy of a file under a new name: read it, write it, check it arrived. The original is left alone (the caller decides what to do with it).
+  async function galSaveB64(b64, destScope, newName) {
+    const saved = await tavo.file.save(newName, b64, { scope: destScope, encoding: 'base64' });
+    if (!saved) return null;
+    return (await tavo.file.exists(saved).catch(() => false)) ? saved : null;
+  }
+  async function galCopy(srcPath, destScope, newName) {
+    let b64 = await tavo.file.load(srcPath, { encoding: 'base64' });
+    if (!b64) return null;
+    const saved = await galSaveB64(b64, destScope, newName);
+    b64 = null;
+    return saved;
+  }
+  function galCreateGroup(name, scope) {
+    if (gal.cols[scope].length >= GAL_COLS_MAX) return null;
+    const id = galNewId(); gal.cols[scope].push({ id, name }); galSaveCols(scope);
+    return { key: galKey(scope, id), scope, id, name, count: 0, bytes: 0 };
+  }
+  // Where should new pictures go? The open collection; with none yet, a first one is made so the very first add is one tap.
+  async function galPickTarget(mode, exclude) {
+    const groups = galGroupList().groups;
+    const cur = groups.find(g => g.key === gal.active);
+    if (mode === 'add' && cur) return cur;
+    const list = groups.filter(g => g.key !== exclude);
+    if (mode === 'add') {
+      if (!list.length) return galCreateGroup('', 'global');
+      if (list.length === 1) return list[0];
+    }
+    const items = list.map(g => ({ id: g.key, icon: g.scope === 'global' ? '🌐' : '💬', label: galGroupName(g), sub: galScopeLabel(g.scope) + ' · ' + galSumText(g.count, g.bytes) }));
+    items.push({ id: '\u0000new', icon: '➕', label: t('runtime.galFormNew') });
+    const pick = await galChoose(t(mode === 'add' ? 'runtime.galChooseAdd' : 'runtime.galChooseMove'), items);
+    if (!pick) return null;
+    if (pick === '\u0000new') { const r = await galForm('new'); return r ? galCreateGroup(r.name, r.scope) : null; }
+    return list.find(g => g.key === pick) || null;
+  }
+  function galAddFlow() {
+    return galExclusive(async () => {
+      if (!gal.ready || gal.error) return;
+      const gen = gal.gen, dest = await galPickTarget('add');
+      if (!dest || !galAlive(gen)) return;
+      await galImport(dest, gen);
+    });
+  }
+  async function galImport(dest, gen) {
+    let picked;
+    try { picked = await tavo.file.import({ multiple: true, scope: 'tmp', extensions: GAL_EXTS, conflict: 'rename' }); }
+    catch { try { tavo.utils.toast(t('runtime.galPickFail')); } catch {} return; }
+    if (!Array.isArray(picked) || !picked.length) { galRenderTop(); return; }
+    const staged = picked.filter(f => f && typeof f.path === 'string');
+    const total = staged.reduce((n, f) => n + galSize(f.size), 0);
+    if (!galAlive(gen) || (total >= GAL_WARN_BYTES && !(await galConfirm(t('runtime.galBigWarn', { size: fmtBytes(total) }), t('runtime.galBigYes'), false)))) {
+      for (const f of staged) await galDrop(f.path);
+      return;
+    }
+    const busy = galBeginBusy('add', staged.length);
+    const have = galDupMap(gal.files.filter(f => f.key === dest.key));   // the same full name and size in this collection = the same picture
+    const st = { added: 0, dup: 0, skip: 0, big: 0, fail: 0 };
+    let i = 0, previewFails = 0;
+    for (; i < staged.length; i++) {
+      if (!galAlive(gen) || busy.stop) break;
+      galTick(i + 1, busy);
+      const f = staged[i], size = galSize(f.size);
+      try {
+        if (size > GAL_MAX_BYTES) { st.big++; continue; }
+        const full = f.originalName || f.name, slug = galSlug(full), rid = galHash(full);
+        if (size > 0 && galFindDup(have, size.toString(36), rid, slug)) { st.dup++; continue; }
+        const b64 = await tavo.file.load(f.path, { encoding: 'base64' });
+        if (b64 && !size && b64.length * 3 / 4 > GAL_MAX_BYTES) { st.big++; continue; }   // the picker did not say how big it is: now we know
+        const real = b64 ? sniffImageExt(b64) : null;                       // the first bytes must really be a picture; its true type names the copy
+        if (!real) { st.skip++; continue; }
+        const z = (size > 0 ? size : Math.floor(b64.length * 3 / 4)).toString(36);
+        if (!size && galFindDup(have, z, rid, slug)) { st.dup++; continue; }              // the size was unknown until now
+        const rid2 = galPairTaken(have, z, rid) ? galRand(4) : rid;                       // another picture already has this size + middle part (a hash collision): take another
+        const name = galNewName(dest.id, z, slug, real, rid2);
+        if (!GAL_RE.test(name)) throw new Error('name');                      // never write a file that cannot be read back
+        const saved = await tavo.file.save(name, b64, { scope: dest.scope, encoding: 'base64' });
+        if (!saved || !(await tavo.file.exists(saved).catch(() => false))) throw new Error('save');
+        galNoteDup(have, z, rid2, slug, 'files/' + dest.scope + '/' + name); st.added++;
+        const entry = galParse({ name, size: size || Math.floor(b64.length * 3 / 4), modifiedAt: new Date().toISOString() }, dest.scope);
+        if (entry) {
+          gal.files.push(entry);
+          // the small preview, made now while the picture is already in memory (best effort: if it cannot be made, it is made later while browsing)
+          if (previewFails < 3) {                       // three failures in a row (an engine that cannot draw, or hangs): this add stops trying; browsing will try again, one at a time
+            const sm = await galShrink(b64, real);
+            if (sm.huge) gal.thumbHuge.add(galThumbKey(dest.scope, entry.pair));
+            else if (sm.data) {
+              previewFails = 0;
+              try {
+                const tn = galThumbName(entry);
+                if (await tavo.file.save(tn, sm.data, { scope: dest.scope, encoding: 'base64' })) gal.thumbs.set(galThumbKey(dest.scope, entry.pair), { scope: dest.scope, pair: entry.pair, path: 'files/' + dest.scope + '/' + tn, size: Math.floor(sm.data.length * 3 / 4) });
+              } catch {}
+            } else if (real !== 'svg') previewFails++;
+          }
+        }
+      } catch { st.fail++; }
+      finally { await galDrop(f.path); }                                      // the staged copy always goes
+    }
+    for (let j = i; j < staged.length; j++) await galDrop(staged[j].path);   // stopped early: the rest of the staged files go too
+    const parts = [st.added ? t('runtime.galSumAdded', { n: st.added }) : t('runtime.galSumNone')];
+    if (st.dup) parts.push(t('runtime.galSumDup', { n: st.dup }));
+    if (st.skip) parts.push(t('runtime.galSumSkip', { n: st.skip }));
+    if (st.big) parts.push(t('runtime.galSumBig', { n: st.big }));
+    if (st.fail) parts.push(t('runtime.galSumFail', { n: st.fail }));
+    if (galAlive(gen) && dest.key !== gal.active && gal.active !== 'all') gal.active = dest.key;
+    await galFinish(gen, parts.join(' · '), busy);
+  }
+  async function galRemoveLoop(files, gen, busy) {
+    let n = 0;
+    for (let i = 0; i < files.length; i++) {
+      if (!galAlive(gen) || busy.stop) break;
+      galTick(i + 1, busy);
+      try { await tavo.file.delete(files[i].path); n++; } catch {}
+      await galDropThumb(files[i]);
+    }
+    return n;
+  }
+  function galRemoveFlow(files) {
+    return galExclusive(async () => {
+      if (!files.length) return;
+      const gen = gal.gen;
+      if (!(await galConfirm(t(files.length === 1 ? 'runtime.galRemoveAsk1' : 'runtime.galRemoveAskN', { n: files.length }), t('runtime.galRemove'), true)) || !galAlive(gen)) return;
+      const busy = galBeginBusy('remove', files.length);
+      const n = await galRemoveLoop(files, gen, busy);
+      gal.sel.clear(); gal.select = false;                                     // a bulk action ends select mode
+      await galFinish(gen, t('runtime.galRemovedN', { n }), busy);
+    });
+  }
+  function galMoveFlow(files) {
+    return galExclusive(async () => {
+      if (!files.length) return;
+      const gen = gal.gen, keys = new Set(files.map(f => f.key));
+      const dest = await galPickTarget('move', keys.size === 1 ? files[0].key : null);
+      if (!dest || !galAlive(gen)) return;
+      const todo = files.filter(f => f.key !== dest.key);
+      if (!todo.length) return;
+      const busy = galBeginBusy('move', todo.length);
+      const have = galDupMap(gal.files.filter(f => f.key === dest.key));
+      let moved = 0, dup = 0, fail = 0;
+      for (let i = 0; i < todo.length; i++) {
+        if (!galAlive(gen) || busy.stop) break;
+        galTick(i + 1, busy);
+        const f = todo[i];
+        try {
+          let rid = f.rid;
+          const twin = galFindDup(have, f.z, f.rid, f.slug);
+          if (twin) {
+            if (await galSameContent(f.path, twin)) { await galDrop(f.path); await galDropThumb(f); dup++; continue; }   // the very same picture is already there: the extra copy just goes away
+            rid = galRand(4);                                                      // only look-alike (same name and size): it moves like any other, and cannot overwrite the other
+          } else if (galPairTaken(have, f.z, rid)) rid = galRand(4);                // another picture there has this size + middle part: take another, so the two never share a small preview
+          const newName = galNewName(dest.id, f.z, f.slug, f.ext, rid);
+          if (!GAL_RE.test(newName) || !(await galCopy(f.path, dest.scope, newName))) throw new Error('copy');
+          galNoteDup(have, f.z, rid, f.slug, 'files/' + dest.scope + '/' + newName); await galDrop(f.path); await galMoveThumb(f, dest.scope, newName); moved++;   // the small preview follows the picture
+        } catch { fail++; }
+      }
+      gal.sel.clear(); gal.select = false;
+      const parts = [t('runtime.galMovedN', { n: moved })];
+      if (dup) parts.push(t('runtime.galSumDup', { n: dup }));
+      if (fail) parts.push(t('runtime.galSumFail', { n: fail }));
+      await galFinish(gen, parts.join(' · '), busy);
+    });
+  }
+  // Pinning puts a COPY in this chat (its Saved Previews), so a pin never depends on a gallery picture that might be removed later.
+  function galPinFiles(files) {
+    return galExclusive(async () => {
+      if (!files.length) return;
+      const room = MAX_PINS - pins.length;
+      if (room <= 0) { tavo.utils.toast(t('runtime.pinLimit', { n: MAX_PINS })); return; }
+      const gen = gal.gen, todo = files.slice(0, room);
+      const busy = galBeginBusy('pin', todo.length);
+      let done = 0;
+      for (let i = 0; i < todo.length; i++) {
+        if (!galAlive(gen) || busy.stop) break;
+        galTick(i + 1, busy);
+        const f = todo[i];
+        try {
+          const saved = await galPinCopy(f, 'emon-pin-' + Date.now() + '-' + galRand(5) + '.' + f.ext);
+          if (!saved) throw new Error('copy');
+          const before = pins.length;
+          await pinPreview({ src: saved, original: saved, title: galTitle(f) }, done, false);
+          if (pins.length > before) done++; else await galDrop(saved);
+        } catch {}
+      }
+      gal.sel.clear(); gal.select = false;
+      galEndBusy(busy);
+      try { await loadSavedPreviews(); } catch {}
+      if (todo.length < files.length && pins.length >= MAX_PINS) tavo.utils.toast(t('runtime.pinLimitSome', { done, total: files.length, n: MAX_PINS }));
+      else tavo.utils.toast(done ? t('runtime.galPinnedN', { n: done }) : t('runtime.error'));
+      if (done && galAlive(gen)) { galClose(); setPanelOpen(false); }          // the pictures are over the chat now: show the chat
+      else if (galAlive(gen)) galRenderAll();
+    });
+  }
+  function galNewFlow() {
+    return galExclusive(async () => {
+      if (!gal.ready) return;
+      const gen = gal.gen, r = await galForm('new');
+      if (!r || !galAlive(gen)) return;
+      const g = galCreateGroup(r.name, r.scope);
+      if (g) galSetActive(g.key);
+    });
+  }
+  function galOptionsFlow(g) {
+    return galExclusive(async () => {
+      const gen = gal.gen;
+      const pick = await galChoose(galGroupName(g), [{ id: 'rename', icon: '✎', label: t('runtime.galRename') }, { id: 'delete', icon: '🗑', label: t('runtime.galDeleteCol') }]);
+      if (!pick || !galAlive(gen)) return;
+      if (pick === 'rename') {
+        const r = await galForm('rename', g);
+        if (!r || !galAlive(gen)) return;
+        const c = gal.cols[g.scope].find(x => x.id === g.id); if (c) { c.name = r.name; galSaveCols(g.scope); }
+        galRenderAll();
+      } else if (pick === 'delete') {
+        if (!(await galConfirm(t('runtime.galDelColAsk', { name: galGroupName(g), n: g.count }), t('runtime.galDeleteCol'), true)) || !galAlive(gen)) return;
+        const files = gal.files.filter(f => f.key === g.key);
+        const busy = galBeginBusy('remove', files.length);
+        const removed = await galRemoveLoop(files, gen, busy);
+        if (!galAlive(gen)) { galEndBusy(busy); return; }
+        await galReload(gen);
+        if (galAlive(gen) && !gal.files.some(f => f.key === g.key)) {            // only a collection that is really empty loses its name
+          gal.cols[g.scope] = gal.cols[g.scope].filter(x => x.id !== g.id); galSaveCols(g.scope);
+          if (gal.active === g.key) { gal.active = 'all'; galSaveView(); }
+        }
+        await galFinish(gen, t('runtime.galRemovedN', { n: removed }), busy);
+      }
+    });
+  }
+
+  // ---- open and close ----
+  const galIsOpen = () => !!(galEl && gal.open && galEl.classList.contains('show'));
+  function galOpen() {
+    if (!galEl) return;
+    if (!termsAgreed()) { requireTerms(() => galOpen()); return; }
+    gal.gen++; gal.open = true; gal.ready = false; gal.error = false; gal.lock = null; gal.busy = null; gal.resolver = null; gal.note = ''; gal.queue = []; gal.thumbs = new Map(); gal.thumbBad.clear(); gal.thumbHuge.clear(); gal.healed.clear();
+    gal.q = ''; gal.page = 0; gal.select = false; gal.sel.clear(); galQ.value = '';
+    const v = galReadView(); gal.active = v.active; gal.sort = v.sort;
+    gal.view = 'sub'; galBackToMain();                                           // always starts on the grid
+    showModal(galEl);
+    galRenderAll();
+    const gen = gal.gen;
+    galReload(gen).then(() => { if (galAlive(gen)) galRenderAll(); });
+  }
+  function galClose() {
+    clearTimeout(galQTimer);
+    if (gal.open) {
+      gal.open = false; gal.gen++;
+      if (gal.busy) gal.busy.stop = true;
+      const r = gal.resolver; if (r) { try { r(null); } catch {} }
+      gal.select = false; gal.sel.clear();
+    }
+    hideModal(galEl);
+  }
+  // Language changed while the Gallery is open: a question that is showing is dropped (its words are out of date), then everything redraws.
+  function galOnLanguage() {
+    if (!galIsOpen()) return;
+    const r = gal.resolver; if (r) r(null); else galBackToMain();
+    galRenderAll();
+  }
+  if (galEl) {
+    if (galOpenBtn) galOpenBtn.onclick = () => galOpen();
+    galCloseBtn.onclick = () => galClose();
+    bindBackdropClose(galEl, galClose);
+    galBackBtn.onclick = () => { const r = gal.resolver; if (r) r(null); else galBackToMain(); };
+    galAddBtn.onclick = () => galAddFlow();
+    galSelBtn.onclick = () => galToggleSelect();
+    galSortBtn.onclick = () => { if (gal.busy) return; gal.sort = gal.sort === 'new' ? 'name' : 'new'; gal.page = 0; galSaveView(); galRenderTop(); galRenderGrid(); galRenderSelbar(); };
+    galQ.oninput = () => { clearTimeout(galQTimer); galQTimer = setTimeout(() => { gal.q = galQ.value; gal.page = 0; gal.sel.clear(); galRenderGrid(); galRenderSelbar(); }, 160); };   // what is picked is always what is on screen
+  }
+
+  // ---- the menu ----
+  const hubEl = byId('emon-iv-hub'), hubBody = byId('emon-iv-hub-body'), hubCloseBtn = byId('emon-iv-hub-close');
+  function hubResetFab() {
+    try { tavo.set('emonImageViewerFabPosition', null, 'global'); } catch {}
+    try { window.dispatchEvent(new CustomEvent('emon-iv-fab-reset-v2')); } catch {}
+    try { tavo.utils.toast(t('runtime.fabResetToast')); } catch {}
+  }
+  const HUB_GROUPS = [
+    { id: 'pics', title: 'runtime.hubPics', items: [
+      { icon: '🖼️', label: 'runtime.galTitle', hint: 'runtime.hubGalleryHint', go: () => galOpen() },
+      { icon: '🔎', label: 'actions.scanChat', go: () => requireTerms(() => scanChatForImages()) },
+      { icon: '👤', label: 'actions.characterPage', go: () => requireTerms(() => openCharacterPage()) },
+      { icon: '🌐', label: 'actions.webPreview', go: () => openWebPreview('') }] },
+    { id: 'tidy', title: 'runtime.hubTidy', items: [
+      { icon: '🗑️', label: 'actions.openRecycleBin', go: () => requireTerms(() => { openRecycleBin(); }) },
+      { icon: '📦', label: 'actions.openStorage', go: () => requireTerms(() => { openStorage(); }) },
+      { icon: '📍', label: 'actions.resetFabPosition', go: () => hubResetFab() }] },
+  ];
+  function hubReadOpen() { let v = null; try { v = tavo.get(HUB_OPEN_VAR, 'global'); } catch {} return v && typeof v === 'object' ? v : {}; }
+  function hubToggle(id) { const v = hubReadOpen(); v[id] = !v[id]; try { tavo.set(HUB_OPEN_VAR, v, 'global'); } catch {} hubRender(); }
+  function hubRender() {
+    if (!hubBody) return;
+    const open = hubReadOpen();
+    hubBody.replaceChildren(...HUB_GROUPS.map(g => {
+      const on = !!open[g.id];
+      return stNode('div', { class: 'emon-iv-hub-group' + (on ? ' open' : '') },
+        stNode('button', { type: 'button', class: 'emon-iv-hub-head', 'aria-expanded': on ? 'true' : 'false', onclick: () => hubToggle(g.id) },
+          stNode('b', { text: t(g.title) }), stNode('small', { text: t('runtime.hubCount', { n: g.items.length }) }), stNode('span', { class: 'chev', 'aria-hidden': 'true', text: on ? '▾' : '▸' })),
+        stNode('div', { class: 'emon-iv-hub-items', hidden: on ? null : true }, ...g.items.map(it =>
+          stNode('button', { type: 'button', class: 'emon-iv-st-row', onclick: () => { hideModal(hubEl); it.go(); } },
+            stNode('span', { class: 'emon-iv-st-ico', 'aria-hidden': 'true', text: it.icon }),
+            stNode('span', { class: 'emon-iv-st-main' }, stNode('b', { text: t(it.label) }), it.hint ? stNode('small', { text: t(it.hint) }) : null),
+            stNode('span', { class: 'emon-iv-st-chev', 'aria-hidden': 'true', text: '›' })))));
+    }));
+  }
+  const hubIsOpen = () => !!(hubEl && hubEl.classList.contains('show'));
+  function hubOpen() { if (!hubEl) return; hubRender(); showModal(hubEl); }
+  if (hubEl) {
+    hubCloseBtn.onclick = () => hideModal(hubEl);
+    bindBackdropClose(hubEl, () => hideModal(hubEl));
+    bus('emon-iv-open-menu', () => hubOpen());
+  }
 
   const sheetEl = byId('emon-iv-sheet');
   const sheetThumb = byId('emon-iv-sheet-thumb');
@@ -6797,5 +7633,5 @@
   document.querySelectorAll('body > .emon-iv-modal').forEach(n=>n.remove());
   if(!startApp()) renderPinsList();
   loadSavedPreviews();
-  offOnAbort(tavo.plugin.i18n.onChange(()=>{renderText();renderProfiles();loadSavedPreviews();refreshGameUI();if(stIsOpen()) stRender();if(lookModal&&lookModal.classList.contains('show')) syncLookModal()}));
+  offOnAbort(tavo.plugin.i18n.onChange(()=>{renderText();renderProfiles();loadSavedPreviews();refreshGameUI();if(stIsOpen()) stRender();if(lookModal&&lookModal.classList.contains('show')) syncLookModal();galOnLanguage();if(hubIsOpen()) hubRender();if(recycleModal&&recycleModal.classList.contains('show')&&recycleEntries.length) renderRecycleGrid()}));
 })();
