@@ -11,6 +11,7 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - If a link fails, it automatically tries other images the page points to until one loads. Ads and tracker hosts are skipped.
   - Works with JPG, PNG, WebP, AVIF, SVG and animated GIF.
   - Pin an image over the chat: drag to move, pinch or use +/- to resize, rotate and flip it. Up to **30 images** can be pinned at once; remove one to pin another. (An older chat with more than 30 pins keeps the extra ones safe: they wait and come back one by one as you remove pins.)
+  - Pinned images keep their place and size: if Tavo mounts the panel again they come back silently, a pin is only moved when it is really out of reach of the screen (measured against the screen's steady height, not the page an open keyboard shortens), and a pin's largest size is worked out from that steady height too.
   - Rename and manage your pins from the PINNED ON CHAT list.
   - Rename saved images and GIFs from their action sheet. Renaming only changes the label; the file is never touched.
   - Double-tap a pinned image, or tap a saved image, to open it fullscreen.
@@ -33,6 +34,7 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - Pictures load only when you scroll close to them, stay hidden until fully loaded, and then fade in, so the page jumps much less.
   - Tap a picture to see it bigger. In a group chat, tap a name at the top to switch characters.
   - Opening it from the panel closes the panel, so only the page is on screen. Close it with ×, with Close at the bottom, or by tapping outside it.
+  - **Shortcut button (optional):** turn on **Character page shortcut button** in the plugin's settings for a small round 🗿 button on the chat that opens the Character page in one tap, without opening the panel or the menu. Drag it anywhere; it remembers its place. **Reset floating button position** moves it, and the floating button, back. **Character page button: Stealth Mode** keeps it invisible until you touch it, separately from the floating button's own Stealth Mode.
   - It reads the card on your device only when you open it, and never changes it. See *Privacy & Security* below.
 
 - 🌐 **Page view**
@@ -77,9 +79,10 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - Floating button icon (Leaf, Classic, Moon, Star, Blossom, Butterfly, Wave, Orb) and color theme (Forest, Violet, Sunset, Ocean, Rose, Monochrome), now picked from the monkey's pop-up.
   - Default image size and opacity.
   - Remember pinned images.
-  - Stealth mode.
+  - Character page shortcut button (off by default).
+  - Stealth mode, chosen separately for the floating button and the Character page button.
   - Recycle Bin retention (7 or 30 days).
-  - Languages: English and Bengali.
+  - Languages: English and Bengali. Image Preview follows Tavo's language, or you can pick English or Bengali in the plugin's own settings, even when Tavo itself is not set to Bengali. Tavo's own menus and the names on the settings page always follow Tavo.
 
 - 🖼️ **Gallery**
   - Add pictures and GIFs from your phone once, then use them in any chat. Tap **Gallery** in the panel (or in the Image Preview menu), tap **Add pictures**, and in Tavo's picker open your folder and choose Select all.
@@ -119,6 +122,7 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - Page view downloads the page you ask for to a temporary file, reads it as inert text (nothing on it runs or loads: no scripts, styles, frames, ads or trackers), shows its words and pictures, and deletes the temporary file. It follows the same public-link rules and size limits. For Image Chest links, the picture list the page keeps inside itself is read the same way, as data that is never run. The site hosting the page and its pictures sees your IP address.
   - The Storage manager only looks for Image Preview's own files and settings (recognised by name), shows what will go before every clean-up, asks for an extra tick before the Recycle Bin is emptied, and sends nothing anywhere.
   - When an image loads from the web, the site hosting it sees your IP address (that can't be avoided), but never a Referer.
+  - The **Diagnostics** section at the end of the Help guide shows a short log of screen sizes, pin positions and timings (never a link or chat text). It lives only in the page's memory, is never saved or sent, and goes to your clipboard only when you tap Copy.
   - Found a problem? See [`SECURITY.md`](SECURITY.md).
 
 ## Installation
@@ -138,14 +142,15 @@ Updating from an older version? Close Tavo completely and open it again once, so
 
 ## Current Version
 
-**v2.28.2**
+**v2.29.1**
 
 Highlights:
 
-- New: **Gallery** — add pictures and GIFs from your phone once, keep them in collections that work in every chat (or in one chat only), and use them anywhere: search, 48 pictures per page, pin on the chat, move, save to device, remove. The pictures are copies kept inside Tavo's storage; your originals are never touched. Every picture gets a small preview, so even a page of 12-megapixel photos scrolls smoothly.
-- New: **Image Preview menu** — the chat's right sidebar now has one button that opens every tool, in groups that open and close and remember how you left them.
-- Improved: the **Recycle Bin** shows every picture's days left in a clear pill (amber from 3 days, red on the last day).
-- Improved: the Storage manager lists the Gallery with the space it uses.
+- New: **Language setting** — Same as Tavo (the default), English or Bengali, chosen in the plugin's own settings. It changes Image Preview's own screens; Tavo's own menus and setting names still follow Tavo.
+- New: **Character page shortcut button** — an optional small round 🗿 button on the chat that opens the Character page in one tap. Drag it anywhere. Its own Stealth Mode hides it until touched, separately from the floating button's.
+- Improved: pinned images come back silently, in the same place and size, if Tavo mounts the panel again, and their largest size follows the screen's steady height instead of the page an open keyboard shortens.
+- Fixed: the floating button and the game window crept upward each time the keyboard opened; a pin could stay off the screen after turning the phone; a mouse hovering over the floating button dragged it.
+- New: a small **Diagnostics** section in Help (sizes and timings only, never links or chat text) for reporting problems.
 - The ❔ Help guide explains all of this, in English and Bengali.
 
 See [`CHANGELOG.md`](CHANGELOG.md) or the [Releases](https://github.com/mrsae123/Image-Preview-/releases) page for the full history.

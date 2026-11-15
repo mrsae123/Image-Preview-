@@ -20,6 +20,7 @@ source/
   ui/panel.html        The plugin's chat-page layout (HTML only)
   ui/styles.css        Its styles
   ui/panel.js          Its logic: everything the panel does
+  ui/lang.js           The panel's words for the Language setting: a copy of the runtime part of both locale files (generated, do not edit by hand)
   locales/
     en.json            English text
     bn.json            Bengali text
@@ -34,7 +35,7 @@ The entry script and the panel talk through window events (`emon-iv-extract-resu
 ## Before opening a Pull Request
 
 - Test your change in Tavo on a real device if you can (the ⚓ pull gesture, the game and popups especially) — the plugin runs inside a WebView, and some bugs (touch handling, layout, scrolling) only show up there.
-- Keep new user-visible text out of the HTML directly — add it to both `locales/en.json` and `locales/bn.json` (an English fallback is fine for the Bengali file if you can't translate it yourself; say so in your PR).
+- Keep new user-visible text out of the HTML directly — add it to both `locales/en.json` and `locales/bn.json` (an English fallback is fine for the Bengali file if you can't translate it yourself; say so in your PR). Then rebuild `ui/lang.js`: it holds every key that starts with `runtime.`, `actions.` or `settings.` from both files, written as `window.__emonIvLang = {"en": {...}, "bn": {...}};` (the Language setting reads the panel's words from it), and `entry.js` keeps a small generated copy of its two toast texts (`ENTRY_TEXT`). If these copies are not rebuilt, a screen set to English or Bengali in the plugin's own Language setting shows the old words.
 - Try not to bundle unrelated changes into one PR — smaller, focused PRs are easier to review and merge.
 - Describe what you changed and why in the PR description.
 - Anything that loads or downloads a link must follow the existing link rules (`isFetchableUrl`: public `http(s)` only, and only images, GIFs and web pages), and should ask `peekCached` first when it fetches a file. A downloaded file is kept only after it passes the picture checks (`sniffImageExt` for links without a file ending, `probeLocalImage` for the rest). Please don't add permissions or new network calls without opening an Issue first.
@@ -47,7 +48,7 @@ The entry script and the panel talk through window events (`emon-iv-extract-resu
 ## Packaging a `.tpg` for testing
 
 1. Make sure `manifest.json`, `entry.js`, `icon.png`, `ui/`, and `locales/` are all up to date.
-2. Zip those five items together (not the containing folder) into a `.tpg` file, with `manifest.json` at the root of the zip. If the manifest declares any `sidebar`, `input`, or `lastMessageAction`, its `entry` field must point to `entry.js` (or the package will fail to install).
+2. Zip those five items together (not the containing folder) into a `.tpg` file, with `manifest.json` at the root of the zip. If the manifest declares any `sidebar`, `input`, or `lastMessageAction`, its `entry` field must point to `entry.js` (or the package will fail to install). `ui/panel.html` loads `ui/lang.js` before `ui/panel.js`; a script the page names but the package lacks stops the whole panel from loading.
 3. Install it in Tavo (or a backup chat) to test.
 
 If you change the version, update `version` in `manifest.json`, add a `releaseNotes.x_y_z` entry to both locale files (real line breaks, not the text `\n`) and remove the older ones (a package only describes its own release), point `releaseNotes` in the manifest to it, add the entry to `CHANGELOG.md`, and update the *Current Version* section of `README.md`.
