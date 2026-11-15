@@ -2,6 +2,7 @@
 
 <div id="emon-iv-root" hidden>
   <button id="emon-iv-fab" aria-label="Image Preview"><span>🖼️</span></button>
+  <button id="emon-iv-charbtn" type="button" aria-label="Character page" data-i18n-title="actions.characterPage"><span>🗿</span></button>
   <svg id="emon-iv-pouch-fx" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">
     <path id="emon-iv-pouch-rope" d="M0 0 Q50 50 100 100"></path>
     <ellipse id="emon-iv-pouch-loop" cx="50" cy="50" rx="34" ry="24"></ellipse>
@@ -155,6 +156,14 @@
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpStorageT">Storage manager</b><p data-i18n="runtime.helpStorageB"></p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpGalleryT">Gallery</b><p data-i18n="runtime.helpGalleryB"></p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpMenuT">Image Preview menu</b><p data-i18n="runtime.helpMenuB"></p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpShortcutT">Character page shortcut</b><p data-i18n="runtime.helpShortcutB"></p></div>
+          <div class="emon-iv-help-sec"><b data-i18n="runtime.helpLangT">Language</b><p data-i18n="runtime.helpLangB"></p></div>
+          <details class="emon-iv-diag" id="emon-iv-diag-box">
+            <summary data-i18n="runtime.diagTitle">Diagnostics (for bug reports)</summary>
+            <p class="emon-iv-help" data-i18n="runtime.diagBody"></p>
+            <pre id="emon-iv-diag-log"></pre>
+            <button type="button" id="emon-iv-diag-copy" class="emon-iv-btn secondary" data-i18n="runtime.lookupCopy">Copy</button>
+          </details>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpThemeT">Make it yours</b><p data-i18n="runtime.helpThemeB">See the little monkey munching a banana next to the title? Poke him — he gets grumpy, then opens the look options: a wallpaper from your phone (or an image link), how dark it is, a nature-inspired panel background like Forest or Aurora, the panel font, and your floating button&#39;s icon and color. Everything applies right away, and &quot;Back to defaults&quot; undoes your changes.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS3T">Quick Lookup ⚓</b><p data-i18n="runtime.helpS3B">The ⚓ hangs on a rope and sways by itself. Pull it down to open Translate, Meaning and Web Search. To close, tap the ⚓ or pull it down again. A tap on the closed anchor only gives the rope a tug.</p></div>
           <div class="emon-iv-help-sec"><b data-i18n="runtime.helpS4T">Game Corner</b><p data-i18n="runtime.helpS4B">Tap 🎮 for a Jump Game, Snake and Memory Bomb, or add your own game. Drag the top bar to move the window and the corner to resize it. The ⚙ button inside a game holds your player name and that game&#39;s own settings and resets.</p></div>
@@ -525,4 +534,5 @@
   </div>
 </div>
 
+<script src="/plugins/com.emon.image-viewer/ui/lang.js" charset="utf-8"></script>
 <script src="/plugins/com.emon.image-viewer/ui/panel.js" charset="utf-8"></script>

@@ -7,6 +7,10 @@
   // Everything below is looked up inside this copy's own root first (the page is the fallback for pop-ups that were moved out of it).
   const byId = (id) => root.querySelector('#' + id) || document.getElementById(id);
 
+  // A short log of mounts, resizes and pin positions, shown in Help > Diagnostics. Numbers and timings only, never links or chat text.
+  const DIAG = (window.__emonIvDiag = Array.isArray(window.__emonIvDiag) ? window.__emonIvDiag : []);
+  const diag = (msg) => { try { DIAG.push((performance.now() / 1000).toFixed(2) + 's ' + msg); if (DIAG.length > 80) DIAG.splice(0, DIAG.length - 80); } catch {} };
+  diag('mount #' + (window.__emonIvMounts = (window.__emonIvMounts || 0) + 1) + ', pins on screen ' + document.querySelectorAll('[data-emon-pin]').length);
   // If this fragment gets mounted again in the same window (chat switch, plugin reload), the previous copy's window
   // listeners and Tavo subscriptions are released first, so nothing runs twice.
   try { window.__emonIvLife && window.__emonIvLife.abort(); } catch {}
@@ -19,12 +23,12 @@
   const bus = (name, fn) => {
     // While this copy's page is gone a message is ignored and left unanswered (entry.js then tells the person the panel isn't ready);
     // otherwise it is marked as handled (preventDefault) before it runs.
-    const run = (e) => { if (!root.isConnected) return; try { e.preventDefault(); } catch {} fn(e); };
+    const run = (e) => { if (!root.isConnected) return; try { e.preventDefault(); } catch {} try { syncSettings(); } catch {} fn(e); };
     winOn(name + '-v2', run);
     winOn(name, (e) => { try { e.stopImmediatePropagation(); } catch {} run(e); }, { capture: true });
   };
   const offOnAbort = (off) => { if (typeof off === 'function') life.signal.addEventListener('abort', () => { try { off(); } catch {} }, { once: true }); };
-  life.signal.addEventListener('abort', () => { try { document.querySelectorAll('[data-emon-pin]').forEach(n => n.remove()); } catch {} }, { once: true });
+  life.signal.addEventListener('abort', () => { try { const gone = document.querySelectorAll('[data-emon-pin]'); window.__emonIvHadPins = { n: gone.length, at: Date.now() }; gone.forEach(n => n.remove()); diag('unmount, pins removed ' + gone.length); } catch {} }, { once: true });
 
   const fab = byId('emon-iv-fab');
   const panel = byId('emon-iv-panel');
@@ -204,8 +208,59 @@
   let pinsOverflow = [];      // saved pins beyond the limit (from older versions): kept safe in storage, not drawn
   let pinSeq = 0;
 
+  // ---- Language: follows Tavo by default; the plugin's own Language setting can force English or Bangla ----
+  // Tavo's Language list has no Bangla. The panel's words come from ui/lang.js (a build-time copy of the runtime part of
+  // locales/*.json). Tavo's own menus and setting names still follow Tavo's language: a plugin cannot change those.
+  const LANG_CATS = (() => {
+    try {
+      const c = window.__emonIvLang;
+      try { delete window.__emonIvLang; } catch { window.__emonIvLang = undefined; }
+      return (c && typeof c === 'object' && c.en && typeof c.en === 'object' && c.bn && typeof c.bn === 'object') ? c : null;
+    } catch { return null; }
+  })();
+  function readUiLang() {
+    let v = 'auto';
+    try { const cf = tavo.plugin.config; v = String((cf.get ? cf.get('uiLanguage') : cf.all().uiLanguage) || 'auto'); } catch {}
+    return (v === 'en' || v === 'bn') ? v : 'auto';
+  }
+  let uiLangNow = readUiLang();
+  const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+  function fillParams(s, params) {
+    if (!params) return s;
+    return String(s).replace(/\{([A-Za-z0-9_]+)\}/g, (m, k) => {
+      if (!hasOwn(params, k)) return m;
+      const v = params[k];
+      return (typeof v === 'string' || typeof v === 'boolean' || (typeof v === 'number' && Number.isFinite(v))) ? String(v) : m;
+    });
+  }
   function t(key, params) {
+    if (uiLangNow !== 'auto' && LANG_CATS) {
+      const cat = LANG_CATS[uiLangNow];
+      const s = hasOwn(cat, key) ? cat[key] : (hasOwn(LANG_CATS.en, key) ? LANG_CATS.en[key] : null);
+      if (typeof s === 'string') return fillParams(s, params);
+    }
     return tavo.plugin.i18n.t(key, params);
+  }
+  // The settings page is a different screen: when the person comes back to the chat, pick up a changed Language or shortcut setting.
+  function syncSettings() {
+    const L = readUiLang();
+    if (L !== uiLangNow) { uiLangNow = L; try { refreshLanguage(); } catch {} }
+    try { syncCharShortcut(); } catch {}
+  }
+
+  // The screen's real size, ignoring the on-screen keyboard. While the keyboard is open the page is shorter; anything sized or
+  // placed from the page height would shrink or slide with it and jump back when it closes. This remembers the tallest height
+  // seen at the current width (turning the phone, or a window resize, starts it again).
+  let vpW = 0, vpH = 0;
+  try { const pv = window.__emonIvVp; if (pv && pv.w >= 100 && pv.h >= 100) { vpW = pv.w; vpH = pv.h; } } catch {}   // handed on by the copy before this one
+  function viewport() {
+    const w = window.innerWidth, h = window.innerHeight;
+    if (w >= 100 && h >= 100) {          // a page that has no real size yet (0 x 0) must never become the reference
+      if (!vpW || Math.abs(w - vpW) > 40) { vpW = w; vpH = h; }
+      else { vpW = w; if (h > vpH) vpH = h; }
+      try { window.__emonIvVp = { w: vpW, h: vpH }; } catch {}
+    }
+    return { w: vpW || w, h: vpH || h };
   }
 
   // Keep floating controls clear of Tavo's own top bar / composer using the documented
@@ -1835,6 +1890,9 @@
     }
   }
 
+  let pinsSaveTimer = 0;
+  function queuePinsSave() { clearTimeout(pinsSaveTimer); pinsSaveTimer = setTimeout(() => { try { savePins(); } catch {} }, 600); }
+  offOnAbort(() => clearTimeout(pinsSaveTimer));
   function savePins() {
     if (!cfg().rememberPins) return;
     try {
@@ -1931,7 +1989,7 @@
     img.style.transformOrigin = 'center center';
   }
 
-  function renderPin(p) {
+  function renderPin(p, animate = true) {
     const el = document.createElement('div');
     el.className = 'emon-iv-pinned';
     el.dataset.emonPin = p.id;
@@ -1951,9 +2009,16 @@
       <div class="sizebadge"></div>
       <div class="grip"></div>
     `;
-    el.classList.add('emon-iv-spawn');
+    // The TV-turn-on effect is for a picture you have just pinned (or the first time a chat opens), not for pins that come back after a re-mount.
+    if (animate) el.classList.add('emon-iv-spawn');
+    const pinImg = el.querySelector('img');
+    if (Number(p.ar) > 0) pinImg.style.aspectRatio = String(p.ar);     // right size from the first frame, so a re-created pin does not jump when its picture loads
+    pinImg.addEventListener('load', () => {
+      const nw = pinImg.naturalWidth, nh = pinImg.naturalHeight;
+      if (nw > 0 && nh > 0) { const ar = Math.round((nw / nh) * 1000) / 1000; if (p.ar !== ar) { p.ar = ar; pinImg.style.aspectRatio = String(ar); queuePinsSave(); } }
+    });
     document.body.appendChild(el);
-    el.addEventListener('animationend', () => el.classList.remove('emon-iv-spawn'), {once:true});
+    if (animate) el.addEventListener('animationend', () => el.classList.remove('emon-iv-spawn'), {once:true});
     bindPinDrag(el,p);
     el.querySelector('[data-act="minus"]').onclick = e => {e.stopPropagation();setScale(p,p.scale*.85)};
     el.querySelector('[data-act="plus"]').onclick = e => {e.stopPropagation();setScale(p,p.scale*1.18)};
@@ -2128,6 +2193,7 @@
   function applyFabLook(){
     const th=FAB_THEMES[lookVal('fabTheme')]||FAB_THEMES.forest;
     fab.style.setProperty('--emon-fab-a',th[0]); fab.style.setProperty('--emon-fab-b',th[1]);
+    const cb0=byId('emon-iv-charbtn'); if(cb0){ cb0.style.setProperty('--emon-fab-a',th[0]); cb0.style.setProperty('--emon-fab-b',th[1]); }
     const span=fab.querySelector('span'); if(span) span.textContent=FAB_ICONS[lookVal('fabIcon')]||FAB_ICONS.leaf;
   }
   function applyPanelLook(){
@@ -2949,8 +3015,8 @@
       { id: 'pages', count: pageList.length, bytes: sum(pageFiles) },
       { id: 'lookup', count: hist.length, bytes: stVarBytes('emonImageViewerLookupHistory') + stVarBytes('emonImageViewerHistoryOn'), on: isHistoryEnabled() },
       { id: 'keys', count: (brave ? 1 : 0) + (tav ? 1 : 0), bytes: stVarBytes('emonImageViewerBraveKey', 'global') + stVarBytes(TAVILY_VAR, 'global') + stVarBytes(ENGINE_VAR, 'global'), brave, tavily: tav },
-      { id: 'look', count: Object.keys(getLookOverrides()).length, bytes: stVarBytes(LOOK_VAR, 'global') + stVarBytes(WALL_VAR, 'global') + stVarBytes('emonImageViewerFabPosition', 'global')
-        + stVarBytes('emonImageViewerCleanIntro', 'global') + stVarBytes('emonImageViewerPrivacyMode', 'global') + sum(wallFiles), wall: sum(wallFiles), wallCount: wallFiles.length, fab: stHas('emonImageViewerFabPosition', 'global') },
+      { id: 'look', count: Object.keys(getLookOverrides()).length, bytes: stVarBytes(LOOK_VAR, 'global') + stVarBytes(WALL_VAR, 'global') + stVarBytes('emonImageViewerFabPosition', 'global') + stVarBytes('emonImageViewerCharBtnPosition', 'global')
+        + stVarBytes('emonImageViewerCleanIntro', 'global') + stVarBytes('emonImageViewerPrivacyMode', 'global') + sum(wallFiles), wall: sum(wallFiles), wallCount: wallFiles.length, fab: stHas('emonImageViewerFabPosition', 'global') || stHas('emonImageViewerCharBtnPosition', 'global') },
       { id: 'games', count: getUserGames().length, bytes: sum(gameFiles) + stGameVars().reduce((n, k) => n + stVarBytes(k, 'global'), 0), gameFiles: gameFiles.length },
     ];
     return { cats, total: cats.reduce((n, c) => n + c.bytes, 0), complete: cs.complete && gs.complete, removableTemp: removable.length };
@@ -3002,7 +3068,7 @@
   }
   async function stResetLook() {
     const res = { done: 0, failed: 0 };
-    for (const k of [LOOK_VAR, WALL_VAR, 'emonImageViewerFabPosition']) { try { tavo.set(k, null, 'global'); res.done++; } catch { res.failed++; } }
+    for (const k of [LOOK_VAR, WALL_VAR, 'emonImageViewerFabPosition', 'emonImageViewerCharBtnPosition']) { try { tavo.set(k, null, 'global'); res.done++; } catch { res.failed++; } }
     try {      // wallpaper pictures: by name only, so a stored path can never point this at a file that is not ours
       const scan = await stScan('global', f => (ST_WALL_RE.test(stBase(f.name || f.path)) ? 'wall' : ''));
       for (const f of scan.files) { try { await tavo.file.delete(f.path, { scope: 'global' }); } catch { res.failed++; } }
@@ -5401,6 +5467,7 @@
   const hubEl = byId('emon-iv-hub'), hubBody = byId('emon-iv-hub-body'), hubCloseBtn = byId('emon-iv-hub-close');
   function hubResetFab() {
     try { tavo.set('emonImageViewerFabPosition', null, 'global'); } catch {}
+    try { tavo.set('emonImageViewerCharBtnPosition', null, 'global'); } catch {}
     try { window.dispatchEvent(new CustomEvent('emon-iv-fab-reset-v2')); } catch {}
     try { tavo.utils.toast(t('runtime.fabResetToast')); } catch {}
   }
@@ -5408,7 +5475,7 @@
     { id: 'pics', title: 'runtime.hubPics', items: [
       { icon: '🖼️', label: 'runtime.galTitle', hint: 'runtime.hubGalleryHint', go: () => galOpen() },
       { icon: '🔎', label: 'actions.scanChat', go: () => requireTerms(() => scanChatForImages()) },
-      { icon: '👤', label: 'actions.characterPage', go: () => requireTerms(() => openCharacterPage()) },
+      { icon: '🗿', label: 'actions.characterPage', go: () => requireTerms(() => openCharacterPage()) },
       { icon: '🌐', label: 'actions.webPreview', go: () => openWebPreview('') }] },
     { id: 'tidy', title: 'runtime.hubTidy', items: [
       { icon: '🗑️', label: 'actions.openRecycleBin', go: () => requireTerms(() => { openRecycleBin(); }) },
@@ -5608,11 +5675,11 @@
   // A restored pin must never come back somewhere it can't be grabbed (under the top bar, or off the side after a
   // different screen size): its corner is brought back into the visible, tappable area.
   function keepPinReachable(p){
-    const ins=safeInsets();
+    const ins=safeInsets(), vp=viewport();     // steady screen size: a pin must not be pulled toward the middle just because the keyboard is open
     const x=Number(p.x), y=Number(p.y), w=Number(p.width)||Number(cfg().defaultImageSize||220);
     const dp=defaultPinPos(w);
-    p.x=Number.isFinite(x)?Math.max(72-w,Math.min(innerWidth-72,x)):dp.x;
-    p.y=Number.isFinite(y)?Math.max(ins.top,Math.min(innerHeight-ins.bottom-72,y)):dp.y;
+    p.x=Number.isFinite(x)?Math.max(72-w,Math.min(vp.w-72,x)):dp.x;
+    p.y=Number.isFinite(y)?Math.max(ins.top,Math.min(vp.h-ins.bottom-72,y)):dp.y;
   }
   // Pin toolbars are built when a pin is created, so their button labels are refreshed in place when the language changes.
   function relabelPins(){
@@ -5627,6 +5694,10 @@
   function restorePins() {
     // pins already on screen belong to a previous copy of this panel (chat switch, plugin reload): drop them first
     document.querySelectorAll('[data-emon-pin]').forEach(n=>n.remove());
+    // Pins coming back after a re-mount (a chat switch, a plugin reload, or Tavo mounting the panel again) return silently: same place, same size,
+    // no TV-turn-on effect. That effect stays for a picture you have just pinned and for the first time a chat opens.
+    const had=window.__emonIvHadPins; window.__emonIvHadPins=null;
+    const quiet=!!(had&&had.n>0&&Date.now()-had.at<5000);
     pins=[]; pinsOverflow=[];
     if(cfg().rememberPins){
       try{
@@ -5637,7 +5708,8 @@
           pins=all.slice(0,MAX_PINS);
           pinsOverflow=all.slice(MAX_PINS).map(({id,...rest})=>rest);   // beyond the limit: kept safe, not drawn
           pins.forEach(keepPinReachable);
-          pins.forEach(renderPin);
+          pins.forEach(p=>renderPin(p,!quiet));
+          diag('pins restored '+pins.length+(quiet?', silently':', with the turn-on effect'));
           if(pinsOverflow.length) setTimeout(()=>{ try{ tavo.utils.toast(t('runtime.pinsWaiting',{n:pinsOverflow.length})); }catch{} },700);
         }
       }catch{}
@@ -5647,7 +5719,7 @@
   }
 
   // Floating button drag/open
-  let fabDragging=false, fabStartX=0,fabStartY=0,fabOrigX=0,fabOrigY=0;
+  let fabDragging=false, fabDown=false, fabStartX=0,fabStartY=0,fabOrigX=0,fabOrigY=0;   // fabDown: a finger/button is really on it (hovering must not drag)
   const fabStart=e=>{
     if(fab.classList.contains('stealth')){fab.classList.add('peek');clearTimeout(fab._peekTimer);fab._peekTimer=setTimeout(()=>fab.classList.remove('peek'),1200)}
     const pt=e.touches?e.touches[0]:e;
@@ -5655,6 +5727,7 @@
     const r=fab.getBoundingClientRect();fabOrigX=r.left;fabOrigY=r.top;
   };
   const fabMove=e=>{
+    if(!fabDown) return;
     const pt=e.touches?e.touches[0]:e;
     const dx=pt.clientX-fabStartX,dy=pt.clientY-fabStartY;
     if(Math.abs(dx)+Math.abs(dy)>8)fabDragging=true;
@@ -5698,7 +5771,10 @@
     _panelTimer = setTimeout(()=>panel.classList.remove('closing'), 360);
   }
   const fabEnd=()=>{
+    if(!fabDown) return;
+    fabDown=false;
     if(!fabDragging){
+      try{ syncSettings(); }catch{}
       if(panel.classList.contains('open')) setPanelOpen(false);
       else requireTerms(()=>setPanelOpen(true));      // the first tap asks for the quick agreement; nothing opens before it
     }
@@ -5706,16 +5782,18 @@
     fabDragging=false;
   };
   // Pointer Events handle mouse, touch, and pen. Do not bind touch events too; on mobile they can fire alongside pointer events and toggle the panel twice.
-  fab.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;fabStart(e);fab.setPointerCapture?.(e.pointerId)});
+  fab.addEventListener('pointerdown',e=>{if(e.button!==undefined&&e.button!==0)return;fabDown=true;fabStart(e);fab.setPointerCapture?.(e.pointerId)});
   fab.addEventListener('pointermove',fabMove);
   fab.addEventListener('pointerup',fabEnd);
-  fab.addEventListener('pointercancel',()=>{fabDragging=false});
+  fab.addEventListener('pointercancel',()=>{fabDragging=false;fabDown=false});
   // Fired by the plugin's "Reset FAB position" sidebar action (see entry.js). Clearing the inline
   // overrides lets the default CSS corner position (see #emon-iv-fab) take over immediately.
   bus('emon-iv-fab-reset',()=>{
     try{
       fab.style.left='';fab.style.top='';fab.style.right='';fab.style.bottom='';
       fab.classList.remove('dragging');
+      const cbr=byId('emon-iv-charbtn');
+      if(cbr){ cbr.style.left='';cbr.style.top='';cbr.style.right='';cbr.style.bottom='';cbr.classList.remove('reset-pulse'); void cbr.offsetWidth; if(!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){ cbr.classList.add('reset-pulse'); setTimeout(()=>cbr.classList.remove('reset-pulse'),560); } try{ cbPeek(2000); }catch{} }
       const reduced=!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       if(!reduced){
         fab.classList.remove('reset-pulse');
@@ -6248,8 +6326,9 @@
     if(!gameEl || !gameEl.classList.contains('open')) return;
     const ins=safeInsets();
     const rect = gameEl.getBoundingClientRect();
-    const nx = Math.max(0, Math.min(innerWidth-60, rect.left));
-    const ny = Math.max(ins.top, Math.min(innerHeight-60-ins.bottom, rect.top));
+    const vp = viewport();       // steady screen size: the keyboard must not push the open game window up for good
+    const nx = Math.max(0, Math.min(vp.w-60, rect.left));
+    const ny = Math.max(ins.top, Math.min(vp.h-60-ins.bottom, rect.top));
     if(gameEl.style.transform==='none'){ gameEl.style.left=nx+'px'; gameEl.style.top=ny+'px'; }
   });
   // The panel close button closes only the Image Preview panel. The game has its own X button.
@@ -7611,16 +7690,125 @@
     const st=document.documentElement.style;
     st.setProperty('--emon-iv-top',(top>0?top:76)+'px');      // 76px until the app has told us its real top bar
     st.setProperty('--emon-iv-bottom',bottom+'px');
+    // Pinned images are sized from the steady screen height/width, not the keyboard-shortened page: they no longer shrink or jump when the keyboard opens.
+    const vp=viewport();
+    if(vp.w>=100&&vp.h>=100){ st.setProperty('--emon-iv-vh',(vp.h/100)+'px'); st.setProperty('--emon-iv-vw',(vp.w/100)+'px'); }
   };
   applyModalInsets();
+
+  // ---- Character page shortcut: a small round button that opens the Character page in one tap ----
+  // Off until "Character page shortcut button" is switched on in the plugin's settings. Drag it anywhere; it remembers its place.
+  const charBtn=byId('emon-iv-charbtn');
+  const CHAR_POS_VAR='emonImageViewerCharBtnPosition';
+  const cs=Math.max(30,Math.min(44,Math.round(bs*0.72)));
+  if(charBtn){
+    charBtn.style.width=cs+'px';charBtn.style.height=cs+'px';charBtn.style.fontSize=Math.max(14,cs*.5)+'px';
+    charBtn.style.setProperty('--emon-fab-opacity',String(Math.max(.45,bo)));
+  }
+  const cbPlace=(x,y,live)=>{
+    const ins=safeInsets(), vp=live?{w:innerWidth,h:innerHeight}:viewport();
+    const w=charBtn.offsetWidth||cs, hh=charBtn.offsetHeight||cs;
+    charBtn.style.left=Math.max(4,Math.min(vp.w-w-4,x))+'px';
+    charBtn.style.top=Math.max(ins.top,Math.min(vp.h-hh-ins.bottom,y))+'px';
+    charBtn.style.right='auto';charBtn.style.bottom='auto';
+  };
+  function clampCharBtn(){
+    if(!charBtn||!(charBtn.style.left&&charBtn.style.top)) return;
+    cbPlace(parseFloat(charBtn.style.left)||0,parseFloat(charBtn.style.top)||0,false);
+  }
+  let charBtnOn=null, charBtnStealth=null, cbPeekTimer=0;
+  offOnAbort(()=>clearTimeout(cbPeekTimer));
+  // Stealth Mode for this button works like the floating button's: invisible until touched, then it shows for a moment.
+  const cbPeek=(ms)=>{ if(!charBtn||!charBtn.classList.contains('stealth')) return; charBtn.classList.add('peek'); clearTimeout(cbPeekTimer); cbPeekTimer=setTimeout(()=>charBtn.classList.remove('peek'),ms); };
+  function syncCharShortcut(){
+    if(!charBtn) return;
+    let on=false, st=false; try{ const cf=tavo.plugin.config; on=!!cf.get('characterShortcut'); st=!!cf.get('characterStealth'); }catch{}
+    if(on===charBtnOn&&st===charBtnStealth) return;
+    const first=charBtnOn===null;
+    charBtnOn=on; charBtnStealth=st;
+    charBtn.classList.toggle('show',on);
+    charBtn.classList.toggle('stealth',st);
+    if(on&&st&&!first) cbPeek(2200);       // the setting was just changed: show where the invisible button is for a moment
+    if(on&&!(charBtn.style.left&&charBtn.style.top)){
+      try{
+        const pos=tavo.get(CHAR_POS_VAR,'global');
+        if(pos&&Number.isFinite(pos.x)&&Number.isFinite(pos.y)) requestAnimationFrame(()=>{ if(charBtn.isConnected&&!(charBtn.style.left&&charBtn.style.top)) cbPlace(pos.x,pos.y,false); });
+      }catch{}
+    }
+  }
+  if(charBtn){
+    let cbDown=false,cbDrag=false,cbX=0,cbY=0,cbOX=0,cbOY=0;
+    // Pointer Events only (mouse, touch and pen); binding touch events as well can fire twice on a phone.
+    charBtn.addEventListener('pointerdown',e=>{
+      if(e.button!==undefined&&e.button!==0) return;
+      const r=charBtn.getBoundingClientRect();
+      cbDown=true;cbDrag=false;cbX=e.clientX;cbY=e.clientY;cbOX=r.left;cbOY=r.top;
+      cbPeek(1200);
+      try{charBtn.setPointerCapture?.(e.pointerId)}catch{}
+    });
+    charBtn.addEventListener('pointermove',e=>{
+      if(!cbDown) return;
+      const dx=e.clientX-cbX,dy=e.clientY-cbY;
+      if(Math.abs(dx)+Math.abs(dy)>8) cbDrag=true;
+      if(!cbDrag) return;
+      if(charBtn.classList.contains('stealth')){ charBtn.classList.add('peek'); clearTimeout(cbPeekTimer); }     // stays visible under the finger
+      cbPlace(cbOX+dx,cbOY+dy,true);
+      e.preventDefault();
+    });
+    charBtn.addEventListener('pointerup',()=>{
+      if(!cbDown) return;
+      cbDown=false;
+      cbPeek(1200);
+      if(cbDrag){ cbDrag=false; const r=charBtn.getBoundingClientRect(); try{tavo.set(CHAR_POS_VAR,{x:r.left,y:r.top},'global');}catch{} return; }
+      syncSettings();
+      requireTerms(()=>openCharacterPage());       // same agreement step as every other feature
+    });
+    charBtn.addEventListener('pointercancel',()=>{cbDown=false;cbDrag=false;cbPeek(1200)});
+  }
+
+  // After a turn (the width changes) a pin can end up off the side of the new screen: bring it back. Never for the keyboard (height only).
+  let lastTurnW=innerWidth, turnTimer=0;
+  const reclampPinsAfterTurn=()=>{
+    if(Math.abs(innerWidth-lastTurnW)<40) return;
+    lastTurnW=innerWidth;
+    clearTimeout(turnTimer);
+    turnTimer=setTimeout(()=>{
+      if(!root.isConnected) return;
+      let moved=false;
+      for(const p of pins){ const ox=p.x, oy=p.y; keepPinReachable(p); if(p.x!==ox||p.y!==oy){ applyPin(p); moved=true; } }
+      if(moved) savePins();
+    },250);
+  };
+  offOnAbort(()=>clearTimeout(turnTimer));
+  // Diagnostics: note each new screen size once, and where the pins really are a moment after the size settled.
+  let diagLastSize='', diagTimer=0;
+  const diagResize=()=>{
+    const vv=window.visualViewport;
+    const sz=innerWidth+'x'+innerHeight+(vv?' vv '+Math.round(vv.width)+'x'+Math.round(vv.height)+'@'+Math.round(vv.offsetLeft)+','+Math.round(vv.offsetTop):'');
+    if(sz===diagLastSize) return;
+    diagLastSize=sz;
+    if(!diagTimer) diag('resize starts: '+sz+', steady '+viewport().w+'x'+viewport().h);      // one line when a burst starts, one when it settles
+    clearTimeout(diagTimer);
+    diagTimer=setTimeout(()=>{
+      diagTimer=0;
+      try{
+        const els=[...document.querySelectorAll('[data-emon-pin]')];
+        diag('settled at '+diagLastSize+', scrollY '+Math.round(window.scrollY||0)+', pins '+els.length+', body transform '+getComputedStyle(document.body).transform+(els.length?', '+els.slice(0,3).map(e=>{const r=e.getBoundingClientRect();return '['+Math.round(r.left)+','+Math.round(r.top)+' want '+parseInt(e.style.left)+','+parseInt(e.style.top)+']';}).join(' '):''));
+      }catch{}
+    },400);
+  };
+  offOnAbort(()=>clearTimeout(diagTimer));
   const clampFab=()=>{
+    diagResize();
     applyModalInsets();
+    reclampPinsAfterTurn();
+    clampCharBtn();
     if(!(fab.style.left && fab.style.top)) return;
-    const ins=safeInsets();
+    const ins=safeInsets(), vp=viewport();      // steady screen size: the keyboard must not push the button up for good
     const w=fab.offsetWidth||bs, hh=fab.offsetHeight||bs;
     const left=parseFloat(fab.style.left)||0, top=parseFloat(fab.style.top)||0;
-    fab.style.left=Math.max(4,Math.min(innerWidth-w-4,left))+'px';
-    fab.style.top=Math.max(ins.top,Math.min(innerHeight-hh-ins.bottom,top))+'px';
+    fab.style.left=Math.max(4,Math.min(vp.w-w-4,left))+'px';
+    fab.style.top=Math.max(ins.top,Math.min(vp.h-hh-ins.bottom,top))+'px';
   };
   winOn('resize',clampFab);
   try{
@@ -7633,5 +7821,19 @@
   document.querySelectorAll('body > .emon-iv-modal').forEach(n=>n.remove());
   if(!startApp()) renderPinsList();
   loadSavedPreviews();
-  offOnAbort(tavo.plugin.i18n.onChange(()=>{renderText();renderProfiles();loadSavedPreviews();refreshGameUI();if(stIsOpen()) stRender();if(lookModal&&lookModal.classList.contains('show')) syncLookModal();galOnLanguage();if(hubIsOpen()) hubRender();if(recycleModal&&recycleModal.classList.contains('show')&&recycleEntries.length) renderRecycleGrid()}));
+  // Everything on screen that has words in it, redrawn in the language now in use (Tavo's language changed, or the Language setting did).
+  function refreshLanguage(){renderText();renderProfiles();loadSavedPreviews();refreshGameUI();if(stIsOpen()) stRender();if(lookModal&&lookModal.classList.contains('show')) syncLookModal();galOnLanguage();if(hubIsOpen()) hubRender();if(recycleModal&&recycleModal.classList.contains('show')&&recycleEntries.length) renderRecycleGrid()}
+  offOnAbort(tavo.plugin.i18n.onChange(refreshLanguage));
+  syncCharShortcut();
+  winOn('focus',()=>diag('window focus'));
+  winOn('blur',()=>diag('window blur'));
+  document.addEventListener('visibilitychange',()=>diag('page '+(document.hidden?'hidden':'visible')),{signal:life.signal});
+  const diagBox=byId('emon-iv-diag-box'), diagPre=byId('emon-iv-diag-log'), diagCopy=byId('emon-iv-diag-copy');
+  const renderDiag=()=>{ if(diagPre) diagPre.textContent=DIAG.join('\n'); };
+  if(diagBox) diagBox.addEventListener('toggle',()=>{ if(diagBox.open) renderDiag(); });
+  if(diagCopy) diagCopy.onclick=async()=>{ renderDiag(); try{ await navigator.clipboard.writeText(DIAG.join('\n')); tavo.utils.toast(t('runtime.lookupCopied')); }catch{} };
+  diag('ready, screen '+innerWidth+'x'+innerHeight);
+  winOn('focus',syncSettings);
+  winOn('pageshow',syncSettings);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) syncSettings(); },{signal:life.signal});
 })();
