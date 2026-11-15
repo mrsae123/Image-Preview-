@@ -97,12 +97,26 @@ function extractImageUrls(text) {
   return urls;
 }
 
+// Words for the two toasts in this file. Tavo's own `tavo.plugin.i18n.t` follows Tavo's language; when the plugin's Language
+// setting forces English or Bangla these copies (made from locales/*.json at build time) are used instead.
+// If either of these two texts changes in locales/*.json, regenerate this block too.
+/*ENTRY_TEXT_BEGIN*/
+const ENTRY_TEXT = {"en":{"runtime.panelNotReady":"Image Preview isn't ready yet. Open a chat (with Advanced Rendering on) and try again.","runtime.extractNone":"No image or GIF links found in that text."},"bn":{"runtime.panelNotReady":"Image Preview এখনও প্রস্তুত নয়। Advanced Rendering চালু রেখে একটি chat খুলে আবার চেষ্টা করুন।","runtime.extractNone":"ওই text-এ কোনো image বা GIF link পাওয়া যায়নি।"}};
+/*ENTRY_TEXT_END*/
+function entryText(key) {
+  try {
+    const v = String(tavo.plugin.config.get('uiLanguage') || 'auto');
+    if ((v === 'en' || v === 'bn') && ENTRY_TEXT[v] && ENTRY_TEXT[v][key]) return ENTRY_TEXT[v][key];
+  } catch {}
+  return tavo.plugin.i18n.t(key);
+}
+
 // Sends one message to the panel (panel.html's script). The panel marks it as handled; when nobody does (the page is still loading, or
 // the panel's page is gone) the person is told, instead of a tap that silently does nothing.
 function sendToPanel(name, detail) {
   try {
     const handled = !window.dispatchEvent(new CustomEvent(name, { detail, cancelable: true }));   // false from dispatchEvent = a listener called preventDefault()
-    if (!handled) { try { tavo.utils.toast(tavo.plugin.i18n.t('runtime.panelNotReady')); } catch {} }
+    if (!handled) { try { tavo.utils.toast(entryText('runtime.panelNotReady')); } catch {} }
     return handled;
   } catch { return false; }
 }
@@ -112,7 +126,7 @@ tavo.plugin.onInputAction('extract-images', async () => {
   const urls = extractImageUrls(text || '');
 
   if (!urls.length) {
-    try { tavo.utils.toast(tavo.plugin.i18n.t('runtime.extractNone')); } catch {}
+    try { tavo.utils.toast(entryText('runtime.extractNone')); } catch {}
     return;
   }
 

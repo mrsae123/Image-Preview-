@@ -4,14 +4,14 @@
   "name": {
     "$t": "plugin.name"
   },
-  "version": "2.28.2",
+  "version": "2.29.1",
   "entry": "entry.js",
   "author": "Emon",
   "description": {
     "$t": "plugin.description"
   },
   "releaseNotes": {
-    "$t": "releaseNotes.2_28_2"
+    "$t": "releaseNotes.2_29_1"
   },
   "localization": {
     "defaultLocale": "en",
@@ -67,6 +67,33 @@
           "icon": "info"
         },
         {
+          "key": "uiLanguage",
+          "type": "select",
+          "label": {
+            "$t": "settings.uiLanguage"
+          },
+          "description": {
+            "$t": "settings.uiLanguageInfo"
+          },
+          "default": "auto",
+          "options": [
+            {
+              "value": "auto",
+              "label": {
+                "$t": "settings.langAuto"
+              }
+            },
+            {
+              "value": "en",
+              "label": "English"
+            },
+            {
+              "value": "bn",
+              "label": "বাংলা"
+            }
+          ]
+        },
+        {
           "key": "enabled",
           "type": "switch",
           "label": {
@@ -101,6 +128,28 @@
           "type": "switch",
           "label": {
             "$t": "settings.stealthMode"
+          },
+          "default": false
+        },
+        {
+          "key": "characterShortcut",
+          "type": "switch",
+          "label": {
+            "$t": "settings.characterShortcut"
+          },
+          "description": {
+            "$t": "settings.characterShortcutInfo"
+          },
+          "default": false
+        },
+        {
+          "key": "characterStealth",
+          "type": "switch",
+          "label": {
+            "$t": "settings.characterStealth"
+          },
+          "description": {
+            "$t": "settings.characterStealthInfo"
           },
           "default": false
         },
