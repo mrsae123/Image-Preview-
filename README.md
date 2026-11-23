@@ -11,11 +11,12 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - If a link fails, it automatically tries other images the page points to until one loads. Ads and tracker hosts are skipped.
   - Works with JPG, PNG, WebP, AVIF, SVG and animated GIF.
   - Pin an image over the chat: drag to move, pinch or use +/- to resize, rotate and flip it. Up to **30 images** can be pinned at once; remove one to pin another. (An older chat with more than 30 pins keeps the extra ones safe: they wait and come back one by one as you remove pins.)
-  - Pinned images keep their place and size: if Tavo mounts the panel again they come back silently, a pin is only moved when it is really out of reach of the screen (measured against the screen's steady height, not the page an open keyboard shortens), and a pin's largest size is worked out from that steady height too.
+  - Pinned images keep their place and size: if Tavo mounts the panel again they come back silently, a pin is only moved when it is really out of reach of the screen (measured against the screen's steady height, not the page an open keyboard shortens), and a pin's largest size is worked out from that steady height too. If the page behind the panel is reloaded, pins that come back within about 15 seconds return without the TV turn-on effect too.
   - Rename and manage your pins from the PINNED ON CHAT list.
   - Rename saved images and GIFs from their action sheet. Renaming only changes the label; the file is never touched.
   - Double-tap a pinned image, or tap a saved image, to open it fullscreen.
-  - Save a copy for the chat, save straight to your device, or copy the original link.
+  - Save a copy for the chat, save straight to your device, or copy the original link. A picture or GIF saved to your device is named after the open card's title plus the date and time (for example `The_Chester_Family_Pt_1_20261121-083015.png`); a picture over 25 MB keeps its old file name.
+  - A card's own profile picture (the ones listed under CHAT PROFILES in the panel) can be saved and pinned like any other picture. It is read from the app's own address inside Tavo, so nothing is downloaded from the internet for it.
   - Info button shows format, dimensions, file size and real source for any image.
   - Saving or pinning the same picture twice reuses the same file — no duplicates. Save selected, Save all and Import from device also skip anything that's already in Saved Previews.
   - Import images directly from your device.
@@ -27,12 +28,13 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - **Clear all** next to "Pinned on chat" unpins everything at once (it only unpins; saved copies stay).
 
 - 📖 **Character Page**
-  - Tap **Character page** in the panel (or in the Image Preview menu) to read the open chat's character card as one scrollable page: creator notes, description, personality and scenario, with the pictures and GIFs right where the card put them — a bit like a bot's intro page.
+  - Tap **Character page** in the panel (or in the Image Preview menu) to read the open chat's character card as one scrollable page: it opens on the card's own page (its pictures and GIFs right where the card put them, centered lines, boxes and collapsible parts) — a bit like a bot's intro page. Creator notes, description, personality and scenario wait under **Card details**, one tap away. A card without such a page shows those parts one after another.
   - Works with the rich text that Janitor-style cards use, and with Markdown or plain text. `{{user}}` and `{{char}}` are filled in. Lists (`-`, `*`, `•`, `1.`, with sub-lists) and quotes (`>`) show as real lists and quotes, and a card's own look is kept: text colours, backgrounds and gradients, borders, rounded corners, spacing, side-by-side rows, centered text, text sizes, bold, italic and underline. Text always stays readable (a colour that can't be read on its background is replaced), and nothing that could cover the page, hide text or load something from outside is carried over. Long runs of blank lines are squeezed.
+  - Collapsible parts of a card really collapse: tap a banner to open it, tap again to close it (closed unless the card says open).
   - Links show as small pills that open **Page view** (below).
   - **Clean view** leaves out promo banners, Discord/Patreon-style links, profile-link “creators”, one-pixel trackers and scraper stamps such as “[retrieved by …]”. A green bar shows how many items were hidden; tap **Show all** to see everything (links are never clickable there).
   - Pictures load only when you scroll close to them, stay hidden until fully loaded, and then fade in, so the page jumps much less.
-  - Tap a picture to see it bigger. In a group chat, tap a name at the top to switch characters.
+  - Tap a picture to see it bigger; tap the card's picture at the top to see it full screen. In a group chat, tap a name at the top to switch characters.
   - Opening it from the panel closes the panel, so only the page is on screen. Close it with ×, with Close at the bottom, or by tapping outside it.
   - **Shortcut button (optional):** turn on **Character page shortcut button** in the plugin's settings for a small round 🗿 button on the chat that opens the Character page in one tap, without opening the panel or the menu. Drag it anywhere; it remembers its place. **Reset floating button position** moves it, and the floating button, back. **Character page button: Stealth Mode** keeps it invisible until you touch it, separately from the floating button's own Stealth Mode.
   - It reads the card on your device only when you open it, and never changes it. See *Privacy & Security* below.
@@ -118,11 +120,13 @@ Image Preview lets you preview and pin images over your chat, read a character c
   - Built-in games are fully offline. Games you add run in a sandbox **with no network access**, so they can't phone home, load outside code or reveal your IP, and they can't read your chats or Tavo data. Still, only add games from sources you trust.
   - "Extract images from text" reads at most the first 300,000 characters, shows at most 200 links and ignores private-network links.
   - "Scan this chat for images" only runs when you tap it. It reads (never changes) the open chat's character card, persona, lorebooks and messages on your device, sends nothing anywhere, and keeps to the same limits and link rules. Plugin permissions: `file`, `network`, `variable`, `input` and `message`.
-  - The Character page reads the open chat's card on your device only when you open it, changes nothing and sends nothing anywhere. Its text is drawn as plain elements — no scripts, no clickable links, and a card's styles are never copied as written (colours, backgrounds, borders and spacing are rebuilt from numbers and keywords within fixed limits; no background pictures, no positioning or animation, nothing that can cover the page or hide text) — and its pictures follow the same public-link rules and load only when you open the page (embedded pictures work too, but not SVG). The site hosting a picture sees your IP address, never a Referer.
+  - The Character page reads the open chat's card on your device only when you open it, changes nothing and sends nothing anywhere. Its text is drawn as plain elements — no scripts, no clickable links, and a card's styles are never copied as written (colours, backgrounds, borders and spacing are rebuilt from numbers and keywords within fixed limits; no background pictures, no positioning or animation, nothing that can cover the page or hide text; collapsible parts are rebuilt as plain collapsible elements, at most 80, with nothing of the card's markup copied) — and its pictures follow the same public-link rules and load only when you open the page (embedded pictures work too, but not SVG). The site hosting a picture sees your IP address, never a Referer.
   - Page view downloads the page you ask for to a temporary file, reads it as inert text (nothing on it runs or loads: no scripts, styles, frames, ads or trackers), shows its words and pictures, and deletes the temporary file. It follows the same public-link rules and size limits. For Image Chest links, the picture list the page keeps inside itself is read the same way, as data that is never run. The site hosting the page and its pictures sees your IP address.
   - The Storage manager only looks for Image Preview's own files and settings (recognised by name), shows what will go before every clean-up, asks for an extra tick before the Recycle Bin is emptied, and sends nothing anywhere.
   - When an image loads from the web, the site hosting it sees your IP address (that can't be avoided), but never a Referer.
   - The **Diagnostics** section at the end of the Help guide shows a short log of screen sizes, pin positions and timings (never a link or chat text). It lives only in the page's memory, is never saved or sent, and goes to your clipboard only when you tap Copy.
+  - Saving a card's own profile picture reads it from the app's own address inside Tavo (no internet is used), checks that it starts like a picture (a file over 25 MB is refused) and keeps a copy on your device. Nothing is sent anywhere. Saving to your device holds that picture in memory once while it is handed to Tavo's save sheet.
+  - To bring pins back quietly after a page reload, the panel keeps a small note in the page's session storage: how many pins were on screen and a time. It holds no link, picture name or chat text and is never sent anywhere.
   - Found a problem? See [`SECURITY.md`](SECURITY.md).
 
 ## Installation
@@ -142,15 +146,16 @@ Updating from an older version? Close Tavo completely and open it again once, so
 
 ## Current Version
 
-**v2.29.1**
+**v2.30.1**
 
 Highlights:
 
-- New: **Language setting** — Same as Tavo (the default), English or Bengali, chosen in the plugin's own settings. It changes Image Preview's own screens; Tavo's own menus and setting names still follow Tavo.
-- New: **Character page shortcut button** — an optional small round 🗿 button on the chat that opens the Character page in one tap. Drag it anywhere. Its own Stealth Mode hides it until touched, separately from the floating button's.
-- Improved: pinned images come back silently, in the same place and size, if Tavo mounts the panel again, and their largest size follows the screen's steady height instead of the page an open keyboard shortens.
-- Fixed: the floating button and the game window crept upward each time the keyboard opened; a pin could stay off the screen after turning the phone; a mouse hovering over the floating button dragged it.
-- New: a small **Diagnostics** section in Help (sizes and timings only, never links or chat text) for reporting problems.
+- New: the **Character page opens on the card's own page** (pictures, centered lines, boxes and collapsible parts), full width. Description, personality, scenario and notes wait under **Card details**. A card without such a page looks as before.
+- New: a card's **collapsible parts really collapse**: tap a banner to open it, tap again to close it.
+- New: **Save to device names the file after the card** and the date and time, not after the plugin.
+- Fixed: **Save preview and Save to device now work for a card's own profile picture.**
+- Fixed: a space at the start of bold or italic text was lost on the Character page.
+- Improved: pinned images come back quietly after a page reload, and Diagnostics records more facts (numbers and timings only, never links or chat text).
 - The ❔ Help guide explains all of this, in English and Bengali.
 
 See [`CHANGELOG.md`](CHANGELOG.md) or the [Releases](https://github.com/mrsae123/Image-Preview-/releases) page for the full history.
