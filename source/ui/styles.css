@@ -378,7 +378,7 @@ button:active, .emon-iv-card:active, .emon-iv-sheet-actions button:active {
 .emon-iv-page-chars button.on{background:#8b5cf6;border-color:#8b5cf6}
 .emon-iv-page-body{flex:1 1 auto;min-height:120px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:2px 2px 10px}
 .emon-iv-pg-head{display:flex;align-items:center;gap:10px;margin:0 0 12px}
-.emon-iv-pg-head img{width:52px;height:52px;border-radius:14px;object-fit:cover;flex:none;background:#ffffff10}
+.emon-iv-pg-head img{width:60px;height:60px;border-radius:15px;object-fit:cover;flex:none;background:#ffffff10;cursor:zoom-in}
 .emon-iv-pg-name{font-size:calc(16px * var(--emon-iv-ts,1));font-weight:800;line-height:1.25}
 .emon-iv-pg-by{font-size:calc(11.5px * var(--emon-iv-ts,1));opacity:.6}
 .emon-iv-pg-sec{margin:0 0 14px;padding:12px;border-radius:14px;background:#ffffff0a;border:1px solid #ffffff10}
@@ -633,3 +633,20 @@ body:has(.emon-iv-modal.show) #emon-iv-root #emon-iv-panel::before{animation-pla
 .emon-iv-recycle-card .recycle-left{display:block;margin:5px 7px 0;padding:2px 8px;border:1px solid var(--iv-line);border-radius:999px;background:var(--iv-raise2);font-size:calc(11px * var(--emon-iv-ts,1));font-weight:800;line-height:1.5;text-align:center;white-space:normal}
 .emon-iv-recycle-card .recycle-left.soon{border-color:#e0a84a88;background:#e0a84a24;color:#f2c377}
 .emon-iv-recycle-card .recycle-left.urgent{border-color:var(--iv-bad-line);background:var(--iv-bad-bg);color:#ffa3a3}
+
+/* Character page: the card's own page (Intro), collapsible parts and "Card details" */
+.emon-iv-pg-intro{margin:0 0 14px;padding:0 2px}
+.emon-iv-pg-txt details.emon-iv-pg-det{margin:10px 0;border:1px solid #ffffff1c;border-radius:12px;background:#ffffff08;overflow:hidden}
+.emon-iv-pg-txt details.emon-iv-pg-det>summary,.emon-iv-pg-more>summary{position:relative;display:block;list-style:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.emon-iv-pg-txt details.emon-iv-pg-det>summary{padding:10px 42px 10px 12px;font-weight:700}
+.emon-iv-pg-txt details.emon-iv-pg-det>summary::-webkit-details-marker,.emon-iv-pg-more>summary::-webkit-details-marker{display:none}
+.emon-iv-pg-txt details.emon-iv-pg-det>summary::after{content:'▾';position:absolute;right:8px;top:8px;width:24px;height:24px;border-radius:999px;background:#000c;color:#fff;font-size:13px;font-weight:400;line-height:24px;text-align:center;transition:transform .18s}
+.emon-iv-pg-txt details.emon-iv-pg-det[open]>summary::after{transform:rotate(180deg)}
+.emon-iv-pg-txt details.emon-iv-pg-det>summary:focus-visible,.emon-iv-pg-more>summary:focus-visible{outline:2px solid #8b5cf6;outline-offset:-2px}
+.emon-iv-pg-txt summary .emon-iv-pg-img{margin:0;border-radius:0;cursor:pointer}
+.emon-iv-pg-more{margin:6px 0 14px;border:1px solid #ffffff12;border-radius:14px;background:#ffffff06}
+.emon-iv-pg-more>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;font-size:calc(12.5px * var(--emon-iv-ts,1));font-weight:800;letter-spacing:.02em}
+.emon-iv-pg-more>summary::after{content:'▾';opacity:.7;transition:transform .18s}
+.emon-iv-pg-more[open]>summary::after{transform:rotate(180deg)}
+.emon-iv-pg-more>.emon-iv-pg-sec{margin:0 10px 10px}
+@media (prefers-reduced-motion: reduce){.emon-iv-pg-txt details.emon-iv-pg-det>summary::after,.emon-iv-pg-more>summary::after{transition:none}}

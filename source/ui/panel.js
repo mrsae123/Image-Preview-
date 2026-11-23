@@ -11,6 +11,13 @@
   const DIAG = (window.__emonIvDiag = Array.isArray(window.__emonIvDiag) ? window.__emonIvDiag : []);
   const diag = (msg) => { try { DIAG.push((performance.now() / 1000).toFixed(2) + 's ' + msg); if (DIAG.length > 80) DIAG.splice(0, DIAG.length - 80); } catch {} };
   diag('mount #' + (window.__emonIvMounts = (window.__emonIvMounts || 0) + 1) + ', pins on screen ' + document.querySelectorAll('[data-emon-pin]').length);
+  // When the page itself is reloaded (not a new chat), the previous page of this panel had written down when it was last alive (a count and a time,
+  // nothing else). Pins that come back within a few seconds after that return quietly, like after a re-mount.
+  const ALIVE_KEY = 'emonIvAlive';
+  let prevAlive = null;
+  try { const raw = window.sessionStorage && window.sessionStorage.getItem(ALIVE_KEY); const v = raw ? JSON.parse(raw) : null; if (v && Number.isFinite(v.at) && Number.isFinite(v.n)) prevAlive = v; } catch {}
+  if (prevAlive) diag('previous page of this panel was alive ' + Math.max(0, Math.round((Date.now() - prevAlive.at) / 1000)) + 's ago, pins ' + prevAlive.n);
+  function aliveBeat() { try { window.sessionStorage.setItem(ALIVE_KEY, JSON.stringify({ at: Date.now(), n: pins.length })); } catch {} }     // a count and a time, nothing else
   // If this fragment gets mounted again in the same window (chat switch, plugin reload), the previous copy's window
   // listeners and Tavo subscriptions are released first, so nothing runs twice.
   try { window.__emonIvLife && window.__emonIvLife.abort(); } catch {}
@@ -758,6 +765,50 @@
     const guard = new Promise((_, rej) => { timer = setTimeout(() => rej(Object.assign(new Error('timeout'), { code: 'timeout' })), ms); });
     return Promise.race([promise, guard]).finally(() => clearTimeout(timer));
   }
+  // ---------- Pictures that live inside Tavo itself (a card's profile picture) ----------
+  // A card's picture is not a web link: it is an address inside the app (chara/alice.png), the one the page already shows it from.
+  // The Save buttons used to refuse it ("unsupported source"). It is now read the way the page reads it, kept only if its first bytes say
+  // "picture", and stored like any other saved picture. Anything that points outside the app, up a folder, or into the plugin's own
+  // files is not an app picture and is never read here.
+  function ownAppSrc(src) {
+    if (typeof src !== 'string') return null;
+    const s = src.trim();
+    if (!s || s.length > 2000 || /[\u0000-\u001F\u007F\\]/.test(s) || /%(?:2e|2f|5c|00)/i.test(s)) return null;      // control characters, backslashes, and encoded dots/slashes (the address bar treats %2e%2e as "..")
+    try {
+      let abs;
+      if (s.startsWith(location.origin + '/')) abs = s;
+      else if (/^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith('//')) return null;               // another scheme or another host
+      else abs = new URL(s, document.baseURI).href;
+      const u = new URL(abs);
+      if (u.origin !== location.origin) return null;
+      let dec = u.pathname; try { dec = decodeURIComponent(dec); } catch {}
+      if (/(^|\/)\.\.(\/|$)/.test(s) || /(^|\/)\.\.(\/|$)/.test(dec)) return null;               // no climbing out of the folder
+      if (/^\/?files\//i.test(s) || /^\/files\//i.test(u.pathname) || /^\/plugins\//i.test(u.pathname)) return null;   // plugin files and scripts have their own ways
+      return u.href;
+    } catch { return null; }
+  }
+  async function readOwnPicture(src) {
+    const href = ownAppSrc(src);
+    if (!href) throw new Error('unsupported source');
+    const resp = await withTimeout(fetch(href, { credentials: 'omit' }), 15000);
+    if (!resp || !resp.ok) throw new Error('own picture could not be read');
+    try { if (resp.url && new URL(resp.url).origin !== location.origin) throw new Error('left the app'); } catch (e) { if (e && e.message === 'left the app') throw e; }
+    const len = Number(resp.headers && resp.headers.get && resp.headers.get('content-length'));
+    if (len > TMP_MAX_BYTES) throw blockedErr('runtime.fileTooBig');
+    const blob = await withTimeout(resp.blob(), 20000);
+    if (!blob || blob.size > TMP_MAX_BYTES) throw blockedErr('runtime.fileTooBig');
+    const dataUrl = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result || '')); fr.onerror = () => rej(fr.error || new Error('read failed')); fr.readAsDataURL(blob); });
+    const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+    const ext = sniffImageExt(b64);
+    if (!ext) throw blockedErr('runtime.notImageFile');
+    return { b64, ext };
+  }
+  async function persistOwnPicture(src, prefix) {
+    const { b64, ext } = await readOwnPicture(src);
+    const safe = prefix.replace(/[^a-z0-9_-]/gi, '-').slice(0, 32);
+    return tavo.file.save(`${safe}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`, b64, { scope: 'chat', encoding: 'base64' });
+  }
+
   // Two taps (or Save + Pin) on the same address while the first download is still running used to start two downloads
   // and keep two copies. The same address already in flight now shares that one download.
   const _persistInflight = new Map();
@@ -771,6 +822,8 @@
     return p;
   }
   async function persistRemoteNow(url, prefix='emon-preview', requireListed=false) {
+    if (ownAppSrc(url)) return persistOwnPicture(url, prefix);       // a picture inside Tavo (a card's profile picture), not a web link
+    if (!/^(?:https?:|data:image\/)/i.test(String(url || ''))) throw new Error('unsupported source');   // not a web link, not a picture in the link itself, not a picture of the app: nothing is asked for or written
     if (/^https?:/i.test(url) && !isPublicHttpUrl(url)) throw new Error('blocked address');
     if (/^https?:/i.test(url) && isBlockedFileType(url)) throw blockedErr('runtime.notImageFile');
     const existing = await findExistingBySource(url, requireListed);
@@ -946,7 +999,7 @@
     try {
       let src = preview.src;
       let already = false;
-      if (/^https?:/i.test(src) || /^data:image\//i.test(src)) {
+      if (/^https?:/i.test(src) || /^data:image\//i.test(src) || ownAppSrc(src)) {
         already = /^https?:/i.test(src) && !!(await findExistingBySource(src, true));
         src = await persistRemote(src, 'emon-preview', true);
       } else if (/^files\//i.test(src)) {
@@ -1737,6 +1790,55 @@
     try { await navigator.clipboard.writeText(link); tavo.utils.toast(t('runtime.linkCopied')); }
     catch { tavo.utils.toast(t('runtime.error')); }
   }
+  // ---------- Names for pictures that leave for the device ----------
+  // The save/share sheet shows the file's own name, and files kept inside the chat carry internal ones (emon-preview-...). A picture
+  // that leaves is therefore handed over under a clean name made from the open card's title, e.g. The_Chester_Family_Pt_1_20261121-083015.png
+  function safeNameStem(s) {
+    s = String(s == null ? '' : s).slice(0, 200);
+    try { s = s.normalize('NFC'); } catch {}
+    s = s.replace(/[\u200B-\u200D\u2060\uFEFF]/g, '');                 // joiners (Bangla, Persian) vanish instead of leaving a gap
+    try { s = s.replace(/[^\p{L}\p{M}\p{N}]+/gu, '_'); } catch { s = s.replace(/[^A-Za-z0-9]+/g, '_'); }
+    if (s.charCodeAt(0) === 95) s = s.slice(1);
+    const cps = Array.from(s);
+    if (cps.length > 40) {                                              // cut at 40 letters, but at a word end when one is close
+      let cut = cps.slice(0, 40);
+      if (cps[40] !== '_') { const k = cut.lastIndexOf('_'); if (k >= 20) cut = cut.slice(0, k); }
+      s = cut.join('');
+    }
+    while (s.length && s.charCodeAt(s.length - 1) === 95) s = s.slice(0, -1);
+    return s;
+  }
+  const nameStamp = (d = new Date()) => { const p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds()); };
+  const EXPORT_NAME_EXTS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'bmp', 'svg']);
+  const EXPORT_RENAME_MAX = 25 * 1024 * 1024;     // a bigger picture keeps its own name: renaming means holding it in memory as text once
+  async function exportNameFor(path) {
+    const ext = extOf(path);
+    if (!EXPORT_NAME_EXTS.has(ext)) return '';
+    let stem = '';
+    try {
+      const chat = await tavo.chat.current();
+      const c = chat && Array.isArray(chat.characters) ? chat.characters.find((x) => x && typeof x.name === 'string' && x.name.trim()) : null;
+      if (c) stem = safeNameStem(c.name);
+    } catch {}
+    return (stem || 'Image') + '_' + nameStamp() + '.' + ext;
+  }
+  async function exportToDevice(path, knownSize) {
+    const name = await exportNameFor(path);
+    if (name) {
+      let size = Number.isFinite(knownSize) ? knownSize : null;
+      if (size == null && /^files\/chat\//i.test(path)) { try { const m = await listChatFilesMatching((x) => x.path === path, 5); if (m[0] && Number.isFinite(m[0].size)) size = m[0].size; } catch {} }
+      if (size == null || size <= EXPORT_RENAME_MAX) {
+        let b64 = null;
+        try { b64 = await tavo.file.load(path, { encoding: 'base64' }); } catch { b64 = null; }
+        if (typeof b64 === 'string' && b64 && b64.length * 0.75 <= EXPORT_RENAME_MAX) {
+          try { await tavo.file.export(name, b64, { encoding: 'base64' }); } finally { b64 = null; }
+          return;
+        }
+        b64 = null;
+      }
+    }
+    await tavo.file.export(path);       // too big to rename safely (or not a picture type): the old way, the file's own name
+  }
   async function saveToDevice(preview) {
     if (!preview?.src) return;
     let path = preview.src;
@@ -1745,7 +1847,7 @@
       // tavo.file.export just hands the file to Tavo's own "Save to downloads / Share" sheet — it does not
       // mean the user actually finished (or even saw) that choice yet. Claiming "Image exported" here would be
       // announcing success before it's true, and that sheet is already its own feedback, so no toast on success.
-      await tavo.file.export(path);
+      await exportToDevice(path, Number(preview.size));
     } catch { tavo.utils.toast(t('runtime.error')); }
     finally {
       // The temporary copy is removed even when the share sheet failed (before 2.26.2 a failed export left it behind for good).
@@ -2018,7 +2120,7 @@
       if (nw > 0 && nh > 0) { const ar = Math.round((nw / nh) * 1000) / 1000; if (p.ar !== ar) { p.ar = ar; pinImg.style.aspectRatio = String(ar); queuePinsSave(); } }
     });
     document.body.appendChild(el);
-    if (animate) el.addEventListener('animationend', () => el.classList.remove('emon-iv-spawn'), {once:true});
+    if (animate) { el.addEventListener('animationend', () => el.classList.remove('emon-iv-spawn'), {once:true}); setTimeout(() => el.classList.remove('emon-iv-spawn'), 900); }   // the effect lasts .5s: the class never stays
     bindPinDrag(el,p);
     el.querySelector('[data-act="minus"]').onclick = e => {e.stopPropagation();setScale(p,p.scale*.85)};
     el.querySelector('[data-act="plus"]').onclick = e => {e.stopPropagation();setScale(p,p.scale*1.18)};
@@ -3384,6 +3486,45 @@
   const PG_BLOCK = { p:'p', div:'div', section:'div', article:'div', center:'div', header:'div', footer:'div', main:'div', aside:'div', nav:'div', figure:'div', figcaption:'div', blockquote:'blockquote', pre:'pre', h1:'h3', h2:'h3', h3:'h4', h4:'h4', h5:'h5', h6:'h5', ul:'ul', ol:'ol', li:'li', table:'div', tbody:'div', thead:'div', tfoot:'div', tr:'div', dl:'div', dd:'div', details:'div' };
   const PG_INLINE = { strong:'strong', b:'strong', em:'em', i:'em', cite:'em', u:'u', s:'s', strike:'s', del:'s', code:'code', kbd:'code', samp:'code', span:'span', font:'span', small:'small', sub:'sub', sup:'sup', mark:'span', a:'span', abbr:'span', q:'span', td:'span', th:'span', dt:'strong', summary:'strong', label:'span' };
   let pageSeq = 0, pageCharId = null;
+  const PG_MAX_DETAILS = 80;     // collapsible parts drawn from one card; beyond this their words are shown open and flat
+  const PG_INTRO_MIN = 5;        // how page-like a text must be to open the Character page as the card's own "Intro"
+  // How much a text reads like a designed page: pictures and collapsible parts count most, then boxes, headings and rules.
+  // One pass that looks at no more than 4,000 tags and 200 Markdown pictures (nothing here can backtrack on a hostile card).
+  const PG_PAGE_W = { img: 3, details: 3, div: 1, center: 1, table: 1, hr: 1, ul: 1, ol: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, h6: 1, blockquote: 1, section: 1, article: 1, figure: 1, p: 1 };
+  function pgPageScore(s) {
+    s = String(s == null ? '' : s);
+    if (s.length > PG_MAX_TEXT) s = s.slice(0, PG_MAX_TEXT);
+    let score = 0, pos = 0, media = false;
+    for (let guard = 0; guard < 4000 && score < 60; guard++) {
+      const i = s.indexOf('<', pos); if (i < 0) break;
+      pos = i + 1;
+      let j = i + 1, name = '';
+      while (j < s.length && name.length < 9) {
+        let c = s.charCodeAt(j); if (c >= 65 && c <= 90) c += 32;
+        if ((c >= 97 && c <= 122) || (c >= 48 && c <= 57)) { name += String.fromCharCode(c); j++; } else break;
+      }
+      const d = j < s.length ? s.charCodeAt(j) : 62;
+      if (!name || name.length > 8 || !(d === 62 || d === 32 || d === 47 || d === 9 || d === 10 || d === 13)) continue;   // a whole tag name, then a space, ">" or "/"
+      const w = Object.prototype.hasOwnProperty.call(PG_PAGE_W, name) ? PG_PAGE_W[name] : 0;
+      if (w) { score += w; if (name === 'img' || name === 'details') media = true; }
+    }
+    for (let k = 0, from = 0; k < 200 && score < 60; k++) {          // ![text](address)
+      const i = s.indexOf('![', from); if (i < 0) break;
+      from = i + 2;
+      if (s.slice(i + 2, i + 222).indexOf('](') >= 0) { score += 3; media = true; }
+    }
+    return { score: Math.min(score, 60), media };
+  }
+  // Which part of the card is its own page? The most page-like text; creator notes win a tie. -1 = the card has none (the old layout).
+  function pgPickIntro(secs) {
+    let best = -1, bestScore = 0;
+    secs.forEach((sc, i) => {
+      const r = pgPageScore(sc.val);
+      const ok = r.score >= 12 || (r.media && r.score >= PG_INTRO_MIN) || (sc.notes && r.score >= PG_INTRO_MIN);
+      if (ok && r.score > bestScore) { best = i; bestScore = r.score; }
+    });
+    return best;
+  }
 
   // Only bright colours are kept (a very dark one would vanish on the dark page), and only as plain numbers.
   function pgColor(v) {
@@ -3420,7 +3561,8 @@
     try { im.referrerPolicy = 'no-referrer'; } catch {}
     im.addEventListener('error', () => { im.style.display = 'none'; });
     im.addEventListener('load', () => { const show = () => im.classList.add('ld'); try { if (im.decode) im.decode().then(show, show); else show(); } catch { show(); } });
-    im.addEventListener('click', () => { try { tavo.utils.preview(im); } catch {} });
+    if (ctx.inSum) im.classList.add('in-sum');
+    else im.addEventListener('click', () => { try { tavo.utils.preview(im); } catch {} });
     im.src = u;
     out.appendChild(im);
   }
@@ -3982,7 +4124,7 @@
         if (ctx.rich && v.indexOf('\n') >= 0 && pgHasBlocks(v, ok || /^[ \t]*\n/.test(v))) { pgBlocks(out, v, ctx, { br: true, first: ok || /^[ \t]*\n/.test(v), qd: 0 }); return; }   // Markdown lines inside an HTML card
         const s = v.replace(/[\t\r\n ]+/g, ' ');
         if (!s.trim()) { const prev = out.lastChild; if (prev && (prev.nodeType === 3 || (prev.nodeType === 1 && PG_INLINE[prev.tagName.toLowerCase()]))) out.appendChild(document.createTextNode(' ')); return; }
-        pgInline(out, out.lastChild ? s : s.replace(/^ /, ''), ctx);
+        pgInline(out, (out.lastChild || !ok) ? s : s.replace(/^ /, ''), ctx);     // inside an inline element the first space is a real one (the browser drops it at a line start anyway)
         return;
       }
       // plain / Markdown-style text: keep the line breaks; headings, rules, lists and quotes become real elements
@@ -3998,6 +4140,7 @@
     const walk = (node, out, depth, cur = 1, S = S0) => {
       for (let n = node.firstChild; n; n = n.nextSibling) {
         if (ctx.nodes > PG_MAX_NODES) { ctx.cut = true; return; }
+        if (ctx.skip && ctx.skip.has(n)) continue;       // a <summary> that its <details> already drew
         if (n.nodeType === 3) { addText(out, n.nodeValue || '', atLineStart(n)); continue; }
         if (n.nodeType !== 1) continue;
         const tag = n.tagName.toLowerCase();
@@ -4016,6 +4159,36 @@
             else pgLink(out, lk.url, n.textContent || '', ctx);
             continue;
           }
+        }
+        if (tag === 'details') {
+          // A collapsible part stays collapsible (closed unless the card says "open"). Its look is carried over like any other box; the
+          // first <summary> becomes the tap target (a picture there is a banner, not something to zoom).
+          if (!n.textContent.trim() && !n.querySelector('img')) continue;
+          if ((ctx.details || 0) >= PG_MAX_DETAILS || depth >= PG_MAX_DEPTH - 3) { walk(n, out, depth + 1, cur, S); continue; }
+          ctx.details = (ctx.details || 0) + 1; ctx.nodes += 2;
+          const el = document.createElement('details'); el.className = 'emon-iv-pg-det';
+          const st = pgStyleMap(n.getAttribute('style'));
+          let S2 = S;
+          if (ctx.rich) { try { S2 = pgRich(el, n, 'details', true, st, S, ctx)[0]; } catch (_) { S2 = S; } }
+          const nextCur = pgFormat(el, n, 'details', true, cur, st, ctx.rich);
+          if (n.hasAttribute('open')) el.open = true;
+          let sum = null;
+          for (let c = n.firstChild; c; c = c.nextSibling) { if (c.nodeType === 1 && c.tagName.toLowerCase() === 'summary') { sum = c; break; } }
+          const se = document.createElement('summary');
+          if (sum) {
+            const sst = pgStyleMap(sum.getAttribute('style'));
+            let S3 = S2;
+            if (ctx.rich) { try { S3 = pgRich(se, sum, 'summary', true, sst, S2, ctx)[0]; } catch (_) { S3 = S2; } }
+            pgFormat(se, sum, 'summary', true, nextCur, sst, ctx.rich);
+            (ctx.skip || (ctx.skip = new Set())).add(sum);
+            const was = ctx.inSum; ctx.inSum = true;
+            try { walk(sum, se, depth + 2, nextCur, S3); } finally { ctx.inSum = was; }
+          }
+          if (!se.firstChild) { se.setAttribute('data-i18n', 'runtime.pageMore'); se.textContent = t('runtime.pageMore'); }
+          el.appendChild(se);
+          walk(n, el, depth + 1, nextCur, S2);
+          out.appendChild(el);
+          continue;
         }
         const blockTag = PG_BLOCK[tag], inlineTag = PG_INLINE[tag];
         if (depth >= PG_MAX_DEPTH || (!blockTag && !inlineTag)) { walk(n, out, depth + 1, cur, S); continue; }   // unknown or too deep: keep the words, drop the tag
@@ -4091,7 +4264,7 @@
       const clean = cleanIntroOn();
       const hiddenAll = { ads: 0, links: 0, stamps: 0, creator: 0 };
       const head = document.createElement('div'); head.className = 'emon-iv-pg-head';
-      if (safeAvatarSrc(ch.avatar)) { const av = document.createElement('img'); av.alt = ''; av.loading = 'lazy'; av.src = safeAvatarSrc(ch.avatar); av.addEventListener('error', () => { av.style.display = 'none'; }); head.appendChild(av); }
+      if (safeAvatarSrc(ch.avatar)) { const av = document.createElement('img'); av.alt = ''; av.loading = 'lazy'; av.src = safeAvatarSrc(ch.avatar); av.addEventListener('error', () => { av.style.display = 'none'; }); av.addEventListener('click', () => { try { tavo.utils.preview(av); } catch {} }); head.appendChild(av); }
       const meta = document.createElement('div');
       const nm = document.createElement('div'); nm.className = 'emon-iv-pg-name'; nm.textContent = String(ch.name || ''); meta.appendChild(nm);
       const creator = String(ch.creator || '').trim();
@@ -4099,16 +4272,37 @@
       else if (creator) { const by = document.createElement('div'); by.className = 'emon-iv-pg-by'; by.textContent = t('runtime.pageBy', { name: creator.slice(0, 60) }); meta.appendChild(by); }
       head.appendChild(meta); frag.appendChild(head);
       const bar = document.createElement('div'); frag.appendChild(bar);
-      const ctx = { nodes: 0, images: 0, moreImages: false, cut: false, clean, hidden: hiddenAll, links: 0, rich: true, deco: 0, shadows: 0 };
-      let any = false;
+      const ctx = { nodes: 0, images: 0, moreImages: false, cut: false, clean, hidden: hiddenAll, links: 0, rich: true, deco: 0, shadows: 0, details: 0 };
+      const secs = [];
       for (const [k1, k2, key] of [['creatorNotes', 'creator_notes', 'runtime.pageSecNotes'], ['description', '', 'runtime.pageSecDesc'], ['personality', '', 'runtime.pageSecPers'], ['scenario', '', 'runtime.pageSecScen']]) {
         const val = (typeof ch[k1] === 'string' && ch[k1]) ? ch[k1] : (k2 && typeof ch[k2] === 'string' ? ch[k2] : '');
-        if (!val.trim()) continue;
+        if (val.trim()) secs.push({ key, val, notes: k1 === 'creatorNotes' });
+      }
+      const any = secs.length > 0;
+      const addSection = (parent, sc) => {       // a part of the card in its own labelled box
         const sec = document.createElement('div'); sec.className = 'emon-iv-pg-sec';
-        const lab = document.createElement('div'); lab.className = 'emon-iv-pg-label'; lab.setAttribute('data-i18n', key); lab.textContent = t(key); sec.appendChild(lab);
+        const lab = document.createElement('div'); lab.className = 'emon-iv-pg-label'; lab.setAttribute('data-i18n', sc.key); lab.textContent = t(sc.key); sec.appendChild(lab);
         const box = document.createElement('div'); box.className = 'emon-iv-pg-txt';
-        const r = pgRender(val, names, ctx); if (r.plain) box.classList.add('plain'); box.appendChild(r.frag);
-        sec.appendChild(box); frag.appendChild(sec); any = true;
+        const r = pgRender(sc.val, names, ctx); if (r.plain) box.classList.add('plain'); box.appendChild(r.frag);
+        sec.appendChild(box); parent.appendChild(sec);
+      };
+      const introAt = pgPickIntro(secs);
+      if (introAt >= 0) {
+        // The card has its own page (pictures, boxes, collapsible parts): it comes first, drawn first (so a huge description can never use
+        // up its share), and the rest of the card waits under "Card details".
+        const intro = document.createElement('div'); intro.className = 'emon-iv-pg-intro emon-iv-pg-txt';
+        const r = pgRender(secs[introAt].val, names, ctx); if (r.plain) intro.classList.add('plain'); intro.appendChild(r.frag);
+        frag.appendChild(intro);
+        const rest = secs.filter((_, k) => k !== introAt);
+        if (rest.length) {
+          const more = document.createElement('details'); more.className = 'emon-iv-pg-more';
+          const sm = document.createElement('summary'); sm.setAttribute('data-i18n', 'runtime.pageDetails'); sm.textContent = t('runtime.pageDetails');
+          more.appendChild(sm);
+          for (const sc of rest) addSection(more, sc);
+          frag.appendChild(more);
+        }
+      } else {
+        for (const sc of secs) addSection(frag, sc);
       }
       if (!any) { const e = document.createElement('div'); e.className = 'emon-iv-pg-empty'; e.setAttribute('data-i18n', 'runtime.pageEmpty'); e.textContent = t('runtime.pageEmpty'); frag.appendChild(e); }
       {
@@ -5183,7 +5377,7 @@
         act('⛶', t('runtime.fullscreen'), () => { try { tavo.utils.preview(f.path); } catch { tavo.utils.toast(t('runtime.error')); } }),
         act('📌', t('runtime.pinExisting'), () => { galBackToMain(); galPinFiles([f]); }),
         act('📁', t('runtime.galMove'), () => { galBackToMain(); galMoveFlow([f]); }),
-        act('↓', t('runtime.saveDevice'), async () => { try { await tavo.file.export(f.path); } catch { tavo.utils.toast(t('runtime.error')); } })),
+        act('↓', t('runtime.saveDevice'), async () => { try { await exportToDevice(f.path, f.size); } catch { tavo.utils.toast(t('runtime.error')); } })),
       stNode('div', { class: 'emon-iv-sheet-group', text: t('runtime.sheetDanger') }),
       stNode('div', { class: 'emon-iv-sheet-actions' }, act('🗑', t('runtime.galRemove'), () => { galBackToMain(); galRemoveFlow([f]); }, 'danger'))]);
   }
@@ -5535,7 +5729,7 @@
     const act = b.getAttribute('data-sheet'); const f = sheetFile;
     if (act === 'view') { tavo.utils.preview(f.path); closeCardSheet(); }
     else if (act === 'pin') { pinPreview({src: f.path, original: f.path, title: getSavedDisplayName(f)}); closeCardSheet(); }
-    else if (act === 'device') { await saveToDevice({src: f.path}); }
+    else if (act === 'device') { await saveToDevice({src: f.path, size: f.size}); }
     else if (act === 'copy') { await copyPreviewLink({src: f.path, original: getSourceMap()[f.path] || f.path}); }
     else if (act === 'rename') { closeCardSheet(); openSavedRenameModal(f); }
     else if (act === 'info') { closeCardSheet(); showImageInfo({src: f.path, original: f.path, title: getSavedDisplayName(f)}, null); }
@@ -5697,7 +5891,7 @@
     // Pins coming back after a re-mount (a chat switch, a plugin reload, or Tavo mounting the panel again) return silently: same place, same size,
     // no TV-turn-on effect. That effect stays for a picture you have just pinned and for the first time a chat opens.
     const had=window.__emonIvHadPins; window.__emonIvHadPins=null;
-    const quiet=!!(had&&had.n>0&&Date.now()-had.at<5000);
+    const quiet=!!(had&&had.n>0&&Date.now()-had.at<5000) || !!(prevAlive&&prevAlive.n>0&&Date.now()-prevAlive.at<15000);
     pins=[]; pinsOverflow=[];
     if(cfg().rememberPins){
       try{
@@ -5716,6 +5910,7 @@
     }
     // renderText() ran before the pins were restored, so the list said "No pinned images yet" while pins were on screen
     renderPinsList();
+    aliveBeat();       // the heartbeat now says how many pins are on screen
   }
 
   // Floating button drag/open
@@ -7793,11 +7988,59 @@
       diagTimer=0;
       try{
         const els=[...document.querySelectorAll('[data-emon-pin]')];
-        diag('settled at '+diagLastSize+', scrollY '+Math.round(window.scrollY||0)+', pins '+els.length+', body transform '+getComputedStyle(document.body).transform+(els.length?', '+els.slice(0,3).map(e=>{const r=e.getBoundingClientRect();return '['+Math.round(r.left)+','+Math.round(r.top)+' want '+parseInt(e.style.left)+','+parseInt(e.style.top)+']';}).join(' '):''));
+        diag('settled at '+diagLastSize+', scrollY '+Math.round(window.scrollY||0)+', pins '+els.length+', body transform '+getComputedStyle(document.body).transform+(els.length?', '+els.slice(0,3).map(e=>{const r=e.getBoundingClientRect();return '['+Math.round(r.left)+','+Math.round(r.top)+' want '+parseInt(e.style.left)+','+parseInt(e.style.top)+']';}).join(' '):'')+', scrollX '+Math.round(window.scrollX||0)+', doc '+document.documentElement.scrollWidth+'w');
       }catch{}
     },400);
   };
   offOnAbort(()=>clearTimeout(diagTimer));
+  // Diagnostics: if the page ever moves a pinned picture by itself (no finger on it), where from and where to is written down. Numbers only.
+  try {
+    if (window.PerformanceObserver && (PerformanceObserver.supportedEntryTypes || []).includes('layout-shift')) {
+      let shifts = 0;
+      const po = new PerformanceObserver((list) => {
+        for (const en of list.getEntries()) {
+          if (en.hadRecentInput || shifts >= 12) continue;
+          for (const s of (en.sources || [])) {
+            const nd = s.node, el = nd && nd.nodeType === 1 ? nd : (nd && nd.parentElement);
+            if (el && el.closest && el.closest('[data-emon-pin]') && s.previousRect && s.currentRect) {
+              shifts++;
+              diag('pin moved by the page: '+Math.round(s.previousRect.x)+','+Math.round(s.previousRect.y)+' to '+Math.round(s.currentRect.x)+','+Math.round(s.currentRect.y));
+              break;
+            }
+          }
+        }
+      });
+      po.observe({ type: 'layout-shift', buffered: false });
+      offOnAbort(()=>po.disconnect());
+    }
+  } catch {}
+  // Diagnostics: if the part of the page you are looking at (the screen view) slides sideways or zooms on its own, say so. Numbers only.
+  try {
+    const vv = window.visualViewport;
+    if (vv && typeof vv.addEventListener === 'function') {
+      let moves = 0, lx = Math.round(vv.offsetLeft), ly = Math.round(vv.offsetTop), ls = Math.round(vv.scale * 100) / 100;
+      const onVv = () => {
+        const x = Math.round(vv.offsetLeft), y = Math.round(vv.offsetTop), sc = Math.round(vv.scale * 100) / 100;
+        if (moves >= 12 || (Math.abs(x - lx) < 2 && Math.abs(y - ly) < 2 && sc === ls)) return;
+        moves++; diag('screen view moved: '+lx+','+ly+' to '+x+','+y+(sc !== ls ? ', zoom '+ls+' to '+sc : '')); lx = x; ly = y; ls = sc;
+      };
+      vv.addEventListener('scroll', onVv, { signal: life.signal, passive: true });
+      vv.addEventListener('resize', onVv, { signal: life.signal, passive: true });
+    }
+  } catch {}
+  // Diagnostics: the TV effect starting on a pin that nobody just pinned or restored shows up here (the effect's name, nothing else).
+  try {
+    let fx = 0;
+    document.addEventListener('animationstart', (e) => {
+      const el = e.target;
+      if (el && el.classList && el.classList.contains('emon-iv-pinned') && fx < 12) { fx++; diag('pin animation ' + String(e.animationName).slice(0, 40)); }
+    }, { capture: true, signal: life.signal });
+  } catch {}
+  // The heartbeat the check above reads: written once the pins are on screen, every few seconds while the page is in front, and when it goes away.
+  const aliveTimer = setInterval(() => { if (!document.hidden) aliveBeat(); }, 4000);
+  offOnAbort(() => clearInterval(aliveTimer));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) aliveBeat(); }, { signal: life.signal });
+  winOn('pagehide', aliveBeat);
   const clampFab=()=>{
     diagResize();
     applyModalInsets();
