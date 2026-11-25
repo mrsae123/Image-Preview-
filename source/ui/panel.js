@@ -4356,7 +4356,7 @@
   const WEB_MAX_IMAGES = 80, WEB_MAX_TEXT = 14000, WEB_MAX_BLOCKS = 140, WEB_FILE = 'emon-iv-pages.json', WEB_KEEP = 20, WEB_PAGE_MS = 25000;
   // A gallery that the page lists as data (see webGalleryFromData): up to WEB_GALLERY_MAX pictures are kept (WEB_GALLERY_SCAN list entries are looked at) and they are
   // put on screen WEB_BATCH at a time. WEB_EXTRACT_V changes whenever the page reader changes what it finds: a saved copy made by an older reader is read again.
-  const WEB_GALLERY_MAX = 500, WEB_GALLERY_SCAN = 3000, WEB_BATCH = 80, WEB_DATA_MAX = 3000000, WEB_EXTRACT_V = 3;
+  const WEB_GALLERY_MAX = 500, WEB_GALLERY_SCAN = 3000, WEB_BATCH = 80, WEB_DATA_MAX = 3000000, WEB_EXTRACT_V = 4;
   let webSeq = 0, webModel = null, webPicked = new Set(), webSaving = false, webBack = null, webGen = 0, webLastUrl = '';
 
   function webErr(code) { const e = new Error(code); e.code = code; return e; }
@@ -4437,22 +4437,148 @@
     const title = typeof post.title === 'string' ? post.title.slice(0, 400).replace(/\s+/g, ' ').trim().slice(0, 140) : '';
     return { images, title, declared, listed: list.length, valid, total: valid + Math.max(0, list.length - n), drop };
   }
+  // ---- Site readers ----
+  // A site reader is host-gated, reads data the page already holds (never runs it), is bounded, and fails alone: if one throws, the others and the generic
+  // reader still run. Image Chest is the first one. To add another: { id, match(pageUrl) -> bool, read(doc, pageUrl, base) -> the shape webGalleryFromData returns }
+  // and a test that fails without it.
+  const WEB_ADAPTERS = [{ id: 'imgchest', match: isImgchestPost, read: webGalleryFromData }];
+  function webRunAdapters(doc, pageUrl, base) {
+    for (const ad of WEB_ADAPTERS) {
+      try {
+        if (!ad.match(pageUrl)) continue;
+        const g = ad.read(doc, pageUrl, base);
+        if (g && g.images && g.images.length) { g.adapter = ad.id; return g; }
+      } catch (e) { console.warn('[Image Preview] site reader', ad.id, e && e.message); }
+    }
+    return null;
+  }
+  // ---- The page's own data (nothing runs) ----
+  // Many sites ship their content as JSON inside the page and draw it with JavaScript afterwards: Next.js ("__NEXT_DATA__"), JSON-LD, any
+  // <script type="application/json">, Inertia's data-page, or a line like "window.__INITIAL_STATE__ = {...}". The JSON is read as DATA (one bounded scan,
+  // then JSON.parse), never run, and every address in it goes through the same checks as any other picture. An address with no file ending (a CDN link
+  // such as /cdn/<id>/card) is only believed under a picture-like NAME in a picture-like PLACE, and only when it is written out in full.
+  const WEB_DATA_PICS = 200, WEB_DATA_NODES = 40000, WEB_DATA_DEPTH = 16, WEB_DATA_SCRIPTS = 16, WEB_DATA_KEYONLY = 60, WEB_DATA_LITERAL = 1500000;
+  const WEB_DATA_MARKERS = ['__INITIAL_STATE__', '__PRELOADED_STATE__', '__APOLLO_STATE__', '__REDUX_STATE__', '__NEXT_DATA__', '__NUXT__', '__DATA__'];
+  const WEB_DATA_EXT_RE = /\.(?:png|jpe?g|gif|webp|avif|bmp)$/i;
+  const WEB_DATA_KEY_RE = /(?:image|images|img|imgs|photo|photos|picture|pictures|pic|pics|avatar|avatars|thumb|thumbs|thumbnail|thumbnails|cover|banner|poster|artwork|preview|screenshot)(?:[_-]?(?:url|urls|src|link|path|uri))?$|^(?:src|url|uri|link|href|file|media|large|medium|full|original|gallery)$/i;
+  const WEB_DATA_PATH_RE = /(?:^|\/)(?:cdn|img|imgs|image|images|media|uploads?|avatars?|bot-avatars|photos?|pictures?|thumbs?|thumbnails?|attachments?|imagedelivery|cdn-cgi\/image)(?:\/|$)/i;
+  const WEB_DATA_HOST_RE = /^(?:cdn|img|imgs|image|images|media|pic|pics|photo|photos|thumb|thumbs|upload|uploads)[0-9]*\./i;
+  const WEB_DATA_SKIP_RE = /favicon|apple-touch-icon|sprite|emoji|spinner|loader|1x1|pixel|\/logo[-_.\/]|[-_.\/]logo\.|\/icons?\/|\.ico(?:[?#]|$)/i;
+  // One text from the data -> { url, ext } when it is a picture address worth showing, else null.
+  function webDataPicture(raw, key, base) {
+    if (typeof raw !== 'string') return null;
+    const s = raw.trim();
+    if (s.length < 6 || s.length > 2048 || /[\s<>"'`\\]/.test(s) || /^(?:data|blob|javascript|file|about|mailto|tel|ftp):/i.test(s)) return null;
+    const full = /^(?:https?:)?\/\//i.test(s);
+    if (!full && s.charAt(0) !== '/' && s.indexOf('/') < 0) return null;                    // "logo.png" on its own is a word, not an address
+    const u = absUrl(base, s.startsWith('//') ? 'https:' + s : s);
+    if (!u || !/^https?:\/\//i.test(u) || u.length > 2048 || !isFetchableUrl(u) || isAdHost(u) || isAdPath(u)) return null;
+    let path = '', host = '';
+    try { const p = new URL(u); path = p.pathname; host = p.hostname; } catch { return null; }
+    if (WEB_DATA_SKIP_RE.test(path)) return null;
+    if (WEB_DATA_EXT_RE.test(path)) return { url: u, ext: true };
+    if (!full) return null;                                                                   // a relative text needs a real picture ending ("image/png" is a type, not a file)
+    if (/\.[a-z0-9]{1,8}$/i.test(path.split('/').pop() || '')) return null;                  // some other kind of file (.js, .css, .html ...)
+    if (key && WEB_DATA_KEY_RE.test(key) && (WEB_DATA_PATH_RE.test(path) || WEB_DATA_HOST_RE.test(host))) return { url: u, ext: false };
+    return null;
+  }
+  // Walks parsed JSON without recursion and with hard limits (40,000 values queued, depth 16, 2,000 per list, 400 per object); document order is kept.
+  function webDataWalk(root, base, push, st) {
+    const stack = [[root, '', 0]];
+    while (stack.length && st.nodes < WEB_DATA_NODES) {
+      const [v, key, d] = stack.pop(); st.nodes++;
+      if (typeof v === 'string') { const p = webDataPicture(v, key, base); if (p) push(p); continue; }
+      if (!v || typeof v !== 'object' || d >= WEB_DATA_DEPTH) continue;
+      const kids = [];
+      if (Array.isArray(v)) { const n = Math.min(v.length, 2000); for (let i = 0; i < n; i++) { const c = v[i]; if (typeof c === 'string' || (c && typeof c === 'object')) kids.push([c, key, d + 1]); } }
+      else { const ks = Object.keys(v), n = Math.min(ks.length, 400); for (let i = 0; i < n; i++) { const c = v[ks[i]]; if (typeof c === 'string' || (c && typeof c === 'object')) kids.push([c, ks[i], d + 1]); } }
+      kids.length = Math.min(kids.length, Math.max(0, WEB_DATA_NODES - st.queued)); st.queued += kids.length;
+      for (let i = kids.length - 1; i >= 0; i--) stack.push(kids[i]);
+    }
+  }
+  // "window.__INITIAL_STATE__ = {...};" -> the text of the {...}, found with ONE scan that respects JSON strings (it is never evaluated). '' when there is none.
+  function webAssignedObject(txt) {
+    for (const mk of WEB_DATA_MARKERS) {
+      const at = txt.indexOf(mk); if (at < 0) continue;
+      let p = at + mk.length;
+      const lim = Math.min(txt.length, p + 24);
+      while (p < lim && /\s/.test(txt.charAt(p))) p++;
+      if (txt.charAt(p) !== '=') continue; p++;
+      while (p < lim + 8 && /\s/.test(txt.charAt(p))) p++;
+      if (txt.charAt(p) !== '{') continue;
+      let depth = 0, inStr = false;
+      const end = Math.min(txt.length, p + WEB_DATA_LITERAL);
+      for (let i = p; i < end; i++) {
+        const c = txt.charCodeAt(i);
+        if (inStr) { if (c === 92) i++; else if (c === 34) inStr = false; continue; }
+        if (c === 34) inStr = true;
+        else if (c === 123 || c === 91) depth++;
+        else if (c === 125 || c === 93) { depth--; if (depth === 0) return txt.slice(p, i + 1); }
+      }
+    }
+    return '';
+  }
+  // The JSON the page carries as data (at most 16 pieces, 3 MB together), parsed and never run.
+  function webDataRoots(doc, withLd) {
+    const roots = []; let used = 0;
+    const take = (txt) => {
+      if (roots.length >= WEB_DATA_SCRIPTS) return;
+      const s = String(txt || '').trim();
+      if (s.length < 2 || used + s.length > WEB_DATA_MAX) return;
+      const c = s.charCodeAt(0); if (c !== 123 && c !== 91) return;
+      used += s.length;
+      try { const v = JSON.parse(s); if (v && typeof v === 'object') roots.push(v); } catch {}
+    };
+    const dp = webReadPageData(doc); if (dp) roots.push(dp);
+    const jn = doc.querySelectorAll(withLd ? 'script[type="application/json"],script[type="application/ld+json"],script[type="application/vnd.api+json"]' : 'script[type="application/json"],script[type="application/vnd.api+json"]');
+    for (let i = 0; i < jn.length && i < 40; i++) take(jn[i].textContent);
+    const sn = doc.querySelectorAll('script:not([src])');
+    for (let i = 0; i < sn.length && i < 60 && roots.length < WEB_DATA_SCRIPTS; i++) {
+      const ty = String(sn[i].getAttribute('type') || '').toLowerCase();
+      if (ty && ty !== 'text/javascript' && ty !== 'application/javascript' && ty !== 'module') continue;   // the JSON kinds were read above; a template is not data
+      const txt = sn[i].textContent || ''; if (txt.length < 30 || txt.length > WEB_DATA_MAX) continue;
+      const lit = webAssignedObject(txt); if (lit) take(lit);
+    }
+    return roots;
+  }
+  // -> null when the page carries no data, else { images: [{ url, alt }], roots, nodes } (in the order the data lists them, no address twice).
+  function webDataImages(doc, base, withLd) {
+    const roots = webDataRoots(doc, withLd); if (!roots.length) return null;
+    const out = [], seen = new Set(), st = { nodes: 0, queued: 0 }; let keyOnly = 0;
+    const push = (p) => {
+      const k = p.url.replace(/#.*$/, '');
+      if (seen.has(k) || out.length >= 1000) return;
+      if (!p.ext) { if (keyOnly >= WEB_DATA_KEYONLY) return; keyOnly++; }
+      seen.add(k); out.push({ url: p.url, alt: '' });
+    };
+    for (const r of roots) webDataWalk(r, base, push, st);
+    return { images: out, roots: roots.length, nodes: st.nodes };
+  }
+  // A "blocked" or "checking your browser" screen is the site saying no (not an app that needs JavaScript). Judged from the title and the visible words only.
+  const WEB_DENIED_RE = /sorry,? you have been blocked|you have been blocked|you are unable to access|error (?:code:? )?1020|access denied|your request has been blocked|request blocked|has been blocked by|403 forbidden|unusual traffic from your/i;
+  const WEB_CHALLENGE_RE = /just a moment|attention required|checking your browser|verify(?:ing)? you are (?:a )?human|enable javascript and cookies to continue|needs to review the security of your connection|please complete the security check|ddos protection|one more step/i;
+  function webBlockKind(title, text) {
+    const s = (String(title || '') + ' ' + String(text || '')).slice(0, 3000);
+    if (WEB_DENIED_RE.test(s)) return 'denied';
+    if (WEB_CHALLENGE_RE.test(s)) return 'challenge';
+    return '';
+  }
   // Pictures and words of a downloaded page. Ads, trackers and one-pixel images are counted, never kept.
   function parseWebPage(html, pageUrl) {
     const doc = new DOMParser().parseFromString(String(html).slice(0, 3000000), 'text/html');   // inert: nothing in it runs or loads
     const host = webHost(pageUrl);
     const baseTag = doc.querySelector('base[href]');
     const base = (baseTag && absUrl(pageUrl, baseTag.getAttribute('href'))) || pageUrl;
-    const gal = webGalleryFromData(doc, pageUrl, base);              // a gallery the page lists as data (Image Chest), or null
+    const gal = webRunAdapters(doc, pageUrl, base);                  // a gallery a known site lists as data (Image Chest), or null
     const useGal = !!(gal && gal.images.length);
     const meta = (sel) => { const m = doc.querySelector(sel); return m ? String(m.getAttribute('content') || '').trim() : ''; };
     const title = ((useGal && gal.title) || meta('meta[property="og:title"]') || (doc.title || '').trim() || meta('meta[name="twitter:title"]') || host).replace(/\s+/g, ' ').slice(0, 140);
     let blocked = doc.querySelectorAll('script[src],iframe,ins,embed,object').length;     // present on the page, never loaded here
     const imgs = [], seen = new Set(), drop = { dup: 0, small: 0, bad: 0, cap: 0 };      // what the filters kept out (counts only)
-    let heroN = 0, bodyN = 0, more = false;
+    let heroN = 0, bodyN = 0, more = false, dataN = 0, dataCap = 0, dataRoots = 0;
     const add = (raw, o = {}) => {
       if (!raw) return;
-      if (imgs.length >= WEB_MAX_IMAGES) { drop.cap++; return; }
+      if (imgs.length >= (o.data ? WEB_DATA_PICS : WEB_MAX_IMAGES)) { drop.cap++; if (o.data) dataCap++; return; }
       const u = absUrl(base, decodeHtml(String(raw).trim()));
       if (!u || !/^https?:\/\//i.test(u) || u.length > 2048 || !isFetchableUrl(u)) { drop.bad++; return; }
       if (isAdHost(u) || (o.node && inAdContext(o.node)) || (!o.hero && isAdPath(u))) { blocked++; return; }
@@ -4527,22 +4653,32 @@
       chars += s.length;
       lines.push(tag === 'h1' || tag === 'h2' ? '## ' + s : /^h[34]$/.test(tag) ? '### ' + s : tag === 'li' ? '- ' + s : tag === 'blockquote' ? '> ' + s : s);
     });
-    const head = String(html).slice(0, 8000);
-    const challenge = /just a moment|attention required|verify you are human|enable javascript and cookies|cf-browser-verification|challenge-platform/i.test(head);
     const textOut = lines.join('\n\n').slice(0, WEB_MAX_TEXT);
-    // Only the social-preview picture and hardly any words: usually an app that draws itself with JavaScript (a gallery read from data is never a "shell").
-    const shell = !useGal && heroN > 0 && bodyN === 0 && textOut.length < 300;
+    // The page's own data (see webDataImages): only on a thin page that shows few pictures itself, which is what an app that draws itself with JavaScript looks like
+    // (a page with real words keeps to its own pictures: its data usually lists other posts' thumbnails). JSON-LD only repeats what a page shows, so it is read when the page shows none.
+    if (!useGal && bodyN <= 3 && textOut.length < 300) {
+      try {
+        const dat = webDataImages(doc, base, bodyN === 0);
+        if (dat) { dataRoots = dat.roots; for (const x of dat.images) { const before = imgs.length; add(x.url, { data: true, alt: x.alt }); if (imgs.length > before) dataN++; } }
+      } catch (e) { console.warn('[Image Preview] page data', e && e.message); }
+    }
+    const ownBody = bodyN - dataN;                                    // the page's own pictures, not the ones found in its data
+    // Only the social-preview picture, hardly any words and (almost) nothing in its data: usually an app that draws itself with JavaScript (a gallery read from data is never a "shell").
+    const shell = !useGal && heroN > 0 && ownBody === 0 && textOut.length < 300 && dataN < 3;
+    const block = (imgs.length <= 1 && textOut.length < 400) ? webBlockKind(doc.title || '', textOut) : '';    // only a thin page can be a "blocked" screen
     const stats = useGal
       ? { src: 'gallery', listed: gal.listed, declared: gal.declared, found: gal.valid, kept: imgs.length, dup: gal.drop.dup, type: gal.drop.type, bad: gal.drop.bad }
-      : { src: 'page', kept: imgs.length, hero: heroN, body: bodyN, ads: blocked, small: drop.small, dup: drop.dup, bad: drop.bad, cap: drop.cap };
-    return { url: pageUrl, title, host, images: imgs, text: textOut, blocked, via: useGal ? 'gallery' : 'page', challenge,
-      more: more || !!(useGal && gal.declared > gal.listed), total: useGal ? gal.total : imgs.length, declared: useGal ? gal.declared : 0, shell, stats };
+      : { src: 'page', kept: imgs.length, hero: heroN, body: bodyN, ads: blocked, small: drop.small, dup: drop.dup, bad: drop.bad, cap: drop.cap, data: dataN, droots: dataRoots };
+    return { url: pageUrl, title, host, images: imgs, text: textOut, blocked, via: useGal ? 'gallery' : (dataN > 0 && ownBody === 0 ? 'data' : 'page'), block, challenge: block === 'challenge',
+      more: more || !!(useGal && gal.declared > gal.listed), total: useGal ? gal.total : imgs.length + dataCap, declared: useGal ? gal.declared : 0, shell, stats };
   }
   // Tavily reads the page on its own servers (for pages that only show their pictures with JavaScript); only the link is sent.
-  async function webViaTavilyPage(url, key) {
-    const data = await tavilyPost('extract', { urls: [url], include_images: true, extract_depth: 'basic', format: 'markdown' }, key, 28000);
+  // "basic" first; "advanced" (Tavily's deeper read: slower, 2 credits per 5 pages instead of 1) only when the basic read found nothing.
+  async function webViaTavilyPage(url, key, depth) {
+    const deep = depth === 'advanced';
+    const data = await tavilyPost('extract', { urls: [url], include_images: true, extract_depth: deep ? 'advanced' : 'basic', format: 'markdown', timeout: deep ? 30 : 20 }, key, deep ? 36000 : 26000);
     const r = data && Array.isArray(data.results) ? data.results[0] : null;
-    if (!r) throw webErr('tavily');
+    if (!r) return { url, title: webHost(url), host: webHost(url), images: [], text: '', blocked: 0, via: 'tavily', deep, block: '' };   // it answered, but found nothing for this link
     const imgs = [], seen = new Set();
     const addI = (u) => {
       u = String(u || '').trim();
@@ -4554,7 +4690,8 @@
     findImageUrls(content).forEach(addI);
     const text = content.replace(/!\[[^\]]{0,300}\]\([^)]{0,2048}\)/g, '').replace(/\n{3,}/g, '\n\n').trim().slice(0, WEB_MAX_TEXT);
     const t0 = (/^#{1,2}\s+(.+)$/m.exec(text) || [])[1];
-    return { url, title: String(t0 || webHost(url)).slice(0, 140), host: webHost(url), images: imgs, text, blocked: 0, via: 'tavily' };
+    const block = (!imgs.length && text.length < 600) ? webBlockKind('', text) : '';       // Tavily was shown a "blocked" screen too
+    return { url, title: String(t0 || webHost(url)).slice(0, 140), host: webHost(url), images: imgs, text, blocked: 0, via: 'tavily', deep, block };
   }
   async function webFetchModel(url, seq) {
     if (looksLikeImage(url)) return webImageModel(url);
@@ -4566,21 +4703,37 @@
       if (dl.image) return webImageModel(url);
       if (!isHtmlish(dl.html)) { if (await probeImage(url)) return webImageModel(url); throw webErr('notpage'); }
       model = parseWebPage(dl.html, url);
+      diag('page read: ' + model.images.length + ' pictures' + (model.stats && model.stats.data ? ', ' + model.stats.data + ' from its data' : '') + (model.shell ? ', app shell' : '') + (model.block ? ', ' + model.block + ' screen' : ''));
     } catch (e) { failure = e; }
     const empty = !model || (!model.images.length && model.text.length < 300);
     // A page whose only picture is its social-preview tag, with hardly any words, is usually an app that draws itself with JavaScript: that one picture is
     // not a success (before 2.26.3 it stopped Tavily from being asked, so the rest of the pictures were never looked for).
     const shell = !!model && !empty && !!model.shell;
+    // A "blocked" or "checking your browser" screen is the site saying no: it is reported as that, and the link is NOT handed to another service to get around it.
+    if (model && model.block && (empty || model.images.length <= 1)) throw webErr(model.block);
+    let tvStatus = 0;                                                                     // 0 = no Tavily trouble, -1 = no answer (timeout / network), else its HTTP status
     if ((empty || shell) && canTavily && !(failure && (failure.code === 'blocked' || failure.code === 'big'))) {
+      const good = (m) => !!m && (empty ? (m.images.length || m.text) : m.images.length > model.images.length);
       webSay(t('runtime.webTavilyTry'));
-      try {
-        const m2 = await webViaTavilyPage(url, tk); if (seq !== webSeq) return null;
-        if (m2 && (empty ? (m2.images.length || m2.text) : m2.images.length > model.images.length)) return m2;
+      let m2 = null;
+      try { m2 = await webViaTavilyPage(url, tk, 'basic'); } catch (e) { tvStatus = (e && e.status) || -1; console.warn('[Image Preview] tavily page', e); }
+      if (seq !== webSeq) return null;
+      diag('tavily basic: ' + (m2 ? m2.images.length + ' pictures' : 'no answer ' + tvStatus));
+      if (m2 && m2.block) throw webErr(m2.block);
+      if (good(m2)) return m2;
+      if (tvStatus === 0) {                                                               // it answered but found nothing: worth one deeper read. (No answer / a key or limit problem would only repeat or wait longer.)
+        webSay(t('runtime.webTavilyDeep'));
+        let m3 = null;
+        try { m3 = await webViaTavilyPage(url, tk, 'advanced'); } catch (e) { tvStatus = (e && e.status) || -1; console.warn('[Image Preview] tavily deep page', e); }
+        if (seq !== webSeq) return null;
+        diag('tavily advanced: ' + (m3 ? m3.images.length + ' pictures' : 'no answer ' + tvStatus));
+        if (m3 && m3.block) throw webErr(m3.block);
+        if (good(m3)) return m3;
       }
-      catch (e) { console.warn('[Image Preview] tavily page', e); }
     }
-    if (failure && empty) throw failure;
-    if (empty) throw webErr(model && model.challenge ? 'challenge' : 'empty');
+    const why = (e) => { if (e && tvStatus > 0) e.tavily = tvStatus; return e; };       // lets the error screen say that Tavily refused (key, limit)
+    if (failure && empty) throw why(failure);
+    if (empty) throw why(webErr('empty'));
     return model;
   }
 
@@ -4630,6 +4783,7 @@
       if (m && m.blocked > 0) chip('shield', '🛡 ' + t('runtime.webBlocked', { n: m.blocked }));
       if (m && m.via === 'tavily') chip('', '✨ ' + t('runtime.webViaTavily'));
       if (m && m.via === 'gallery') chip('', '🗂 ' + t('runtime.webPictures', { n: m.images.length }) + ' · ' + t('runtime.webViaGallery'));
+      if (m && m.via === 'data') chip('', '🧩 ' + t('runtime.webPictures', { n: m.images.length }) + ' · ' + t('runtime.webViaData'));
       if (m && m.cached) chip('', '💾 ' + t('runtime.webSavedCopy'));
       if (m && m.more) chip('', '➕ ' + t('runtime.webMoreChip'));
     }
@@ -4666,11 +4820,14 @@
   }
   function webRenderError(url, e) {
     const code = (e && e.code) || 'fetch';
-    const known = { blocked: 1, big: 1, timeout: 1, fetch: 1, notpage: 1, challenge: 1, empty: 1 };
+    const known = { blocked: 1, big: 1, timeout: 1, fetch: 1, notpage: 1, challenge: 1, denied: 1, empty: 1 };
     const key = known[code] ? 'runtime.webErr_' + code : 'runtime.webErr_fetch';
     webSay('');
-    const tip = (code === 'empty' || code === 'challenge' || code === 'fetch') && !getTavilyKey() ? t('runtime.webErrTip') : '';
-    const box = webMessage(code === 'challenge' ? '🛡️' : '🫥', t(key), tip);
+    // Tavily was asked and refused: say why (a key it did not accept, its limit). A site that says no (blocked / checking) is never sent to Tavily, so no Tavily tip there.
+    const tv = e && e.tavily;
+    const tip = (tv === 401 || tv === 403) ? t('runtime.webErrTvKey') : (tv === 429 || tv === 432 || tv === 433) ? t('runtime.webErrTvLimit')
+      : ((code === 'empty' || code === 'fetch') && !getTavilyKey() ? t('runtime.webErrTip') : '');
+    const box = webMessage(code === 'challenge' || code === 'denied' ? '🛡️' : '🫥', t(key), tip);
     const row = document.createElement('div'); row.className = 'emon-iv-web-erract';
     const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'emon-iv-btn'; retry.textContent = t('runtime.webRetry');
     retry.onclick = () => webLoad(url, true);
@@ -4805,6 +4962,7 @@
     } catch (e) {
       if (seq !== webSeq) return;
       console.warn('[Image Preview] page view', e && e.code, e);
+      diag('page view failed: ' + String((e && e.code) || 'error').slice(0, 20));
       webRenderError(url, e);
     }
   }
